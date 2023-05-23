@@ -67,7 +67,6 @@ case "$(uname)" in
       fi
     fi
 
-    echo "Going to use JAVA_HOME of: $JAVA_HOME"
     ;;
 esac
 
