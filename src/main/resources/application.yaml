@@ -4,3 +4,9 @@ logging:
     org:
       springframework:
         web: debug
+spring:
+  autoconfigure:
+    exclude: org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
+oauth2:
+  clientId: "AAA"
+  clientSecret: "BBB"
