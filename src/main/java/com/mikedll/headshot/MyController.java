@@ -8,8 +8,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 public class MyController {
 
     @GetMapping("/")
-    @ResponseBody
     public String index() {
-        return "Hello this is the web action running!";
+        return "index";
     }
 }
