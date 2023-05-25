@@ -9,4 +9,4 @@ spring:
     exclude: org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
   config:
     import:
-      - "optional:secrets.yaml"
+      - "secrets.yaml"
