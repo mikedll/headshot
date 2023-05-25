@@ -3,7 +3,7 @@ Trying to get a java web app going.
 
 ### Running
 
-  mvn spring-boot:run 
+    mvn spring-boot:run 
 
 ### Links on using java.
 
