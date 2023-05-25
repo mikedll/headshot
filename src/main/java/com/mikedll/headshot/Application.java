@@ -15,7 +15,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ResolvableType;
 
 @SpringBootApplication
-@EnableConfigurationProperties(Oauth2ConfigProperties.class)
 public class Application {
 
     @Autowired
@@ -29,7 +28,7 @@ public class Application {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
             .authorizeHttpRequests(authorize -> authorize
-                                   .requestMatchers("/oauth2_login")
+                                   .requestMatchers("/oauth2_login", "/error")
                                    .permitAll()
                                    .anyRequest().authenticated())
             .oauth2Login()
