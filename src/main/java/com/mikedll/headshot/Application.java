@@ -21,8 +21,6 @@ public class Application {
             .authorizeHttpRequests(authorize -> authorize
                                    .requestMatchers("/oauth2_login")
                                    .permitAll()
-                                   .requestMatchers("/oauth2/authorize-client/github")
-                                   .permitAll()
                                    .anyRequest().authenticated())
             .oauth2Login()
             .loginPage("/oauth2_login");
