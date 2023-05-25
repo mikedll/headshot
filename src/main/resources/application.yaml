@@ -7,6 +7,6 @@ logging:
 spring:
   autoconfigure:
     exclude: org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
-oauth2:
-  clientId: "CCC"
-  clientSecret: "BBB"
+  config:
+    import:
+      - "optional:secrets.yaml"
