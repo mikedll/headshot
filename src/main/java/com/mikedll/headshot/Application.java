@@ -17,12 +17,13 @@ public class Application {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http.authorizeRequests()
-            .requestMatchers("/oauth2_login")
-            .permitAll()
-            .anyRequest()
-            .authenticated()
-            .and()
+        http
+            .authorizeHttpRequests(authorize -> authorize
+                                   .requestMatchers("/oauth2_login")
+                                   .permitAll()
+                                   .requestMatchers("/oauth2/authorize-client/github")
+                                   .permitAll()
+                                   .anyRequest().authenticated())
             .oauth2Login()
             .loginPage("/oauth2_login");
         return http.build();
