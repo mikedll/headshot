@@ -29,3 +29,5 @@ https://stackoverflow.com/questions/44100720/spring-boot-app-with-embedded-tomca
 [Maven Dependencies and BOMs](https://reflectoring.io/maven-bom/)
 
 [SecurityFilterChain example in Spring docs](https://docs.spring.io/spring-security/reference/servlet/configuration/java.html#jc-httpsecurity)
+
+[Spring: Override Default Security Auto-Configuration](https://docs.spring.io/spring-security/reference/servlet/oauth2/login/core.html#oauth2login-completely-override-autoconfiguration)
