@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Controller
 public class LoginController {
 
-    private static final String authorizationRequestBaseUri = "oauth2/authorize-client";
+    private static final String authorizationRequestBaseUri = "oauth2/authorization";
     
     @Autowired
     private ClientRegistrationRepository clientRegistrationRepository;
