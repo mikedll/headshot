@@ -13,14 +13,11 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 public class Servlet extends HttpServlet {
-
-    public static final String HTML_START="<html><body>";
-    public static final String HTML_END="</body></html>";
     
     @Override
     protected final void doGet(HttpServletRequest request, HttpServletResponse response)
         throws ServletException, IOException {
-
+        
         try {
             LoginController controller = new LoginController();
             controller.getLoginPage(request, response);
