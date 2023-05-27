@@ -36,20 +36,14 @@ public class EmbeddedTomcat {
     }
     
     public void start() {
-        try {
-            this.tomcat.start();
+        // Create a default connector.
+        this.tomcat.getConnector();
             
-            // Create a default connector.
-            this.tomcat.getConnector();
-            
-            System.out.println("Tomcat started on port: " + port);
-            this.tomcat.getServer().await();
-        } catch(LifecycleException ex) {
-            System.out.println("LifecycleException: " + ex.getMessage());
-        }
+        System.out.println("Tomcat started on port: " + port);
+        this.tomcat.getServer().await();
     }
     
-    public void prepare() {
+    public void prepare() {            
         tomcat.setPort(port);
 
         File baseDir = createTempDir("tomcat");
@@ -80,6 +74,12 @@ public class EmbeddedTomcat {
         ctx.addServletMappingDecoded("/", "default");
 
         this.tomcat.getHost().addChild(ctx);
+
+        try {
+            tomcat.start();        
+        } catch(LifecycleException ex) {
+            System.out.println("LifecycleException: " + ex.getMessage());
+        }
     }
     
     /**
