@@ -21,7 +21,9 @@ import org.apache.catalina.Host;
 import org.apache.catalina.startup.Tomcat.FixContextListener;
 import org.apache.catalina.loader.WebappLoader;
 
+import org.springframework.util.ClassUtils;
 import org.springframework.boot.web.embedded.tomcat.TomcatEmbeddedWebappClassLoader;
+import org.springframework.boot.web.server.WebServerException;
 
 public class EmbeddedTomcat {
 
@@ -46,31 +48,6 @@ public class EmbeddedTomcat {
             System.out.println("LifecycleException: " + ex.getMessage());
         }
     }
-
-    // Taken from org.springframework.util.ClassUtils
-    private ClassLoader getDefaultClassLoader() {
-        ClassLoader cl = null;
-        try {
-            cl = Thread.currentThread().getContextClassLoader();
-        }
-        catch (Throwable ex) {
-            // Cannot access thread context ClassLoader - falling back...
-        }
-        if (cl == null) {
-            // No thread context class loader -> use class loader of this class.
-            cl = EmbeddedTomcat.class.getClassLoader();
-            if (cl == null) {
-                // getClassLoader() returning null indicates the bootstrap ClassLoader
-                try {
-                    cl = ClassLoader.getSystemClassLoader();
-                }
-                catch (Throwable ex) {
-                    // Cannot access system ClassLoader - oh well, maybe the caller can live with null...
-                }
-            }
-        }
-        return cl;
-    }
     
     public void prepare() {
         tomcat.setPort(port);
@@ -84,7 +61,7 @@ public class EmbeddedTomcat {
         ctx.addLifecycleListener(new FixContextListener());
 
         // Setup class loading
-        ClassLoader parentClassLoader = getDefaultClassLoader();
+        ClassLoader parentClassLoader = ClassUtils.getDefaultClassLoader();
         WebappLoader loader = new WebappLoader();
         loader.setLoaderInstance(new TomcatEmbeddedWebappClassLoader(parentClassLoader));
         loader.setDelegate(true);
@@ -104,14 +81,10 @@ public class EmbeddedTomcat {
 
         this.tomcat.getHost().addChild(ctx);
     }
-
-    private class WebServerException extends RuntimeException {
-        public WebServerException(String message, Throwable cause) {
-            super(message, cause);
-        }
-    }
     
     /**
+     * From org.springframework.boot.web.server.AbstractConfigurableWebServerFactory
+     * 
      * Return the absolute temp dir for given web server.
      * @param prefix server name
      * @return the temp dir for given server.
