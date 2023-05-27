@@ -27,11 +27,7 @@ public class EmbeddedTomcat {
 
     private int port = 8080;
     
-    private final Object monitor = new Object();
-
     private final Tomcat tomcat;
-
-    private volatile boolean started;
 
     public EmbeddedTomcat() {
         this.tomcat = new Tomcat();
