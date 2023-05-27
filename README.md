@@ -7,6 +7,7 @@ Trying to get a java web app going.
 
 ### Links on using java.
 
+[Maven Quickstart](https://maven.apache.org/guides/getting-started/maven-in-five-minutes.html)
 
 [Spring: Basic spring app](https://spring.io/guides/gs/spring-boot/)
 
@@ -31,3 +32,11 @@ Trying to get a java web app going.
 [Spring: OAuth2 Tutorial](https://spring.io/guides/tutorials/spring-boot-oauth2/)
 
 [Spring: OAuth 2 Reference](https://docs.spring.io/spring-security/reference/servlet/oauth2/login/core.html#oauth2login-sample-application-config)
+
+### Tomcat
+
+[Spring MVC Extends Jakarta EE Servlet](https://github.com/spring-projects/spring-framework/blob/main/spring-webmvc/src/main/java/org/springframework/web/servlet/HttpServletBean.java#L82)
+
+[Using EL, JSTL](https://stackoverflow.com/questions/15839335/using-for-loop-inside-of-a-jsp)
+
+[Spring Boot 3 Using Jakarta instead of Java EE](https://spring.io/blog/2022/01/20/spring-boot-3-0-0-m1-is-now-available)
