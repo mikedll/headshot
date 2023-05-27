@@ -47,6 +47,7 @@ public class EmbeddedTomcat {
         }
     }
 
+    // Taken from org.springframework.util.ClassUtils
     private ClassLoader getDefaultClassLoader() {
         ClassLoader cl = null;
         try {
