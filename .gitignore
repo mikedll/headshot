@@ -7,3 +7,6 @@ src/main/resources/*.yaml
 secrets.yaml
   
 BOOT-INF/
+
+.emacs.desktop
+.emacs.desktop.lock  
