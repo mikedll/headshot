@@ -4,4 +4,6 @@ tmp/
 
 src/main/resources/*.yaml
 
+secrets.yaml
+  
 BOOT-INF/
