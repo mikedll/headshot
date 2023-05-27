@@ -23,25 +23,7 @@ public class LoginController {
 
     @GetMapping("/oauth2_login")
     public String getLoginPage(Model model) {
-         Iterable<ClientRegistration> clientRegistrations = null;
-         ResolvableType type = ResolvableType.forInstance(clientRegistrationRepository)
-            .as(Iterable.class);
-
-         if (type != ResolvableType.NONE && ClientRegistration.class.isAssignableFrom(type.resolveGenerics()[0])) {
-            clientRegistrations = (Iterable<ClientRegistration>) clientRegistrationRepository;
-         }
-
-         Map<String, String> oauth2AuthenticationUrls = new HashMap<>();
-         
-         clientRegistrations.forEach(registration -> {
-                 oauth2AuthenticationUrls.put(registration.getClientName(), authorizationRequestBaseUri + "/" +
-                                              registration.getRegistrationId());
-                     }
-             );
-
-         model.addAttribute("urls", oauth2AuthenticationUrls);
-
-         return "oauth2_login";
+        return "oauth2_login";
     }
 
 }
