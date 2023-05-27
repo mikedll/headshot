@@ -17,6 +17,18 @@ public class Controller {
 
         String snippet = "<!-- google analytics disabled -->";
 
+        /*
+        <!-- Google tag (gtag.js) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=ID"></script>
+        <script>
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+
+          gtag('config', 'ID');
+        </script>
+        */
+        
         // adjust for prod
         ctx.setVariable("googleAnalytics", snippet);
         return ctx;
