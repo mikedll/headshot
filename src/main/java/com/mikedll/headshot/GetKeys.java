@@ -5,6 +5,6 @@ import java.security.NoSuchAlgorithmException;
 public class GetKeys {
 
     public static void main(String[] args) throws NoSuchAlgorithmException {
-        System.out.println("Key: " + Cookie.genKey());
+        System.out.println("Key: " + CookieManager.genKey());
     }
 }

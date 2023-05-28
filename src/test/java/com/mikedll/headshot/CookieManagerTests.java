@@ -1,7 +1,6 @@
 package com.mikedll.headshot;
 
 import java.security.NoSuchAlgorithmException;
-
 import java.util.Map;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -17,19 +16,19 @@ import org.junit.jupiter.api.Assertions;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 
-public class CookieTests {
+public class CookieManagerTests {
 
     private final String key = "eVKgwkis9APaD2o2/suPAv9sgs156+fMTBDDbM1vgwU=";
     
     @Test
     public void testGenKey() throws NoSuchAlgorithmException {
-        String k = Cookie.genKey();
+        String k = CookieManager.genKey();
         Assertions.assertNotEquals("", k);
     }
 
     @Test
     void testDecode() {
-        Cookie c = new Cookie(key);
+        CookieManager c = new CookieManager(key);
         Assertions.assertEquals("mike goes to the store", c.base64DecodeStr("bWlrZSBnb2VzIHRvIHRoZSBzdG9yZQ=="));
     }
 
@@ -67,11 +66,11 @@ public class CookieTests {
     @Test
     @SuppressWarnings("unchecked")    
     public void testVerifySucceeds() throws UnsupportedEncodingException, JsonProcessingException {
-        Cookie c = new Cookie(key);
+        CookieManager c = new CookieManager(key);
 
         Map<String, Object> toSign = toSign();
         String cookieString = c.cookieString(toSign);
-        Cookie.VerifyResult result = c.verify(cookieString);
+        CookieManager.VerifyResult result = c.verify(cookieString);
         
         Assertions.assertTrue(result.ok());
         Assertions.assertEquals(toSign, result.deserialized());
@@ -91,19 +90,19 @@ public class CookieTests {
 
     @Test
     public void testVerifyFail() throws UnsupportedEncodingException, JsonProcessingException {
-        Cookie c = new Cookie(key);
+        CookieManager c = new CookieManager(key);
         Map<String, Object> toSign = toSign();
         String cookieString = c.cookieString(toSign);
 
         String[] split = cookieString.split("\\.");
-        String badSig = Cookie.base64Encode("notValidSignature".getBytes("UTF-8"));
+        String badSig = CookieManager.base64Encode("notValidSignature".getBytes("UTF-8"));
         String badCookieString = split[0] + "." + badSig;
         Assertions.assertFalse(c.verify(badCookieString).ok());
     }
 
     @Test
     public void testVerifyFailJunk() throws UnsupportedEncodingException, JsonProcessingException {
-        Cookie c = new Cookie(key);
+        CookieManager c = new CookieManager(key);
         Assertions.assertFalse(c.verify("bullcrap").ok());
     }
     

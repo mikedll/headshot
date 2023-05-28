@@ -19,23 +19,22 @@ public class Servlet extends HttpServlet {
     protected final void doGet(HttpServletRequest request, HttpServletResponse response)
         throws ServletException, IOException {
 
-        try {
-            String path = request.getRequestURI().toString();
-            System.out.println("Path: " + path);
-            if(path.equals("/oauth2/authorization/github")) {
-                LoginController controller = new LoginController();
-                controller.doLogin(request, response);
-            } else if(path.equals("/login/oauth2/code/github")) {
-                LoginController controller = new LoginController();
-                controller.doCodeReceive(request, response);
-            } else if(path.equals("/")) {
-                LoginController controller = new LoginController();
-                controller.getLoginPage(request, response);
-            } else {
-                throw new RuntimeException("Not Found lol");
-            }
-        } catch(IOException ex) {
-            System.out.println("IOException: " + ex.getMessage());
+        String path = request.getRequestURI().toString();
+        System.out.println("Path: " + path);
+        if(path.equals("/oauth2/authorization/github")) {
+            LoginController controller = new LoginController();
+            controller.oauth2LoginStart(request, response);
+        } else if(path.equals("/login/oauth2/code/github")) {
+            LoginController controller = new LoginController();
+            controller.oauth2CodeReceive(request, response);
+        } else if(path.equals("/idle")) {
+            RootController controller = new RootController();
+            controller.idle(request, response);
+        } else if(path.equals("/")) {
+            RootController controller = new RootController();
+            controller.index(request, response);
+        } else {
+            throw new RuntimeException("Not Found lol");
         }
     }
 }

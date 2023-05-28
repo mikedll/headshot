@@ -29,50 +29,35 @@ public class LoginController extends Controller {
     private static final StringKeyGenerator DEFAULT_STATE_GENERATOR = new Base64StringKeyGenerator(
 			Base64.getUrlEncoder());
     
-    public void getLoginPage(HttpServletRequest req, HttpServletResponse res)
-        throws IOException {
-        
-        templateEngine.process("oauth2_login", defaultCtx(req), res.getWriter());
-    }
-
-    public void doLogin(HttpServletRequest req, HttpServletResponse res) throws IOException {
-        String scheme = "http://";
-        String fullHost = req.getServerName();
-        int port = req.getServerPort();
-        if(port != 80) {
-            fullHost += ":" + port;
-        }
-        System.out.println("fullHost: " + fullHost);
+    public void oauth2LoginStart(HttpServletRequest req, HttpServletResponse res) {
+        if(!beforeFilters(false, req, res)) return;
         
         OAuth2AuthorizationRequest oauth2Req = OAuth2AuthorizationRequest.authorizationCode()
             .authorizationUri(githubAuthPath)
             .clientId(Env.githubConfig.clientId())
-            .redirectUri(scheme + fullHost + "/login/oauth2/code/github")
+            .redirectUri(localOrigin(req) + "/login/oauth2/code/github")
             .scopes(new LinkedHashSet<>(Arrays.asList("user")))
             .state(DEFAULT_STATE_GENERATOR.generateKey())
             .build();
 
         System.out.println("State: " + oauth2Req.getState());
+        this.session.put("oauth2state", oauth2Req.getState());
 
-        SecurityContext context = securityContextHolderStrategy.createEmptyContext();
-        Session auth = new Session();
-        auth.oauth2State = oauth2Req.getState();
-        context.setAuthentication(auth);
-        securityContextRepository.saveContext(context, req, res);
+        flushCookies(res);
+        sendRedirect(res, localOrigin(req) + "/idle");
         
-        System.out.println("URI: " + oauth2Req.getAuthorizationRequestUri());
-        res.sendRedirect(oauth2Req.getAuthorizationRequestUri());
+        // System.out.println("URI: " + oauth2Req.getAuthorizationRequestUri());
+        // res.sendRedirect(oauth2Req.getAuthorizationRequestUri());
     }
 
-    public void doCodeReceive(HttpServletRequest req, HttpServletResponse res) throws IOException {
-        DeferredSecurityContext foundContext = securityContextRepository.loadDeferredContext(req);
-        Session foundSession = (Session)foundContext.get().getAuthentication();
-        if(foundSession != null) {
-            System.out.println("Found a state: " + foundSession.oauth2State);
-        }
+    public void oauth2CodeReceive(HttpServletRequest req, HttpServletResponse res) {
+        if(!beforeFilters(true, req, res)) return;
         
+        String oauth2State = (String)this.session.get("oauth2state");
+        System.out.println("Found a state: " + oauth2State);
+                        
         String state = req.getParameter(OAuth2ParameterNames.STATE);
         System.out.println("State var: " + state);
-        templateEngine.process("idle", defaultCtx(req), res.getWriter());
+        render("idle", defaultCtx(req), res);
     }
 }

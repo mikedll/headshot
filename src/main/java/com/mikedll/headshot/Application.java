@@ -7,7 +7,8 @@ public class Application {
     public static void main(String[] args) {
         Dotenv dotenv = Dotenv.load();
         Env.githubConfig = new GithubConfig(dotenv.get("GITHUB_CLIENT_ID"), dotenv.get("GITHUB_CLIENT_SECRET"));
-    
+        Env.cookieSigningKey = dotenv.get("COOKIE_SIGNING_KEY");
+        
         System.out.println("Initializing tomcat...");
         EmbeddedTomcat embeddedTomcat = new EmbeddedTomcat();
         embeddedTomcat.prepare();

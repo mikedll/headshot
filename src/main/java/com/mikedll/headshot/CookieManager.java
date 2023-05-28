@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 
-public class Cookie {
+public class CookieManager {
 
     public record VerifyResult(Map<String,Object> deserialized, boolean ok) {}
     
@@ -51,7 +51,7 @@ public class Cookie {
         return base64Encode(keyGenerator.generateKey().getEncoded());
     }
 
-    public Cookie(String key) {
+    public CookieManager(String key) {
         byte[] decodedKey = base64Decode(key);
         this.keySpec = new SecretKeySpec(decodedKey, 0, decodedKey.length, algorithm);
     }
@@ -91,7 +91,7 @@ public class Cookie {
         }
 
         String encoded = split[0];
-        String originalStr = Cookie.base64DecodeStr(encoded);
+        String originalStr = base64DecodeStr(encoded);
         if(!sign(originalStr).equals(split[1])) {
             return new VerifyResult(null, false);
         }

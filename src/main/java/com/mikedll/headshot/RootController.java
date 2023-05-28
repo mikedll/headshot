@@ -1,8 +1,21 @@
 package com.mikedll.headshot;
 
-public class RootController {
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
-    public String index() {
-        return "index";
+import org.thymeleaf.context.Context;
+
+public class RootController extends Controller {
+
+    public void index(HttpServletRequest req, HttpServletResponse res) {
+        render("index", defaultCtx(req), res);        
     }
+
+    public void idle(HttpServletRequest req, HttpServletResponse res) {
+        if(!beforeFilters(true, req, res)) return;
+        
+        Context ctx = defaultCtx(req);
+        ctx.setVariable("oauth2state", (String)this.session.get("oauth2state"));
+        render("idle", ctx, res);        
+    }    
 }
