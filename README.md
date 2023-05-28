@@ -13,6 +13,10 @@ Trying to get a java web app going.
 
     mvn clean compile package
 
+### Run Tests
+
+    mvn test
+
 ### Links on using java.
 
 [Maven Quickstart](https://maven.apache.org/guides/getting-started/maven-in-five-minutes.html)
