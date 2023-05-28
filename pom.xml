@@ -109,14 +109,24 @@
                 <version>3.1.0</version>
                 <executions>
                     <execution>
+                        <id>default-cli</id>
                         <goals>
                             <goal>java</goal>
                         </goals>
+                        <configuration>
+                            <mainClass>com.mikedll.headshot.Application</mainClass>
+                        </configuration>
                     </execution>
+                    <execution>
+                        <id>keys</id>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                        <configuration>
+                            <mainClass>com.mikedll.headshot.GetKeys</mainClass>
+                        </configuration>
+                    </execution>                    
                 </executions>
-                <configuration>
-                    <mainClass>com.mikedll.headshot.Application</mainClass>
-                </configuration>
             </plugin>
 
             <plugin>
