@@ -4,6 +4,9 @@ import java.security.NoSuchAlgorithmException;
 
 import java.util.Map;
 import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.ArrayList;
+
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.NoSuchPaddingException;
@@ -44,11 +47,25 @@ public class CookieTests {
         
         toSign.put("error", "You didn't fill out the form");
         toSign.put("oauth2code", "fdsfdsfdsfsf");
+
+        List<Map<String,Object>> people = new ArrayList<Map<String,Object>>();
+        Map<String,Object> p3 = new LinkedHashMap<String,Object>();
+        p3.put("name", "Herman");
+        p3.put("age", 25);
+        people.add(p3);
+        
+        Map<String,Object> p4 = new LinkedHashMap<String,Object>();
+        p4.put("name", "Sally");
+        p4.put("age", 21);
+        people.add(p3);
+
+        toSign.put("people", people);
         
         return toSign;
     }
     
     @Test
+    @SuppressWarnings("unchecked")    
     public void testVerifySucceeds() throws UnsupportedEncodingException, JsonProcessingException {
         Cookie c = new Cookie(key);
 
@@ -59,8 +76,18 @@ public class CookieTests {
         
         Assertions.assertTrue(result.ok());
         Assertions.assertEquals(toSign, result.deserialized());
-        Assertions.assertEquals(((Map<String,Object>)result.deserialized().get("mike")).get("age"), 30);
-        Assertions.assertEquals(((Map<String,Object>)result.deserialized().get("mike")).get("name"), "Mike");
+
+        Map<String,Object> deserialized = (Map<String,Object>)result.deserialized();
+        Map<String,Object> mike = (Map<String,Object>)deserialized.get("mike");
+        
+        Assertions.assertEquals(mike.get("age"), 30);
+        Assertions.assertEquals(mike.get("name"), "Mike");
+
+        List<Map<String,Object>> people = (List<Map<String,Object>>)result.deserialized().get("people");
+        Assertions.assertEquals(2, people.size());
+        Map<String,Object> herman = (Map<String,Object>)people.get(0);
+        Assertions.assertEquals(herman.get("name"), "Herman");
+        Assertions.assertEquals(herman.get("age"), 25);
     }
 
     @Test
