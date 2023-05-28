@@ -13,22 +13,25 @@ public class CookieTests {
 
     @Test
     public void testGenKey() throws NoSuchAlgorithmException {
-        SecretKey k = Cookie.genKey();
-        Assertions.assertNotNull(k);
+        String k = Cookie.genKey();
+        Assertions.assertNotEquals("", k);
     }
 
     @Test
     public void testGenIv() throws NoSuchAlgorithmException, NoSuchPaddingException {
-        IvParameterSpec iv = Cookie.genIv();
-        Assertions.assertNotNull(iv);
+        String iv = Cookie.genIv();
+        Assertions.assertNotEquals("", iv);
     }
     
     @Test
-    public void basic() {
-        IvParameterSpec ivSpec = Cookie.genIv();
-        Cookie c = new Cookie("fdfdsfsdf", ivSpec);
-        String cipherText = c.encrypt("mike");
-        Assertions.assertEquals("mike", c.decrypt(cipherText));
+    public void basic() throws NoSuchAlgorithmException, NoSuchPaddingException {
+        String keyStr = Cookie.genKey();
+        String ivStr = Cookie.genIv();
+        
+        Cookie c = new Cookie(keyStr, ivStr);
+        String plain = "mike went to the store";
+        String cipherText = c.encrypt(plain);
+        Assertions.assertEquals(plain, c.decrypt(cipherText));
     }
 
 }
