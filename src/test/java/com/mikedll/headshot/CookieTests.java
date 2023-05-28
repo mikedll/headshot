@@ -71,7 +71,6 @@ public class CookieTests {
 
         Map<String, Object> toSign = toSign();
         String cookieString = c.cookieString(toSign);
-
         Cookie.VerifyResult result = c.verify(cookieString);
         
         Assertions.assertTrue(result.ok());
