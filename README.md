@@ -1,9 +1,17 @@
 
 Trying to get a java web app going.
 
-### Running
+### Run Web Server
 
-    mvn spring-boot:run 
+    mvn compile exec:java
+
+### Run Gen Keys
+
+    mvn compile exec:java@keys
+
+### Package as Executable Jar
+
+    mvn clean compile package
 
 ### Links on using java.
 
