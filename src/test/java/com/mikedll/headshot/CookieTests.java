@@ -21,6 +21,7 @@ public class CookieTests {
     public void testGenIv() throws NoSuchAlgorithmException, NoSuchPaddingException {
         String iv = Cookie.genIv();
         Assertions.assertNotEquals("", iv);
+        Assertions.assertEquals(16, Cookie.base64Decode(iv).length);
     }
     
     @Test
