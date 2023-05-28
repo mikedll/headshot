@@ -28,6 +28,7 @@ public class LoginController extends Controller {
 
     public void doLogin(HttpServletRequest req, HttpServletResponse res) throws IOException {
 
+        String scheme = "http://";
         String fullHost = req.getServerName();
         int port = req.getServerPort();
         if(port != 80) {
@@ -38,7 +39,7 @@ public class LoginController extends Controller {
         OAuth2AuthorizationRequest oauth2Req = OAuth2AuthorizationRequest.authorizationCode()
             .authorizationUri(githubAuthPath)
             .clientId(Env.githubConfig.clientId())
-            .redirectUri(fullHost + "/login/oauth2/code/github")
+            .redirectUri(scheme + fullHost + "/login/oauth2/code/github")
             .scopes(new LinkedHashSet<>(Arrays.asList("user")))
             .state("asdf")
             .build();
