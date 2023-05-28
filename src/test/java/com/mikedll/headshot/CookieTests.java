@@ -11,28 +11,30 @@ import javax.crypto.NoSuchPaddingException;
 
 public class CookieTests {
 
+    private final String key = "Gu3W2OHUiu30bfPIhz2S4bExXmCwUJE5H0L20/tCrnI=";
+    
     @Test
     public void testGenKey() throws NoSuchAlgorithmException {
         String k = Cookie.genKey();
         Assertions.assertNotEquals("", k);
     }
 
-    @Test
-    public void testGenIv() throws NoSuchAlgorithmException, NoSuchPaddingException {
-        String iv = Cookie.genIv();
-        Assertions.assertNotEquals("", iv);
-        Assertions.assertEquals(16, Cookie.base64Decode(iv).length);
+    @Test void testDecode() {
+        Cookie c = new Cookie(key);
+        Assertions.assertEquals("mike goes to the store", c.base64DecodeStr("bWlrZSBnb2VzIHRvIHRoZSBzdG9yZQ=="));
     }
     
     @Test
-    public void basic() throws NoSuchAlgorithmException, NoSuchPaddingException {
-        String keyStr = Cookie.genKey();
-        String ivStr = Cookie.genIv();
-        
-        Cookie c = new Cookie(keyStr, ivStr);
-        String plain = "mike went to the store";
-        String cipherText = c.encrypt(plain);
-        Assertions.assertEquals(plain, c.decrypt(cipherText));
+    public void testSign() {
+        Cookie c = new Cookie(key);
+        String toSign = "mike goes to the store";
+        String cookieString = c.cookieString(toSign);
+
+        String[] split = cookieString.split("\\.");
+        Assertions.assertEquals(2, split.length);
+        String encoded = split[0];
+        String sig = split[1];
+        Assertions.assertTrue(c.verify(encoded, sig));
     }
 
 }

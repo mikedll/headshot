@@ -3,7 +3,9 @@ package com.mikedll.headshot;
 import java.util.Base64;
 import java.security.SecureRandom;
 import java.security.NoSuchAlgorithmException;
+import java.nio.charset.StandardCharsets;
 
+import javax.crypto.Mac;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
@@ -15,12 +17,8 @@ public class Cookie {
 
     public final SecretKey keySpec;
 
-    public final IvParameterSpec ivSpec;
-
-    public static final String algorithm = "AES";
-    
-    public static final String scheme = algorithm + "/CBC/PKCS5PADDING";
-    
+    public static final String algorithm = "HmacSHA256";
+        
     public static String base64Encode(byte[] bytes) {
         return Base64.getEncoder().encodeToString(bytes);
     }
@@ -28,62 +26,54 @@ public class Cookie {
     public static byte[] base64Decode(String s) {
         return Base64.getDecoder().decode(s);
     }
+
+    public static String base64DecodeStr(String input) {
+        return new String(base64Decode(input), StandardCharsets.UTF_8);
+    }
     
     public static String genKey() throws NoSuchAlgorithmException {
         SecureRandom secureRandom = new SecureRandom();
         KeyGenerator keyGenerator = KeyGenerator.getInstance(algorithm);
  
         // 256 bits.
+        // https://crypto.stackexchange.com/questions/31473/what-size-should-the-hmac-key-be-with-sha-256
         keyGenerator.init(256, secureRandom);
         
         return base64Encode(keyGenerator.generateKey().getEncoded());
     }
 
-    public static String genIv() throws NoSuchAlgorithmException, NoSuchPaddingException {
-        SecureRandom secureRandom = SecureRandom.getInstanceStrong();
-        byte[] iv = new byte[Cipher.getInstance(scheme).getBlockSize()];
-        secureRandom.nextBytes(iv);
-        return base64Encode(iv);
-    }
-
-    public Cookie(String key, String iv) {
+    public Cookie(String key) {
         byte[] decodedKey = base64Decode(key);
         this.keySpec = new SecretKeySpec(decodedKey, 0, decodedKey.length, algorithm);
-        this.ivSpec = new IvParameterSpec(base64Decode(iv));
-    }    
+    }
+
+    public String cookieString(String input) {
+        String signature = sign(input);
+        return base64Encode(input.getBytes()) + "." + signature;
+    }
 
     /*
-    /*
-     * Plaintext string.
+     * Sign a string.
      */
-    public String encrypt(String plainText) {
+    public String sign(String input) {
         try {
-            Cipher cipher = Cipher.getInstance(scheme);
-            cipher.init(Cipher.ENCRYPT_MODE, keySpec, ivSpec);
+            Mac mac = Mac.getInstance(algorithm);
+            mac.init(keySpec);
                 
-            byte[] encrypted = cipher.doFinal(plainText.getBytes());
-            return base64Encode(encrypted);
+            byte[] signature = mac.doFinal(input.getBytes());
+            return base64Encode(signature);
         } catch (Exception ex) {
-            System.out.println("Failed to encrypt string: " + ex.getMessage());
+            System.out.println("Failed to sign string: " + ex.getMessage());
         }
 
         return null;
     }
 
     /*
-     * Enrypted string.
+     * Verify a signature.
      */
-    public String decrypt(String cipherText) {
-        try {
-            Cipher cipher = Cipher.getInstance(scheme);
-            cipher.init(Cipher.DECRYPT_MODE, keySpec, ivSpec);
-
-            byte[] original = cipher.doFinal(base64Decode(cipherText));
-            return new String(original);
-        } catch (Exception ex) {
-            System.out.println("Failed to decrypt string: " + ex.getMessage());
-        }
-
-        return null;
+    public boolean verify(String encoded, String signature) {
+        String originalStr = Cookie.base64DecodeStr(encoded);
+        return signature.equals(sign(originalStr));
     }
 }
