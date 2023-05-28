@@ -25,9 +25,14 @@ public class Servlet extends HttpServlet {
             if(path.equals("/oauth2/authorization/github")) {
                 LoginController controller = new LoginController();
                 controller.doLogin(request, response);
-            } else { 
+            } else if(path.equals("/login/oauth2/code/github")) {
+                LoginController controller = new LoginController();
+                controller.doCodeReceive(request, response);
+            } else if(path.equals("/")) {
                 LoginController controller = new LoginController();
                 controller.getLoginPage(request, response);
+            } else {
+                throw new RuntimeException("Not Found lol");
             }
         } catch(IOException ex) {
             System.out.println("IOException: " + ex.getMessage());

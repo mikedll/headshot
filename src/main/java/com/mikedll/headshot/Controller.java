@@ -6,12 +6,22 @@ import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.templatemode.TemplateMode;
 import org.thymeleaf.templateresolver.FileTemplateResolver;
 import org.thymeleaf.context.Context;
-    
+
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.security.web.context.SecurityContextRepository;
+import org.springframework.security.core.context.SecurityContextHolderStrategy;
+import org.springframework.security.core.context.SecurityContextHolder;
+
 public class Controller {
     protected FileTemplateResolver templateResolver = new FileTemplateResolver();
 
     protected TemplateEngine templateEngine = new TemplateEngine();
 
+    protected final SecurityContextHolderStrategy securityContextHolderStrategy = SecurityContextHolder.getContextHolderStrategy();
+    
+    protected SecurityContextRepository securityContextRepository =
+        new HttpSessionSecurityContextRepository(); 
+    
     public Context defaultCtx(HttpServletRequest req) {
         Context ctx = new Context(req.getLocale());
 
