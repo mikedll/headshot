@@ -48,6 +48,6 @@ public class Session implements Authentication {
 
     @Override
     public Collection<GrantedAuthority> getAuthorities() {
-        return Collections.EMPTY_LIST;
+        return Collections.<GrantedAuthority>emptyList();
     }
 }

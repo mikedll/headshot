@@ -17,8 +17,8 @@ import org.springframework.security.crypto.keygen.StringKeyGenerator;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;    
 import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
-import org.springframework.security.web.context.HttpRequestResponseHolder;
 import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.DeferredSecurityContext;
     
 public class LoginController extends Controller {
 
@@ -65,9 +65,8 @@ public class LoginController extends Controller {
     }
 
     public void doCodeReceive(HttpServletRequest req, HttpServletResponse res) throws IOException {
-        HttpRequestResponseHolder reqResHolder = new HttpRequestResponseHolder(req, res);
-        SecurityContext foundContext = securityContextRepository.loadContext(reqResHolder);
-        Session foundSession = (Session)foundContext.getAuthentication();
+        DeferredSecurityContext foundContext = securityContextRepository.loadDeferredContext(req);
+        Session foundSession = (Session)foundContext.get().getAuthentication();
         if(foundSession != null) {
             System.out.println("Found a state: " + foundSession.oauth2State);
         }
