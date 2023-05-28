@@ -11,7 +11,7 @@ import javax.crypto.NoSuchPaddingException;
 
 public class CookieTests {
 
-    private final String key = "Gu3W2OHUiu30bfPIhz2S4bExXmCwUJE5H0L20/tCrnI=";
+    private final String key = "eVKgwkis9APaD2o2/suPAv9sgs156+fMTBDDbM1vgwU=";
     
     @Test
     public void testGenKey() throws NoSuchAlgorithmException {
