@@ -13,7 +13,7 @@ public class RootController extends Controller {
 
     public void idle(HttpServletRequest req, HttpServletResponse res) {
         if(!beforeFilters(req, res)) return;
-        
+                
         Context ctx = defaultCtx(req);
         ctx.setVariable("oauth2state", (String)this.session.get("oauth2state"));
         render("idle", ctx, res);        

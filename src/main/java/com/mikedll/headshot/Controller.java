@@ -130,7 +130,7 @@ public class Controller {
         try {
             res.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, message);
         } catch (IOException ex) {
-            throw new RuntimeException("failed to render 500", ex);
+            throw new RuntimeException("failed to send 500", ex);
         }
     }
 
