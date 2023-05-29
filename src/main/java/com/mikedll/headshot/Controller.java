@@ -14,6 +14,8 @@ import org.thymeleaf.templatemode.TemplateMode;
 import org.thymeleaf.templateresolver.FileTemplateResolver;
 import org.thymeleaf.context.Context;
 
+import nz.net.ultraq.thymeleaf.layoutdialect.LayoutDialect;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 
 public class Controller {
@@ -32,6 +34,8 @@ public class Controller {
         templateResolver.setTemplateMode(TemplateMode.HTML);
         templateResolver.setPrefix("web_app_views/");
         templateResolver.setSuffix(".html");
+
+        templateEngine.addDialect(new LayoutDialect());
         templateEngine.setTemplateResolver(templateResolver);
     }
     
