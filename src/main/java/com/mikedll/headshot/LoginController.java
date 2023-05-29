@@ -52,7 +52,7 @@ public class LoginController extends Controller {
         if(!beforeFilters(req, res)) return;
         
         String stateFromRequest = req.getParameter(OAUTH2_STATE);
-        if(stateFromRequest == null || !stateFromRequest.equals((String)this.session.get("oauth2state"))) {
+        if(stateFromRequest == null || !stateFromRequest.equals((String)this.session.remove("oauth2state"))) {
             throw new RequestException("incoming oauth2 state parameter doesn't match original oauth2 state");
         }
 
