@@ -78,6 +78,7 @@ public class LoginController extends Controller {
             throw new RequestException("got non-oauth2 response");
         }
 
+        // not sure what the point of this is. setting it to something bad doesn't do anything.
         String redirectUri = UriComponentsBuilder.fromHttpUrl(UrlUtils.buildFullRequestUrl(req))
             .replaceQuery(null)
             .build()
@@ -88,9 +89,10 @@ public class LoginController extends Controller {
             throw new RequestException("oauth2 response has error: " + oauth2Res.getError().toString());
         }
         
-        // core
+        // from core
         OAuth2AuthorizationExchange authorizationExchange = new OAuth2AuthorizationExchange(oauth2Req, oauth2Res);
-        // client
+        
+        // from client
         OAuth2AuthorizationCodeGrantRequest codeGrantRequest = new OAuth2AuthorizationCodeGrantRequest(clientRegistration, authorizationExchange);
         
         DefaultAuthorizationCodeTokenResponseClient client = new DefaultAuthorizationCodeTokenResponseClient();
