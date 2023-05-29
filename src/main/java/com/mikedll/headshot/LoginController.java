@@ -98,6 +98,8 @@ public class LoginController extends Controller {
         DefaultAuthorizationCodeTokenResponseClient client = new DefaultAuthorizationCodeTokenResponseClient();
         try {
             OAuth2AccessTokenResponse accessTokenResponse = client.getTokenResponse(codeGrantRequest);
+            // System.out.println("Access token response:");
+            // System.out.println(accessTokenResponse.getAccessToken().getTokenValue());
         } catch (OAuth2AuthenticationException ex) {
             throw new RequestException("failed to validate oauth2 response with oauth2 provider's server");
         }
