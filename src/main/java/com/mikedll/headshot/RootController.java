@@ -17,5 +17,14 @@ public class RootController extends Controller {
         Context ctx = defaultCtx(req);
         ctx.setVariable("oauth2state", (String)this.session.get("oauth2state"));
         render("idle", ctx, res);        
+    }
+
+    public void loggedIn(HttpServletRequest req, HttpServletResponse res) {
+        if(!beforeFilters(req, res)) return;
+
+        Context ctx = defaultCtx(req);
+        ctx.setVariable("sub", (String)this.session.get("sub"));
+        render("logged_in", ctx, res);        
     }    
+    
 }
