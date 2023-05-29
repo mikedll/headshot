@@ -44,7 +44,6 @@ public class LoginController extends Controller {
         
         OAuth2AuthorizationRequest oauth2Req = oauth2Request(req, DEFAULT_STATE_GENERATOR.generateKey());
 
-        System.out.println("State: " + oauth2Req.getState());
         this.session.put("oauth2state", oauth2Req.getState());
 
         flushCookies(res);
