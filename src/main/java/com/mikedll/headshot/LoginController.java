@@ -60,7 +60,7 @@ public class LoginController extends Controller {
             .authorizationUri(githubAccessTokenPath)
             .clientId(Env.githubConfig.clientId())
             .clientSecret(Env.githubConfig.clientSecret())
-            .redirectUri(localOrigin(req) + "/login/oauth2/code/github")
+            .redirectUri(redirectUri(req))
             .tokenUri(githubAccessTokenPath)
             .scope("user")
             .build();
@@ -115,10 +115,14 @@ public class LoginController extends Controller {
         return OAuth2AuthorizationRequest.authorizationCode()
             .authorizationUri(githubAuthPath)
             .clientId(Env.githubConfig.clientId())
-            .redirectUri(localOrigin(req) + "/login/oauth2/code/github")
+            .redirectUri(redirectUri(req))
             .scopes(new LinkedHashSet<>(Arrays.asList("user")))
             .state(state)
             .build();        
+    }
+
+    private String redirectUri(HttpServletRequest req) {
+        return localOrigin(req) + "/login/oauth2/code/github";
     }
     
 }
