@@ -37,21 +37,21 @@ public class LoginController extends Controller {
     public void oauth2LoginStart(HttpServletRequest req, HttpServletResponse res) {
         if(!beforeFilters(req, res)) return;
 
-        DefaultUriBuilderFactory factory = new DefaultUriBuilderFactory();
-        MultiValueMap<String,String> map = new LinkedMultiValueMap<String,String>();
         String state = DEFAULT_STATE_GENERATOR.generateKey();
         this.session.put("oauth2state", state);
-        
+
+        DefaultUriBuilderFactory factory = new DefaultUriBuilderFactory();
+        MultiValueMap<String,String> map = new LinkedMultiValueMap<String,String>();        
         map.add("client_id", Env.githubConfig.clientId());
         map.add("scope", "user repo");
-        map.add("state", state);
+        map.add("state", (String)this.session.get("oauth2state"));
         map.add("redirect_uri", redirectUri(req));
-        String redirectToGithub = factory.uriString(githubAuthPath).queryParams(map).build().toString();
+        String redirectToGithubUrl = factory.uriString(githubAuthPath).queryParams(map).build().toString();
 
         flushCookies(res);
         
-        System.out.println("Redirecting to URI: " + redirectToGithub);
-        sendRedirect(res, redirectToGithub);
+        // System.out.println("Redirecting to URI: " + redirectToGithubUrl);
+        sendRedirect(res, redirectToGithubUrl);
     }
 
     public void oauth2CodeReceive(HttpServletRequest req, HttpServletResponse res) {
