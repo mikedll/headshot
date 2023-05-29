@@ -62,9 +62,9 @@ public class Controller {
     }
 
     /*
-     * Returns false if request service should be aborted.
+     * Returns false if service of the given request should be aborted.
      */
-    public boolean beforeFilters(boolean requireValidCookie, HttpServletRequest req, HttpServletResponse res) {
+    public boolean beforeFilters(HttpServletRequest req, HttpServletResponse res) {
         boolean cookieCheckOkay = true;
         for(Cookie cookie : req.getCookies()) {
             if(cookie.getName().equals(cookieName)) {
@@ -77,16 +77,13 @@ public class Controller {
                     return false;
                 } catch (JsonProcessingException ex) {
                     System.out.println("JsonProcessingException when verifing cookie: " + ex.getMessage());
-                    if(requireValidCookie) {
-                        cookieCheckOkay = false;
-                    }
+                    cookieCheckOkay = false;
                 }
                 
                 if(result.ok()) {
                     this.session = result.deserialized();
-                } else if(requireValidCookie == false) {
-                    // pass
                 } else {
+                    // We found a cookie by our name but the sig test failed. This is a hack attempt.
                     cookieCheckOkay = false;
                 }
             } else {
@@ -95,7 +92,9 @@ public class Controller {
         }
 
         if(!cookieCheckOkay) {
-            System.out.println("beforeFilters is redirecting to root");
+            System.out.println("beforeFilters is resetting cookies redirecting to root");
+            this.session = new LinkedHashMap<String,Object>();
+            flushCookies(res);
             sendRedirect(res, localOrigin(req) + "/");
             return false;
         }            

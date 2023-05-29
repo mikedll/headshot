@@ -30,7 +30,7 @@ public class LoginController extends Controller {
 			Base64.getUrlEncoder());
     
     public void oauth2LoginStart(HttpServletRequest req, HttpServletResponse res) {
-        if(!beforeFilters(false, req, res)) return;
+        if(!beforeFilters(req, res)) return;
         
         OAuth2AuthorizationRequest oauth2Req = OAuth2AuthorizationRequest.authorizationCode()
             .authorizationUri(githubAuthPath)
@@ -51,7 +51,7 @@ public class LoginController extends Controller {
     }
 
     public void oauth2CodeReceive(HttpServletRequest req, HttpServletResponse res) {
-        if(!beforeFilters(true, req, res)) return;
+        if(!beforeFilters(req, res)) return;
         
         String oauth2State = (String)this.session.get("oauth2state");
         System.out.println("Found a state: " + oauth2State);
