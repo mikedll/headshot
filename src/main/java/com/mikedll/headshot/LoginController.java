@@ -1,12 +1,6 @@
 
 package com.mikedll.headshot;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.Date;
-import java.text.SimpleDateFormat;
-import java.util.LinkedHashSet;
-import java.util.Arrays;
 import java.util.Base64;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -66,13 +60,16 @@ public class LoginController extends Controller {
         // System.out.println("Code: " + authCode);
 
         RestTemplateBuilder builder = new RestTemplateBuilder();
-        RestTemplate restTemplate = builder.build();
+        RestTemplate restTemplate = builder.errorHandler(new RestErrorHandler()).build();
         MultiValueMap<String,String> map = new LinkedMultiValueMap<String,String>();
         map.add("client_id", Env.githubConfig.clientId());
         map.add("client_secret", Env.githubConfig.clientSecret());
         map.add("code", authCode);
 
         AccessTokenResponse restResponse = restTemplate.postForObject(githubAccessTokenPath, map, AccessTokenResponse.class);
+        if(restResponse.access_token == null) {
+            throw new RequestException("oauth2 access_token retrieval failed");
+        }
         // System.out.println("Rest response: ");
         // System.out.println(restResponse);
 
