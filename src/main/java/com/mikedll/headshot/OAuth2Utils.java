@@ -16,6 +16,7 @@
 
 /*
  * This class is not public in spring.
+ * It's in org.springframework.security.oauth2.client.web over there.
  */
 
 package com.mikedll.headshot;
