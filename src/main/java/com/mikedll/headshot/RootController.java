@@ -36,7 +36,8 @@ public class RootController extends Controller {
         Context ctx = defaultCtx(req);
         ObjectMapper mapper = new ObjectMapper();
         String sessionStr = mapper.writeValueAsString(this.session);
-        ctx.setVariable("session", sessionStr);
+        // ctx.setVariable("session", sessionStr);
+        ctx.setVariable("session", "");
         render("session", ctx, res);
     }
 }
