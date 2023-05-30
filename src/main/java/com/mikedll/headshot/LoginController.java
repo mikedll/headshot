@@ -9,7 +9,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 import org.springframework.security.crypto.keygen.Base64StringKeyGenerator;
 import org.springframework.security.crypto.keygen.StringKeyGenerator;
-import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.web.client.RestTemplate;        
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.LinkedMultiValueMap;
@@ -59,8 +58,8 @@ public class LoginController extends Controller {
         String authCode = req.getParameter(OAUTH2_CODE);
         // System.out.println("Code: " + authCode);
 
-        RestTemplateBuilder builder = new RestTemplateBuilder();
-        RestTemplate restTemplate = builder.errorHandler(new RestErrorHandler()).build();
+        RestTemplate restTemplate = new RestTemplate();
+        restTemplate.setErrorHandler(new RestErrorHandler());
         MultiValueMap<String,String> map = new LinkedMultiValueMap<String,String>();
         map.add("client_id", Env.githubConfig.clientId());
         map.add("client_secret", Env.githubConfig.clientSecret());
@@ -74,6 +73,7 @@ public class LoginController extends Controller {
         // System.out.println(restResponse);
 
         this.session.put("sub", "someone");
+        this.session.put("access_token", restResponse.access_token);
         flushCookies(res);
         sendRedirect(res, localOrigin(req) + "/logged_in");
     }

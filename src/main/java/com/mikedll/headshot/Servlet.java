@@ -33,6 +33,9 @@ public class Servlet extends HttpServlet {
         } else if(path.equals("/logged_in")) {
             RootController controller = new RootController();
             controller.loggedIn(req, res);
+        } else if(path.equals("/session")) {
+            RootController controller = new RootController();
+            controller.session(req, res);                
         } else if(path.equals("/")) {
             RootController controller = new RootController();
             controller.index(req, res);

@@ -1,0 +1,21 @@
+<html layout:decorate="~{layout}">
+  <script layout:fragment="head-script" th:inline="javascript">
+   window.session = [[${session}]];
+
+   document.addEventListener("DOMContentLoaded", () => {
+     const container = document.querySelector('.session-contents');
+     container.textContent = JSON.stringify(JSON.parse(window.session), null, 2);
+   });
+  </script>
+  
+  <div layout:fragment="content">
+
+    <div class="mb-2 idle">
+      <p>
+        Your session is ready, sir:
+      </p>
+      <pre class="session-contents"></pre>  
+    </div>
+
+  </div>    
+</html>
