@@ -12,6 +12,10 @@ import org.springframework.security.crypto.keygen.StringKeyGenerator;
 import org.springframework.web.client.RestTemplate;        
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 
 public class LoginController extends Controller {
 
@@ -23,6 +27,8 @@ public class LoginController extends Controller {
 
     // {"access_token":"blahblahblah","token_type":"bearer","scope":"user"}
     public record AccessTokenResponse(String access_token, String token_type, String scope) {}
+
+    public record UserResponse(int id, String login, String name, String url, String html_url, String repos_url) {}
     
     private static final StringKeyGenerator DEFAULT_STATE_GENERATOR = new Base64StringKeyGenerator(
 			Base64.getUrlEncoder());
@@ -58,8 +64,7 @@ public class LoginController extends Controller {
         String authCode = req.getParameter(OAUTH2_CODE);
         // System.out.println("Code: " + authCode);
 
-        RestTemplate restTemplate = new RestTemplate();
-        restTemplate.setErrorHandler(new RestErrorHandler());
+        RestTemplate restTemplate = getRestTemplate();
         MultiValueMap<String,String> map = new LinkedMultiValueMap<String,String>();
         map.add("client_id", Env.githubConfig.clientId());
         map.add("client_secret", Env.githubConfig.clientSecret());
@@ -72,14 +77,42 @@ public class LoginController extends Controller {
         // System.out.println("Rest response: ");
         // System.out.println(restResponse);
 
-        this.session.put("sub", "someone");
         this.session.put("access_token", restResponse.access_token);
+
+        pullUserInfo();
+
+        flushCookies(res);
+        sendRedirect(res, localOrigin(req) + "/logged_in");
+    }
+
+    public void reloadUserInfo(HttpServletRequest req, HttpServletResponse res) {
+        if(!beforeFilters(req, res)) return;
+
+        pullUserInfo();
+        
         flushCookies(res);
         sendRedirect(res, localOrigin(req) + "/logged_in");
     }
 
     private String redirectUri(HttpServletRequest req) {
         return localOrigin(req) + "/login/oauth2/code/github";
+    }
+
+    private RestTemplate getRestTemplate() {
+        RestTemplate restTemplate = new RestTemplate();
+        restTemplate.setErrorHandler(new RestErrorHandler());
+        return restTemplate;
+    }
+    
+    private void pullUserInfo() {
+        RestTemplate restTemplate = getRestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.set(HttpHeaders.AUTHORIZATION, "Bearer " + (String)this.session.get("access_token"));
+        headers.set("X-GitHub-Api-Version", "2022-11-28");
+        HttpEntity<String> entity = new HttpEntity<String>(headers);
+        ResponseEntity<UserResponse> userResEnt = restTemplate.exchange("https://api.github.com/user", HttpMethod.GET, entity, UserResponse.class);
+        UserResponse userResp = userResEnt.getBody();
+        this.session.put("name", userResp.name);
     }
     
 }

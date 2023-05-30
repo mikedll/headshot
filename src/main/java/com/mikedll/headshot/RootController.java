@@ -26,7 +26,7 @@ public class RootController extends Controller {
         if(!beforeFilters(req, res)) return;
 
         Context ctx = defaultCtx(req);
-        ctx.setVariable("sub", (String)this.session.get("sub"));
+        ctx.setVariable("name", (String)this.session.get("name"));
         render("logged_in", ctx, res);        
     }
 

@@ -27,6 +27,9 @@ public class Servlet extends HttpServlet {
         } else if(path.equals("/login/oauth2/code/github")) {
             LoginController controller = new LoginController();
             controller.oauth2CodeReceive(req, res);
+        } else if(path.equals("/reload_user_info")) {
+            LoginController controller = new LoginController();
+            controller.reloadUserInfo(req, res);
         } else if(path.equals("/idle")) {
             RootController controller = new RootController();
             controller.idle(req, res);
