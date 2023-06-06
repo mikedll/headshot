@@ -6,8 +6,6 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.ApplicationContext;
 
-import org.springframework.boot.SpringApplication;
-
 @ComponentScan
 public class Application {
 
@@ -19,12 +17,11 @@ public class Application {
         Env.cookieSigningKey = dotenv.get("COOKIE_SIGNING_KEY");
         Env.dbUrl = dotenv.get("DB_URL");
 
-        Application.appCtx = SpringApplication.run(Application.class, args);
-        // ApplicationContext appCtx = new AnnotationConfigApplicationContext(Application.class);
+        Application.appCtx = new AnnotationConfigApplicationContext(Application.class);
         for (String beanName : appCtx.getBeanDefinitionNames()) {
             System.out.println(beanName);
         }
-        System.out.println("Done printing beans");        
+        System.out.println("Done printing beans");
         
         System.out.println("Initializing tomcat...");
         EmbeddedTomcat embeddedTomcat = new EmbeddedTomcat();

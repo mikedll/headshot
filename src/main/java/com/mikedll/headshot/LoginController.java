@@ -17,6 +17,9 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 
+import org.springframework.stereotype.Component;
+
+@Component
 public class LoginController extends Controller {
 
     private final String githubPrefix = "https://github.com/login/oauth";

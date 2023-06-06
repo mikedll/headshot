@@ -3,6 +3,7 @@ package com.mikedll.headshot;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+import org.springframework.stereotype.Component;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.thymeleaf.context.Context;
@@ -10,6 +11,7 @@ import org.thymeleaf.context.Context;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
+@Component
 public class RootController extends Controller {
 
     @Autowired
