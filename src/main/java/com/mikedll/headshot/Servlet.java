@@ -22,13 +22,13 @@ public class Servlet extends HttpServlet {
         String path = req.getRequestURI().toString();
         System.out.println("Path: " + path);
         if(path.equals("/oauth2/authorization/github")) {
-            LoginController controller = new LoginController();
+            LoginController controller = Application.appCtx.getBean(LoginController.class);
             controller.oauth2LoginStart(req, res);
         } else if(path.equals("/login/oauth2/code/github")) {
-            LoginController controller = new LoginController();
+            LoginController controller = Application.appCtx.getBean(LoginController.class);
             controller.oauth2CodeReceive(req, res);
         } else if(path.equals("/reload_user_info")) {
-            LoginController controller = new LoginController();
+            LoginController controller = Application.appCtx.getBean(LoginController.class);
             controller.reloadUserInfo(req, res);
         } else if(path.equals("/idle")) {
             RootController controller = Application.appCtx.getBean(RootController.class);

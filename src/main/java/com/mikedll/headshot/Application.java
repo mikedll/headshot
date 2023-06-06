@@ -18,10 +18,10 @@ public class Application {
         Env.dbUrl = dotenv.get("DB_URL");
 
         Application.appCtx = new AnnotationConfigApplicationContext(Application.class);
-        for (String beanName : appCtx.getBeanDefinitionNames()) {
-            System.out.println(beanName);
-        }
-        System.out.println("Done printing beans");
+        // for (String beanName : appCtx.getBeanDefinitionNames()) {
+        //     System.out.println(beanName);
+        // }
+        // System.out.println("Done printing beans");
         
         System.out.println("Initializing tomcat...");
         EmbeddedTomcat embeddedTomcat = new EmbeddedTomcat();
