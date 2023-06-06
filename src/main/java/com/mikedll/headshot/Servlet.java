@@ -31,16 +31,16 @@ public class Servlet extends HttpServlet {
             LoginController controller = new LoginController();
             controller.reloadUserInfo(req, res);
         } else if(path.equals("/idle")) {
-            RootController controller = new RootController();
+            RootController controller = Application.appCtx.getBean(RootController.class);
             controller.idle(req, res);
         } else if(path.equals("/logged_in")) {
-            RootController controller = new RootController();
+            RootController controller = Application.appCtx.getBean(RootController.class);
             controller.loggedIn(req, res);
         } else if(path.equals("/session")) {
-            RootController controller = new RootController();
+            RootController controller = Application.appCtx.getBean(RootController.class);
             controller.session(req, res);                
         } else if(path.equals("/")) {
-            RootController controller = new RootController();
+            RootController controller = Application.appCtx.getBean(RootController.class);
             controller.index(req, res);
         } else {
             try {

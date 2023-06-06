@@ -2,12 +2,29 @@ package com.mikedll.headshot;
 
 import io.github.cdimascio.dotenv.Dotenv;
 
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.ApplicationContext;
+
+import org.springframework.boot.SpringApplication;
+
+@ComponentScan
 public class Application {
 
-    public static void main(String[] args) {
+    public static ApplicationContext appCtx;
+    
+    public static void main(String[] args) {        
         Dotenv dotenv = Dotenv.load();
         Env.githubConfig = new GithubConfig(dotenv.get("GITHUB_CLIENT_ID"), dotenv.get("GITHUB_CLIENT_SECRET"));
         Env.cookieSigningKey = dotenv.get("COOKIE_SIGNING_KEY");
+        Env.dbUrl = dotenv.get("DB_URL");
+
+        Application.appCtx = SpringApplication.run(Application.class, args);
+        // ApplicationContext appCtx = new AnnotationConfigApplicationContext(Application.class);
+        for (String beanName : appCtx.getBeanDefinitionNames()) {
+            System.out.println(beanName);
+        }
+        System.out.println("Done printing beans");        
         
         System.out.println("Initializing tomcat...");
         EmbeddedTomcat embeddedTomcat = new EmbeddedTomcat();

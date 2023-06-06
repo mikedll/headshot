@@ -3,6 +3,8 @@ package com.mikedll.headshot;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+import org.springframework.beans.factory.annotation.Autowired;
+
 import org.thymeleaf.context.Context;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -10,15 +12,21 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 
 public class RootController extends Controller {
 
+    @Autowired
+    private UserRepository userRepository;
+    
     public void index(HttpServletRequest req, HttpServletResponse res) {
         render("index", defaultCtx(req), res);        
     }
 
     public void idle(HttpServletRequest req, HttpServletResponse res) {
         if(!beforeFilters(req, res)) return;
-                
+
+        
+        
         Context ctx = defaultCtx(req);
         ctx.setVariable("oauth2state", (String)this.session.get("oauth2state"));
+        ctx.setVariable("userCount", userRepository.count());
         render("idle", ctx, res);        
     }
 
