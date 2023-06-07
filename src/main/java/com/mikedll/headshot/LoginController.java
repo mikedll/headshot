@@ -16,12 +16,16 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.stereotype.Component;
 
 @Component
 public class LoginController extends Controller {
 
+    @Autowired
+    private UserRepository userRepository;
+    
     private final String githubPrefix = "https://github.com/login/oauth";
     private final String githubAuthPath = githubPrefix + "/authorize";    
     private final String githubAccessTokenPath = githubPrefix + "/access_token";
@@ -31,7 +35,19 @@ public class LoginController extends Controller {
     // {"access_token":"blahblahblah","token_type":"bearer","scope":"user"}
     public record AccessTokenResponse(String access_token, String token_type, String scope) {}
 
-    public record UserResponse(int id, String login, String name, String url, String html_url, String repos_url) {}
+    public record UserResponse(Long id, String login, String name, String url, String html_url, String repos_url) {
+        public User newUser(String accessToken) {
+            User user = new User();
+            user.setName(this.name);
+            user.setGithubId(this.id);
+            user.setGithubLogin(this.login);
+            user.setUrl(this.url);
+            user.setHtmlUrl(this.html_url);
+            user.setReposUrl(this.repos_url);
+            user.setAccessToken(accessToken);
+            return user;
+        }
+    }
     
     private static final StringKeyGenerator DEFAULT_STATE_GENERATOR = new Base64StringKeyGenerator(
 			Base64.getUrlEncoder());
@@ -82,7 +98,7 @@ public class LoginController extends Controller {
 
         this.session.put("access_token", restResponse.access_token);
 
-        pullUserInfo();
+        pullUserInfo(restResponse.access_token);
 
         flushCookies(res);
         sendRedirect(res, localOrigin(req) + "/logged_in");
@@ -91,7 +107,7 @@ public class LoginController extends Controller {
     public void reloadUserInfo(HttpServletRequest req, HttpServletResponse res) {
         if(!beforeFilters(req, res)) return;
 
-        pullUserInfo();
+        pullUserInfo(null);
         
         flushCookies(res);
         sendRedirect(res, localOrigin(req) + "/logged_in");
@@ -107,7 +123,7 @@ public class LoginController extends Controller {
         return restTemplate;
     }
     
-    private void pullUserInfo() {
+    private void pullUserInfo(String accessToken) {
         RestTemplate restTemplate = getRestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.set(HttpHeaders.AUTHORIZATION, "Bearer " + (String)this.session.get("access_token"));
@@ -115,7 +131,21 @@ public class LoginController extends Controller {
         HttpEntity<String> entity = new HttpEntity<String>(headers);
         ResponseEntity<UserResponse> userResEnt = restTemplate.exchange("https://api.github.com/user", HttpMethod.GET, entity, UserResponse.class);
         UserResponse userResp = userResEnt.getBody();
-        this.session.put("name", userResp.name);
+
+        User user = userRepository.findByGithubId(userResp.id);
+        if(user == null) {
+            System.out.println("Found no user");
+            user = userResp.newUser(accessToken);
+            userRepository.save(user);
+        } else if(accessToken != null) {
+            System.out.println("Found existing user and given access token");
+            user.setAccessToken(accessToken);
+            userRepository.save(user);
+        } else {
+            System.out.println("Found existing user and but not given access token, not saving");            
+        }
+
+        this.session.put("name", user.getName());
     }
     
 }
