@@ -82,7 +82,7 @@ public class DatabaseConfiguration {
 
         entityManagerFactoryBean.setJpaVendorAdapter(jpaVendorAdapter);
         entityManagerFactoryBean.setDataSource(dataSource);
-        entityManagerFactoryBean.setPackagesToScan(new String[] {"com.mikedll.headshot"});
+        entityManagerFactoryBean.setPackagesToScan("com.mikedll.headshot");
 
         Map<String,Object> hibernateSettings = new LinkedHashMap<>();
         hibernateSettings.put(AvailableSettings.IMPLICIT_NAMING_STRATEGY, SpringImplicitNamingStrategy.class.getName());
