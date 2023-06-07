@@ -30,6 +30,9 @@ public class Servlet extends HttpServlet {
         } else if(path.equals("/reload_user_info")) {
             LoginController controller = Application.appCtx.getBean(LoginController.class);
             controller.reloadUserInfo(req, res);
+        } else if(path.equals("/logout")) {
+            LoginController controller = Application.appCtx.getBean(LoginController.class);
+            controller.logout(req, res);
         } else if(path.equals("/idle")) {
             RootController controller = Application.appCtx.getBean(RootController.class);
             controller.idle(req, res);

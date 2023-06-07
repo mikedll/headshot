@@ -7,5 +7,6 @@ public class Env {
     public static String cookieSigningKey;
 
     public static String dbUrl;
-    
+
+    public static String env;
 }

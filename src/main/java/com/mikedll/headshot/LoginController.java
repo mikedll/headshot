@@ -17,10 +17,12 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.beans.factory.annotation.Autowired;
-
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 
 @Component
+@Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class LoginController extends Controller {
 
     @Autowired
@@ -36,16 +38,13 @@ public class LoginController extends Controller {
     public record AccessTokenResponse(String access_token, String token_type, String scope) {}
 
     public record UserResponse(Long id, String login, String name, String url, String html_url, String repos_url) {
-        public User newUser(String accessToken) {
-            User user = new User();
+        public void copyFieldsTo(User user) {
             user.setName(this.name);
             user.setGithubId(this.id);
             user.setGithubLogin(this.login);
             user.setUrl(this.url);
             user.setHtmlUrl(this.html_url);
             user.setReposUrl(this.repos_url);
-            user.setAccessToken(accessToken);
-            return user;
         }
     }
     
@@ -96,18 +95,35 @@ public class LoginController extends Controller {
         // System.out.println("Rest response: ");
         // System.out.println(restResponse);
 
-        this.session.put("access_token", restResponse.access_token);
-
-        pullUserInfo(restResponse.access_token);
+        User user = pullUserInfo(restResponse.access_token);
+        if(user == null) {
+            throw new RequestException("Failed to get user from github");
+        }
+        
+        this.session.put("user_id", user.getId());
 
         flushCookies(res);
         sendRedirect(res, localOrigin(req) + "/logged_in");
     }
 
+    public void logout(HttpServletRequest req, HttpServletResponse res) {
+        if(!beforeFilters(req, res)) return;
+
+        clearSession();
+        flushCookies(res);
+        sendRedirect(res, localOrigin(req) + "/");
+    }
+
     public void reloadUserInfo(HttpServletRequest req, HttpServletResponse res) {
         if(!beforeFilters(req, res)) return;
 
-        pullUserInfo(null);
+        UserResponse userResp = getUser(currentUser.getAccessToken());
+        if(userResp.id == null) {
+            throw new RequestException("Failed to get user from github");
+        }
+
+        userResp.copyFieldsTo(this.currentUser);
+        userRepository.save(this.currentUser);
         
         flushCookies(res);
         sendRedirect(res, localOrigin(req) + "/logged_in");
@@ -116,36 +132,41 @@ public class LoginController extends Controller {
     private String redirectUri(HttpServletRequest req) {
         return localOrigin(req) + "/login/oauth2/code/github";
     }
-
+    
     private RestTemplate getRestTemplate() {
         RestTemplate restTemplate = new RestTemplate();
         restTemplate.setErrorHandler(new RestErrorHandler());
         return restTemplate;
     }
-    
-    private void pullUserInfo(String accessToken) {
+
+    private UserResponse getUser(String accessToken) {
         RestTemplate restTemplate = getRestTemplate();
         HttpHeaders headers = new HttpHeaders();
-        headers.set(HttpHeaders.AUTHORIZATION, "Bearer " + (String)this.session.get("access_token"));
+        headers.set(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken);
         headers.set("X-GitHub-Api-Version", "2022-11-28");
         HttpEntity<String> entity = new HttpEntity<String>(headers);
         ResponseEntity<UserResponse> userResEnt = restTemplate.exchange("https://api.github.com/user", HttpMethod.GET, entity, UserResponse.class);
-        UserResponse userResp = userResEnt.getBody();
-
+        return userResEnt.getBody();        
+    }
+    
+    private User pullUserInfo(String accessToken) {
+        UserResponse userResp = getUser(accessToken);
+        if(userResp.id == null) return null;
+        
         User user = userRepository.findByGithubId(userResp.id);
         if(user == null) {
             System.out.println("Found no user");
-            user = userResp.newUser(accessToken);
+            user = new User();
+            user.setAccessToken(accessToken);
+            userResp.copyFieldsTo(user);
             userRepository.save(user);
-        } else if(accessToken != null) {
+        } else {
             System.out.println("Found existing user and given access token");
             user.setAccessToken(accessToken);
             userRepository.save(user);
-        } else {
-            System.out.println("Found existing user and but not given access token, not saving");            
         }
 
-        this.session.put("name", user.getName());
+        return user;
     }
     
 }

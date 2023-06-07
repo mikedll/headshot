@@ -4,11 +4,13 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.LinkedHashMap;
 import java.io.UnsupportedEncodingException;
+import java.util.Optional;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Cookie;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.templatemode.TemplateMode;
 import org.thymeleaf.templateresolver.FileTemplateResolver;
@@ -29,11 +31,17 @@ public class Controller {
 
     protected CookieManager cookieManager = new CookieManager(Env.cookieSigningKey);
 
+    protected User currentUser;
+
+    @Autowired
+    private UserRepository myUserRepository;
+    
     public Controller() {
         // HTML is the default mode, but we will set it anyway for better understanding of code
         templateResolver.setTemplateMode(TemplateMode.HTML);
         templateResolver.setPrefix("web_app_views/");
         templateResolver.setSuffix(".html");
+        templateResolver.setCacheable(Env.env == "production");
 
         templateEngine.addDialect(new LayoutDialect());
         templateEngine.setTemplateResolver(templateResolver);
@@ -58,9 +66,15 @@ public class Controller {
         
         // adjust for prod
         ctx.setVariable("googleAnalytics", snippet);
+        ctx.setVariable("currentUser", currentUser);
+
         return ctx;
     }
 
+    public void clearSession() {
+        this.session = new LinkedHashMap<String,Object>();
+    }
+    
     /*
      * Returns false if service of the given request should be aborted.
      */
@@ -93,11 +107,16 @@ public class Controller {
 
         if(!cookieCheckOkay) {
             System.out.println("beforeFilters is resetting cookies redirecting to root");
-            this.session = new LinkedHashMap<String,Object>();
+            clearSession();
             flushCookies(res);
             sendRedirect(res, localOrigin(req) + "/");
             return false;
-        }            
+        }
+
+        if(session.get("user_id") != null) {
+            Optional<User> user = myUserRepository.findById(new Long((Integer)session.get("user_id")));
+            if(user.isPresent()) this.currentUser = user.get();
+        }
 
         return true;
     }

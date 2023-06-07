@@ -56,6 +56,9 @@ public class CookieManager {
         this.keySpec = new SecretKeySpec(decodedKey, 0, decodedKey.length, algorithm);
     }
 
+    /*
+     * @todo encode and retrieve user_id as a Long
+     */
     public String cookieString(Map<String,Object> input)
         throws UnsupportedEncodingException, JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();

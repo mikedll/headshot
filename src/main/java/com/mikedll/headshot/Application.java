@@ -16,7 +16,13 @@ public class Application {
         Env.githubConfig = new GithubConfig(dotenv.get("GITHUB_CLIENT_ID"), dotenv.get("GITHUB_CLIENT_SECRET"));
         Env.cookieSigningKey = dotenv.get("COOKIE_SIGNING_KEY");
         Env.dbUrl = dotenv.get("DB_URL");
+        Env.env = dotenv.get("APP_ENV");
+        if(Env.env == null) {
+            Env.env = "development";
+        }
 
+        System.out.println("Starting app in " + Env.env + " environment...");        
+        
         Application.appCtx = new AnnotationConfigApplicationContext(Application.class);
         // for (String beanName : appCtx.getBeanDefinitionNames()) {
         //     System.out.println(beanName);
