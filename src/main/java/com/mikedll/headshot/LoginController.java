@@ -126,7 +126,7 @@ public class LoginController extends Controller {
         userRepository.save(this.currentUser);
         
         flushCookies(res);
-        sendRedirect(res, localOrigin(req) + "/logged_in");
+        sendRedirect(res, localOrigin(req) + "/profile");
     }
 
     private String redirectUri(HttpServletRequest req) {

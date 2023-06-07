@@ -33,12 +33,9 @@ public class Servlet extends HttpServlet {
         } else if(path.equals("/logout")) {
             LoginController controller = Application.appCtx.getBean(LoginController.class);
             controller.logout(req, res);
-        } else if(path.equals("/idle")) {
+        } else if(path.equals("/profile")) {
             RootController controller = Application.appCtx.getBean(RootController.class);
-            controller.idle(req, res);
-        } else if(path.equals("/logged_in")) {
-            RootController controller = Application.appCtx.getBean(RootController.class);
-            controller.loggedIn(req, res);
+            controller.profile(req, res);
         } else if(path.equals("/session")) {
             RootController controller = Application.appCtx.getBean(RootController.class);
             controller.session(req, res);                

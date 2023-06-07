@@ -26,23 +26,12 @@ public class RootController extends Controller {
         render("index", defaultCtx(req), res);        
     }
 
-    public void idle(HttpServletRequest req, HttpServletResponse res) {
-        if(!beforeFilters(req, res)) return;
-
-        
-        
-        Context ctx = defaultCtx(req);
-        ctx.setVariable("oauth2state", (String)this.session.get("oauth2state"));
-        ctx.setVariable("userCount", userRepository.count());
-        render("idle", ctx, res);        
-    }
-
-    public void loggedIn(HttpServletRequest req, HttpServletResponse res) {
+    public void profile(HttpServletRequest req, HttpServletResponse res) {
         if(!beforeFilters(req, res)) return;
 
         Context ctx = defaultCtx(req);
         ctx.setVariable("name", (String)this.session.get("name"));
-        render("logged_in", ctx, res);        
+        render("profile", ctx, res);        
     }
 
     public void session(HttpServletRequest req, HttpServletResponse res) throws JsonProcessingException {
