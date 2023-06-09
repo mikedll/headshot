@@ -1,23 +1,40 @@
 package com.mikedll.headshot;
 
+import java.lang.InterruptedException;
 import java.util.List;
 import java.util.ArrayList;
-import java.lang.InterruptedException;
+import java.util.Optional;
+
+import java.lang.Runnable;
 
 public class Experiment {
 
+    public Runnable buildSleep() {
+        return () -> {
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException ex) {
+                System.out.println("sleep encountered InterruptedException");
+            }
+        };
+    }        
+    
     public void run() {
-        int count = 5;
+        int count = 2;
         List<Thread> list = new ArrayList<Thread>(count);
+        Runnable sleeper = buildSleep();
         for(int i = 0; i < count; i++) {
             UserRepository userRepository = Application.appCtx.getBean(UserRepository.class);
+            final int iCopy = i;
             Thread td = new Thread() {
                     public void run() {
+                        if(iCopy == 0) {
+                            // sleeper.run();
+                        }
                         System.out.println("We have " + userRepository.count() + " users");
-                        try {
-                            Thread.sleep(5000);
-                        } catch (InterruptedException ex) {
-                            System.out.println("sleep interupted");
+                        Optional<User> user = userRepository.findById(new Long(1));
+                        if(user.isPresent()) {
+                            System.out.println("User name: " + user.get().getName());
                         }
                     }
                 };
@@ -36,12 +53,9 @@ public class Experiment {
             });
 
         if(count == 0) {
-            try {
-                System.out.println("sleeping because count is 0");
-                Thread.sleep(5000);
-            } catch (InterruptedException ex) {
-                System.out.println("sleept interupted");
-            }
+            sleeper.run();
+        } else {
+            sleeper.run();
         }
     }
 }
