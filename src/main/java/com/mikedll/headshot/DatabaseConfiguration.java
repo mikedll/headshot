@@ -30,7 +30,6 @@ import org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy;
 import org.springframework.boot.autoconfigure.transaction.TransactionManagerCustomizers;
 import org.springframework.boot.autoconfigure.transaction.PlatformTransactionManagerCustomizer;
 import org.springframework.boot.autoconfigure.transaction.TransactionProperties;
-import org.springframework.boot.jdbc.DataSourceBuilder;
 
 @EnableJpaRepositories
 @Configuration
@@ -58,12 +57,10 @@ public class DatabaseConfiguration {
 
     @Bean
 		DataSource dataSource() {
-        HikariDataSource dataSource = DataSourceBuilder.create()
-            .type(HikariDataSource.class)
-            .url(Env.dbUrl)
-            .build();
-				dataSource.setPoolName("default");
+        HikariDataSource dataSource = new HikariDataSource();
 
+        dataSource.setJdbcUrl(Env.dbUrl);
+				dataSource.setPoolName("default");
         dataSource.setMaximumPoolSize(Env.poolSize);
         
         return dataSource;
