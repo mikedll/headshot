@@ -50,10 +50,5 @@ public class Application {
 
         System.out.println("Starting tomcat...");
         embeddedTomcat.start();
-    }        
-
-    private static void runExp1() {
-        Experiment ex = new Experiment();
-        ex.run();
     }
 }
