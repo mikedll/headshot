@@ -63,6 +63,9 @@ public class DatabaseConfiguration {
             .url(Env.dbUrl)
             .build();
 				dataSource.setPoolName("default");
+
+        dataSource.setMaximumPoolSize(Env.poolSize);
+        
         return dataSource;
 		}
 

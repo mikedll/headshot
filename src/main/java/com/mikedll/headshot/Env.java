@@ -9,4 +9,6 @@ public class Env {
     public static String dbUrl;
 
     public static String env;
+
+    public static int poolSize = 10;    
 }
