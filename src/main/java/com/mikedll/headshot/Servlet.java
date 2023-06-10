@@ -22,25 +22,25 @@ public class Servlet extends HttpServlet {
         String path = req.getRequestURI().toString();
         System.out.println("Path: " + path);
         if(path.equals("/oauth2/authorization/github")) {
-            LoginController controller = Application.appCtx.getBean(LoginController.class);
+            LoginController controller = new LoginController();
             controller.oauth2LoginStart(req, res);
         } else if(path.equals("/login/oauth2/code/github")) {
-            LoginController controller = Application.appCtx.getBean(LoginController.class);
+            LoginController controller = new LoginController();
             controller.oauth2CodeReceive(req, res);
         } else if(path.equals("/reload_user_info")) {
-            LoginController controller = Application.appCtx.getBean(LoginController.class);
+            LoginController controller = new LoginController();
             controller.reloadUserInfo(req, res);
         } else if(path.equals("/logout")) {
-            LoginController controller = Application.appCtx.getBean(LoginController.class);
+            LoginController controller = new LoginController();
             controller.logout(req, res);
         } else if(path.equals("/profile")) {
-            RootController controller = Application.appCtx.getBean(RootController.class);
+            RootController controller = new RootController();
             controller.profile(req, res);
         } else if(path.equals("/session")) {
-            RootController controller = Application.appCtx.getBean(RootController.class);
+            RootController controller = new RootController();
             controller.session(req, res);                
         } else if(path.equals("/")) {
-            RootController controller = Application.appCtx.getBean(RootController.class);
+            RootController controller = new RootController();
             controller.index(req, res);
         } else {
             try {

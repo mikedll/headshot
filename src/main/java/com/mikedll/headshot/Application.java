@@ -4,29 +4,14 @@ import com.mikedll.headshot.db.DatabaseConfiguration;
 
 import io.github.cdimascio.dotenv.Dotenv;
 
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.ConfigurableApplicationContext;
-
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.WebApplicationType;
-
-@ComponentScan
 public class Application {
-    
-    public static ConfigurableApplicationContext appCtx;
     
     public static void main(String[] args) {        
         loadDotEnv();
         
         System.out.println("Starting app in " + Env.env + " environment...");        
 
-        // SpringApplication springApplication = new SpringApplication(new Class<?>[] { Application.class });
-        // springApplication.setWebApplicationType(WebApplicationType.NONE);
-        // Application.appCtx = springApplication.run(args);
-
         UserRepository userRepository = DatabaseConfiguration.getUserRepository();
-        // UserRepository userRepository = Application.appCtx.getBean(UserRepository.class);
 
         // runTomcat();
         runExp1(userRepository);
@@ -35,9 +20,6 @@ public class Application {
             System.out.println("Closing data source...");
             DatabaseConfiguration.dataSource.close();
         }
-        
-        // System.out.println("Closing application context...");
-        // appCtx.close();
     }
 
     private static void loadDotEnv() {
@@ -51,13 +33,6 @@ public class Application {
         }
         // pool size?
     }
-
-    private static void printBeans() {
-        for (String beanName : appCtx.getBeanDefinitionNames()) {
-            System.out.println(beanName);
-        }
-        System.out.println("Done printing beans");        
-    }        
 
     private static void runTomcat() {
         System.out.println("Initializing tomcat...");
