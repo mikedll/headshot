@@ -35,9 +35,6 @@ import org.springframework.data.repository.core.support.RepositoryProxyPostProce
 import org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor;
 
 import org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy;
-import org.springframework.boot.autoconfigure.transaction.TransactionManagerCustomizers;
-import org.springframework.boot.autoconfigure.transaction.PlatformTransactionManagerCustomizer;
-import org.springframework.boot.autoconfigure.transaction.TransactionProperties;
 
 import com.mikedll.headshot.UserRepository;
 import com.mikedll.headshot.Env;
