@@ -48,23 +48,11 @@ public class DatabaseConfiguration {
 
     public static LocalContainerEntityManagerFactoryBean entityManagerFactoryBean;
     
-    // @Bean
     PlatformTransactionManager transactionManager(ObjectProvider<TransactionManagerCustomizers> transactionManagerCustomizers) {
         // Arrays.asList(Thread.currentThread().getStackTrace()).forEach(t -> System.out.println(t));
         JpaTransactionManager transactionManager = new JpaTransactionManager();
         transactionManagerCustomizers.ifAvailable((customizers) -> customizers.customize(transactionManager));
         return transactionManager;
-    }
-
-    // @Bean
-    public TransactionManagerCustomizers
-        platformTransactionManagerCustomizers(ObjectProvider<PlatformTransactionManagerCustomizer<?>> customizers) {
-        return new TransactionManagerCustomizers(customizers.orderedStream().toList());
-    }
-
-    // @Bean
-    TransactionProperties transactionProperties() {
-        return new TransactionProperties();
     }
 
 		DataSource getDataSource() {
@@ -88,7 +76,6 @@ public class DatabaseConfiguration {
         return adapter;
     }
 
-    // @Bean
     public LocalContainerEntityManagerFactoryBean getEntityManagerFactoryBean() {
         if(this.entityManagerFactoryBean != null) {
             return entityManagerFactoryBean;
