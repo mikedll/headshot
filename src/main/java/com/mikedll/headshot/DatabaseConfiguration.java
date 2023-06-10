@@ -42,6 +42,8 @@ import org.springframework.boot.autoconfigure.transaction.TransactionProperties;
 public class DatabaseConfiguration {
 
     private static final String JTA_PLATFORM = "hibernate.transaction.jta.platform";
+
+    public static HikariDataSource dataSource;
     
     @Bean
     PlatformTransactionManager transactionManager(ObjectProvider<TransactionManagerCustomizers> transactionManagerCustomizers) {
@@ -61,18 +63,22 @@ public class DatabaseConfiguration {
         return new TransactionProperties();
     }
 
-    @Bean
-		DataSource dataSource() {
+		DataSource getDataSource() {
+        if(dataSource != null) {
+            return dataSource;
+        }
+        
+        System.out.println("Data source bean called and a data source is being constructed");
         HikariDataSource dataSource = new HikariDataSource();
 
         dataSource.setJdbcUrl(Env.dbUrl);
 				dataSource.setPoolName("default");
         dataSource.setMaximumPoolSize(Env.poolSize);
-        
-        return dataSource;
+
+        this.dataSource = dataSource;
+        return this.dataSource;
 		}
 
-    @Bean
     public JpaVendorAdapter jpaVendorAdapter() {
     		AbstractJpaVendorAdapter adapter = new HibernateJpaVendorAdapter();
         adapter.setShowSql(true);
@@ -80,21 +86,17 @@ public class DatabaseConfiguration {
     }
 
     @Bean
-    public LocalContainerEntityManagerFactoryBean entityManagerFactory(ResourceLoader resourceLoader,
-                                                                       ConfigurableListableBeanFactory beanFactory,
-                                                                       DataSource dataSource,
-                                                                       JpaVendorAdapter jpaVendorAdapter) {
+    public LocalContainerEntityManagerFactoryBean entityManagerFactory() {
         LocalContainerEntityManagerFactoryBean entityManagerFactoryBean = new LocalContainerEntityManagerFactoryBean();
-
-        entityManagerFactoryBean.setJpaVendorAdapter(jpaVendorAdapter);
-        entityManagerFactoryBean.setDataSource(dataSource);
+        
+        entityManagerFactoryBean.setJpaVendorAdapter(jpaVendorAdapter());
+        entityManagerFactoryBean.setDataSource(getDataSource());
         entityManagerFactoryBean.setPackagesToScan("com.mikedll.headshot");
 
         Map<String,Object> hibernateSettings = new LinkedHashMap<>();
         hibernateSettings.put(AvailableSettings.IMPLICIT_NAMING_STRATEGY, SpringImplicitNamingStrategy.class.getName());
         hibernateSettings.put(AvailableSettings.PHYSICAL_NAMING_STRATEGY, CamelCaseToUnderscoresNamingStrategy.class.getName());
         hibernateSettings.put(AvailableSettings.SCANNER, "org.hibernate.boot.archive.scan.internal.DisabledScanner");
-        hibernateSettings.put(AvailableSettings.BEAN_CONTAINER, new SpringBeanContainer(beanFactory));
         hibernateSettings.put(JTA_PLATFORM, new NoJtaPlatform());
         entityManagerFactoryBean.getJpaPropertyMap().putAll(hibernateSettings);
         

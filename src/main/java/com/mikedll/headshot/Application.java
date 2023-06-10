@@ -28,6 +28,11 @@ public class Application {
 
         // runTomcat();
         runExp1(userRepository);
+
+        if(DatabaseConfiguration.dataSource != null) {
+            System.out.println("Closing data source...");
+            DatabaseConfiguration.dataSource.close();
+        }
         
         System.out.println("Closing application context...");
         appCtx.close();
