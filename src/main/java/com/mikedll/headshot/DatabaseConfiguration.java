@@ -3,6 +3,7 @@ package com.mikedll.headshot;
 import java.lang.StackTraceElement;
 import java.util.Map;
 import java.util.LinkedHashMap;
+import java.util.Arrays;
 
 import javax.sql.DataSource;
 import jakarta.persistence.EntityManagerFactory;
@@ -44,21 +45,24 @@ public class DatabaseConfiguration {
     private static final String JTA_PLATFORM = "hibernate.transaction.jta.platform";
 
     public static HikariDataSource dataSource;
+
+    public static LocalContainerEntityManagerFactoryBean entityManagerFactoryBean;
     
-    @Bean
+    // @Bean
     PlatformTransactionManager transactionManager(ObjectProvider<TransactionManagerCustomizers> transactionManagerCustomizers) {
+        // Arrays.asList(Thread.currentThread().getStackTrace()).forEach(t -> System.out.println(t));
         JpaTransactionManager transactionManager = new JpaTransactionManager();
         transactionManagerCustomizers.ifAvailable((customizers) -> customizers.customize(transactionManager));
         return transactionManager;
     }
 
-    @Bean
+    // @Bean
     public TransactionManagerCustomizers
         platformTransactionManagerCustomizers(ObjectProvider<PlatformTransactionManagerCustomizer<?>> customizers) {
         return new TransactionManagerCustomizers(customizers.orderedStream().toList());
     }
 
-    @Bean
+    // @Bean
     TransactionProperties transactionProperties() {
         return new TransactionProperties();
     }
@@ -68,7 +72,6 @@ public class DatabaseConfiguration {
             return dataSource;
         }
         
-        System.out.println("Data source bean called and a data source is being constructed");
         HikariDataSource dataSource = new HikariDataSource();
 
         dataSource.setJdbcUrl(Env.dbUrl);
@@ -85,26 +88,32 @@ public class DatabaseConfiguration {
         return adapter;
     }
 
-    @Bean
-    public LocalContainerEntityManagerFactoryBean entityManagerFactory() {
-        LocalContainerEntityManagerFactoryBean entityManagerFactoryBean = new LocalContainerEntityManagerFactoryBean();
+    // @Bean
+    public LocalContainerEntityManagerFactoryBean getEntityManagerFactoryBean() {
+        if(this.entityManagerFactoryBean != null) {
+            return entityManagerFactoryBean;
+        }
         
-        entityManagerFactoryBean.setJpaVendorAdapter(jpaVendorAdapter());
-        entityManagerFactoryBean.setDataSource(getDataSource());
-        entityManagerFactoryBean.setPackagesToScan("com.mikedll.headshot");
+        this.entityManagerFactoryBean = new LocalContainerEntityManagerFactoryBean();
+        
+        this.entityManagerFactoryBean.setJpaVendorAdapter(jpaVendorAdapter());
+        this.entityManagerFactoryBean.setDataSource(getDataSource());
+        this.entityManagerFactoryBean.setPackagesToScan("com.mikedll.headshot");
 
         Map<String,Object> hibernateSettings = new LinkedHashMap<>();
         hibernateSettings.put(AvailableSettings.IMPLICIT_NAMING_STRATEGY, SpringImplicitNamingStrategy.class.getName());
         hibernateSettings.put(AvailableSettings.PHYSICAL_NAMING_STRATEGY, CamelCaseToUnderscoresNamingStrategy.class.getName());
         hibernateSettings.put(AvailableSettings.SCANNER, "org.hibernate.boot.archive.scan.internal.DisabledScanner");
         hibernateSettings.put(JTA_PLATFORM, new NoJtaPlatform());
-        entityManagerFactoryBean.getJpaPropertyMap().putAll(hibernateSettings);
-        
-        return entityManagerFactoryBean;
+        this.entityManagerFactoryBean.getJpaPropertyMap().putAll(hibernateSettings);
+
+        this.entityManagerFactoryBean.afterPropertiesSet();        
+        return this.entityManagerFactoryBean;
     }
 
     public static UserRepository getUserRepository() {
-        EntityManagerFactory emf = (EntityManagerFactory)Application.appCtx.getBean("entityManagerFactory");
+        EntityManagerFactory emf = new DatabaseConfiguration().getEntityManagerFactoryBean().getObject();
+        System.out.println("EntityManagerFactory emf: " + emf);
         
         // simulate bean: jpaSharedEM_entityManagerFactory. emf is a proxy around the emf bean.
         EntityManager em = SharedEntityManagerCreator.createSharedEntityManager(emf);

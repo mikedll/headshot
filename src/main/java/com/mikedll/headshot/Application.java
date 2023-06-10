@@ -19,9 +19,9 @@ public class Application {
         
         System.out.println("Starting app in " + Env.env + " environment...");        
 
-        SpringApplication springApplication = new SpringApplication(new Class<?>[] { Application.class });
-        springApplication.setWebApplicationType(WebApplicationType.NONE);
-        Application.appCtx = springApplication.run(args);
+        // SpringApplication springApplication = new SpringApplication(new Class<?>[] { Application.class });
+        // springApplication.setWebApplicationType(WebApplicationType.NONE);
+        // Application.appCtx = springApplication.run(args);
 
         UserRepository userRepository = DatabaseConfiguration.getUserRepository();
         // UserRepository userRepository = Application.appCtx.getBean(UserRepository.class);
@@ -34,8 +34,8 @@ public class Application {
             DatabaseConfiguration.dataSource.close();
         }
         
-        System.out.println("Closing application context...");
-        appCtx.close();
+        // System.out.println("Closing application context...");
+        // appCtx.close();
     }
 
     private static void loadDotEnv() {
