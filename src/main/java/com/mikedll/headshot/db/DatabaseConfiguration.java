@@ -47,12 +47,17 @@ public class DatabaseConfiguration {
     public static HikariDataSource dataSource;
 
     public static LocalContainerEntityManagerFactoryBean entityManagerFactoryBean;
+
+    public static PlatformTransactionManager transactionManager;
     
-    PlatformTransactionManager transactionManager(ObjectProvider<TransactionManagerCustomizers> transactionManagerCustomizers) {
-        // Arrays.asList(Thread.currentThread().getStackTrace()).forEach(t -> System.out.println(t));
-        JpaTransactionManager transactionManager = new JpaTransactionManager();
-        transactionManagerCustomizers.ifAvailable((customizers) -> customizers.customize(transactionManager));
-        return transactionManager;
+    public static PlatformTransactionManager getTransactionManager() {
+        if(this.transactionManager == null) {
+            return this.transactionManager;
+        }
+
+        this.transactionManager = new JpaTransactionManager();
+        // transactionManagerCustomizers.ifAvailable((customizers) -> customizers.customize(transactionManager));
+        return this.transactionManager;
     }
 
 		DataSource getDataSource() {
@@ -104,6 +109,7 @@ public class DatabaseConfiguration {
         EntityManager em = SharedEntityManagerCreator.createSharedEntityManager(emf);
         
         JpaRepositoryFactory jrf = new JpaRepositoryFactory(em);
+        jrf.addRepositoryProxyPostProcessor(new TransactionalRepositoryProxyPostProcessor());
         return jrf.getRepository(UserRepository.class, RepositoryFragments.empty());
     }
 }

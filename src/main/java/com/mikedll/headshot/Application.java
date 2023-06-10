@@ -1,5 +1,7 @@
 package com.mikedll.headshot;
 
+import com.mikedll.headshot.db.DatabaseConfiguration;
+
 import io.github.cdimascio.dotenv.Dotenv;
 
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
