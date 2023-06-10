@@ -100,9 +100,7 @@ public class DatabaseConfiguration {
 
     public static UserRepository getUserRepository() {
         EntityManagerFactory emf = new DatabaseConfiguration().getEntityManagerFactoryBean().getObject();
-        System.out.println("EntityManagerFactory emf: " + emf);
-        
-        // simulate bean: jpaSharedEM_entityManagerFactory. emf is a proxy around the emf bean.
+
         EntityManager em = SharedEntityManagerCreator.createSharedEntityManager(emf);
         
         JpaRepositoryFactory jrf = new JpaRepositoryFactory(em);
