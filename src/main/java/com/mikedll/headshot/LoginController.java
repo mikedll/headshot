@@ -9,23 +9,16 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 import org.springframework.security.crypto.keygen.Base64StringKeyGenerator;
 import org.springframework.security.crypto.keygen.StringKeyGenerator;
-import org.springframework.web.client.RestTemplate;        
+import org.springframework.web.client.RestTemplate;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 
-@Component
-@Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class LoginController extends Controller {
 
-    @Autowired
     private UserRepository userRepository;
     
     private final String githubPrefix = "https://github.com/login/oauth";
