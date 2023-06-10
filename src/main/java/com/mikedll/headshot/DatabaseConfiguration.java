@@ -5,6 +5,8 @@ import java.util.Map;
 import java.util.LinkedHashMap;
 
 import javax.sql.DataSource;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.EntityManager;
 
 import org.hibernate.cfg.AvailableSettings;
 
@@ -25,6 +27,10 @@ import org.springframework.orm.jpa.vendor.AbstractJpaVendorAdapter;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.hibernate5.SpringBeanContainer;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.orm.jpa.SharedEntityManagerCreator;
+import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
+import org.springframework.data.jpa.repository.support.JpaRepositoryFactory;
+import org.springframework.data.repository.core.support.RepositoryComposition.RepositoryFragments;
 
 import org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy;
 import org.springframework.boot.autoconfigure.transaction.TransactionManagerCustomizers;
@@ -95,5 +101,13 @@ public class DatabaseConfiguration {
         return entityManagerFactoryBean;
     }
 
-
+    public static UserRepository getUserRepository() {
+        EntityManagerFactory emf = (EntityManagerFactory)Application.appCtx.getBean("entityManagerFactory");
+        
+        // simulate bean: jpaSharedEM_entityManagerFactory. emf is a proxy around the emf bean.
+        EntityManager em = SharedEntityManagerCreator.createSharedEntityManager(emf);
+        
+        JpaRepositoryFactory jrf = new JpaRepositoryFactory(em);
+        return jrf.getRepository(UserRepository.class, RepositoryFragments.empty());
+    }
 }
