@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+// from org.springframework.data.repository.core.support
+
 package com.mikedll.headshot.db;
 
 import java.lang.reflect.Method;
@@ -30,6 +32,7 @@ import org.springframework.transaction.interceptor.TransactionAttribute;
 import org.springframework.transaction.interceptor.TransactionInterceptor;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
+import org.springframework.data.repository.core.support.RepositoryProxyPostProcessor;
 
 /**
  * {@link RepositoryProxyPostProcessor} to add transactional behaviour to repository proxies. Adds a
@@ -60,7 +63,7 @@ public class TransactionalRepositoryProxyPostProcessor implements RepositoryProx
     public void postProcess(ProxyFactory factory, RepositoryInformation repositoryInformation) {
 
         TransactionInterceptor transactionInterceptor = new TransactionInterceptor();
-        transactionInterceptor.setTransactionManager(DatabaseConfiguration.getTransactionManager());
+        transactionInterceptor.setTransactionManager(new DatabaseConfiguration().getTransactionManager());
         transactionInterceptor
             .setTransactionAttributeSource(new RepositoryAnnotationTransactionAttributeSource(repositoryInformation, enableDefaultTransactions));
         transactionInterceptor.afterPropertiesSet();

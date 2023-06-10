@@ -1,4 +1,4 @@
-package com.mikedll.headshot;
+package com.mikedll.headshot.db;
 
 import java.lang.StackTraceElement;
 import java.util.Map;
@@ -32,11 +32,16 @@ import org.springframework.orm.jpa.SharedEntityManagerCreator;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactory;
 import org.springframework.data.repository.core.support.RepositoryComposition.RepositoryFragments;
+import org.springframework.data.repository.core.support.RepositoryProxyPostProcessor;
+import org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor;
 
 import org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy;
 import org.springframework.boot.autoconfigure.transaction.TransactionManagerCustomizers;
 import org.springframework.boot.autoconfigure.transaction.PlatformTransactionManagerCustomizer;
 import org.springframework.boot.autoconfigure.transaction.TransactionProperties;
+
+import com.mikedll.headshot.UserRepository;
+import com.mikedll.headshot.Env;
 
 @EnableJpaRepositories
 @Configuration
@@ -49,8 +54,10 @@ public class DatabaseConfiguration {
     public static LocalContainerEntityManagerFactoryBean entityManagerFactoryBean;
 
     public static PlatformTransactionManager transactionManager;
+
+    public static RepositoryProxyPostProcessor exceptionPostProcessor;
     
-    public static PlatformTransactionManager getTransactionManager() {
+    public PlatformTransactionManager getTransactionManager() {
         if(this.transactionManager == null) {
             return this.transactionManager;
         }
@@ -81,6 +88,15 @@ public class DatabaseConfiguration {
         return adapter;
     }
 
+    public RepositoryProxyPostProcessor getExceptionPostProcessor() {
+        if(this.exceptionPostProcessor != null) {
+            return this.exceptionPostProcessor;
+        }
+
+        this.exceptionPostProcessor = new PersistenceExceptionTranslationPostProcessor();
+        return this.exceptionPostProcessor;
+    }
+
     public LocalContainerEntityManagerFactoryBean getEntityManagerFactoryBean() {
         if(this.entityManagerFactoryBean != null) {
             return entityManagerFactoryBean;
@@ -104,12 +120,14 @@ public class DatabaseConfiguration {
     }
 
     public static UserRepository getUserRepository() {
-        EntityManagerFactory emf = new DatabaseConfiguration().getEntityManagerFactoryBean().getObject();
+        DatabaseConfiguration dbConf = new DatabaseConfiguration();
+        EntityManagerFactory emf = dbConf.getEntityManagerFactoryBean().getObject();
 
         EntityManager em = SharedEntityManagerCreator.createSharedEntityManager(emf);
         
-        JpaRepositoryFactory jrf = new JpaRepositoryFactory(em);
-        jrf.addRepositoryProxyPostProcessor(new TransactionalRepositoryProxyPostProcessor());
-        return jrf.getRepository(UserRepository.class, RepositoryFragments.empty());
+        JpaRepositoryFactory jpaRepoFactory = new JpaRepositoryFactory(em);
+        jpaRepoFactory.addRepositoryProxyPostProcessor(dbConf.getExceptionPostProcessor());
+        jpaRepoFactory.addRepositoryProxyPostProcessor(new TransactionalRepositoryProxyPostProcessor(true));
+        return jpaRepoFactory.getRepository(UserRepository.class, RepositoryFragments.empty());
     }
 }
