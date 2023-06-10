@@ -47,28 +47,9 @@ public class Experiment2 {
             Resource[] resources = resolver.getResources(path);
             for(Resource resource : resources) {
                 MetadataReader metadataReader = metadataReaderFactory.getMetadataReader(resource);
-                /*
-                ClassMetadata classMetadata = metadataReader.getClassMetadata();
-                String name = classMetadata.getClassName();
-                System.out.println(name);
-
-                Class clazz;
-                try {
-                    clazz = Class.forName(name);
-                } catch (ClassNotFoundException ex) {
-                    System.out.println("ClassNotFoundException from " + name + ": " + ex.getMessage());
-                    continue;
-                }
-                */
-
-                AnnotationMetadata annotationMetadata = metadataReader.getAnnotationMetadata();
-                // System.out.println("annotationMetadata: " + annotationMetadata + " of class " + annotationMetadata.getClass());
-                // StandardAnnotationMetadata annotationMetadata = new StandardAnnotationMetadata(clazz);
-                
-
-                Set<MethodMetadata> methods = new LinkedHashSet<>();
-                annotationMetadata.getAnnotatedMethods("com.mikedll.headshot.controller.Request").forEach(m -> {
-                        System.out.println(m);
+                AnnotationMetadata classMetadata = metadataReader.getAnnotationMetadata();
+                classMetadata.getAnnotatedMethods("com.mikedll.headshot.controller.Request").forEach(m -> {
+                        System.out.println("annotated method: " + m);
                     });
                 
 
