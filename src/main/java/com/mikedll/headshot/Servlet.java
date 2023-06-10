@@ -12,7 +12,9 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.ServletContext;
-    
+
+import com.mikedll.headshot.controller.*;
+
 public class Servlet extends HttpServlet {
     
     @Override

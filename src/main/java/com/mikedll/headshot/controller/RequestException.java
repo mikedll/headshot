@@ -1,4 +1,4 @@
-package com.mikedll.headshot;
+package com.mikedll.headshot.controller;
 
 public class RequestException extends RuntimeException {
 

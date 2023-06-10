@@ -11,10 +11,10 @@ public class Application {
         
         System.out.println("Starting app in " + Env.env + " environment...");        
 
-        UserRepository userRepository = DatabaseConfiguration.getUserRepository();
-
+        // UserRepository userRepository = DatabaseConfiguration.getUserRepository();
         // runTomcat();
-        runExp1(userRepository);
+        // runExp1(userRepository);
+        runExp2();
 
         if(DatabaseConfiguration.dataSource != null) {
             System.out.println("Closing data source...");
@@ -46,5 +46,10 @@ public class Application {
     private static void runExp1(UserRepository userRepository) {
         Experiment ex = new Experiment();
         ex.run(userRepository);
+    }
+
+    private static void runExp2() {
+        Experiment2 ex = new Experiment2();
+        ex.run();
     }
 }

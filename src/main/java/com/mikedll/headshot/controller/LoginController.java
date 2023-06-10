@@ -1,5 +1,5 @@
 
-package com.mikedll.headshot;
+package com.mikedll.headshot.controller;
 
 import java.util.Base64;
 
@@ -16,6 +16,11 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+
+import com.mikedll.headshot.UserRepository;
+import com.mikedll.headshot.User;
+import com.mikedll.headshot.Env;
+import com.mikedll.headshot.RestErrorHandler;
 
 public class LoginController extends Controller {
 

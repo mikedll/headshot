@@ -1,4 +1,4 @@
-package com.mikedll.headshot;
+package com.mikedll.headshot.controller;
 
 import java.io.IOException;
 import java.util.Map;
@@ -19,6 +19,11 @@ import org.thymeleaf.context.Context;
 import nz.net.ultraq.thymeleaf.layoutdialect.LayoutDialect;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+
+import com.mikedll.headshot.UserRepository;
+import com.mikedll.headshot.User;
+import com.mikedll.headshot.CookieManager;
+import com.mikedll.headshot.Env;
 
 public class Controller {
     protected FileTemplateResolver templateResolver = new FileTemplateResolver();

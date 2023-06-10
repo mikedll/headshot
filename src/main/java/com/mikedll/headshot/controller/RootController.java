@@ -1,4 +1,4 @@
-package com.mikedll.headshot;
+package com.mikedll.headshot.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -8,10 +8,14 @@ import org.thymeleaf.context.Context;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
+import com.mikedll.headshot.UserRepository;
+import com.mikedll.headshot.User;
+
 public class RootController extends Controller {
 
     private UserRepository userRepository;
-    
+
+    @Request(path="/")
     public void index(HttpServletRequest req, HttpServletResponse res) {
         if(!beforeFilters(req, res)) return;
         
