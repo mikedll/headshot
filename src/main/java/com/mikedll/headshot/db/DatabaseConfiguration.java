@@ -56,14 +56,17 @@ public class DatabaseConfiguration {
     public static PlatformTransactionManager transactionManager;
 
     public static RepositoryProxyPostProcessor exceptionPostProcessor;
+
+    public static RepositoryProxyPostProcessor transactionPostProcessor;
     
     public PlatformTransactionManager getTransactionManager() {
-        if(this.transactionManager == null) {
+        if(this.transactionManager != null) {
             return this.transactionManager;
         }
 
-        this.transactionManager = new JpaTransactionManager();
-        // transactionManagerCustomizers.ifAvailable((customizers) -> customizers.customize(transactionManager));
+        JpaTransactionManager transactionManager = new JpaTransactionManager();
+        transactionManager.setEntityManagerFactory(getEntityManagerFactoryBean().getObject());
+        this.transactionManager = transactionManager;
         return this.transactionManager;
     }
 
@@ -93,9 +96,18 @@ public class DatabaseConfiguration {
             return this.exceptionPostProcessor;
         }
 
-        this.exceptionPostProcessor = new PersistenceExceptionTranslationPostProcessor();
+        this.exceptionPostProcessor = new PersistenceExceptionTranslationRepositoryProxyPostProcessor();
         return this.exceptionPostProcessor;
     }
+
+    public RepositoryProxyPostProcessor getTransactionPostProcessor() {
+        if(this.transactionPostProcessor != null) {
+            return this.transactionPostProcessor;
+        }
+
+        this.transactionPostProcessor = new TransactionalRepositoryProxyPostProcessor(true);
+        return this.transactionPostProcessor;
+    }    
 
     public LocalContainerEntityManagerFactoryBean getEntityManagerFactoryBean() {
         if(this.entityManagerFactoryBean != null) {
@@ -127,7 +139,7 @@ public class DatabaseConfiguration {
         
         JpaRepositoryFactory jpaRepoFactory = new JpaRepositoryFactory(em);
         jpaRepoFactory.addRepositoryProxyPostProcessor(dbConf.getExceptionPostProcessor());
-        jpaRepoFactory.addRepositoryProxyPostProcessor(new TransactionalRepositoryProxyPostProcessor(true));
+        jpaRepoFactory.addRepositoryProxyPostProcessor(dbConf.getTransactionPostProcessor());
         return jpaRepoFactory.getRepository(UserRepository.class, RepositoryFragments.empty());
     }
 }

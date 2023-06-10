@@ -45,7 +45,6 @@ import org.springframework.data.repository.core.support.RepositoryProxyPostProce
  */
 public class TransactionalRepositoryProxyPostProcessor implements RepositoryProxyPostProcessor {
 
-    private final String transactionManagerName;
     private final boolean enableDefaultTransactions;
 
     /**
