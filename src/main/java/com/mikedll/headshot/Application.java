@@ -1,24 +1,46 @@
 package com.mikedll.headshot;
 
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.EntityManager;
+
 import io.github.cdimascio.dotenv.Dotenv;
 
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.support.AbstractApplicationContext;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.data.jpa.repository.support.JpaRepositoryFactory;
+import org.springframework.data.repository.core.support.RepositoryComposition.RepositoryFragments;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.WebApplicationType;
 
 @ComponentScan
 public class Application {
     
-    public static AbstractApplicationContext appCtx;
+    public static ConfigurableApplicationContext appCtx;
     
     public static void main(String[] args) {        
         loadDotEnv();
         
         System.out.println("Starting app in " + Env.env + " environment...");        
-        
-        Application.appCtx = new AnnotationConfigApplicationContext(Application.class);
 
-        runTomcat();
+        SpringApplication springApplication = new SpringApplication(new Class<?>[] { Application.class });
+        springApplication.setWebApplicationType(WebApplicationType.NONE);
+        Application.appCtx = springApplication.run(args);
+
+        // System.out.println("jpaSharedEM_entityManagerFactory: " + appCtx.getBean("jpaSharedEM_entityManagerFactory"));
+        // Application.appCtx = new AnnotationConfigApplicationContext(Application.class);
+
+        EntityManagerFactory emf = (EntityManagerFactory)appCtx.getBean("entityManagerFactory");
+        // EntityManager em = emf.createEntityManager();
+        EntityManager em = (EntityManager)appCtx.getBean("jpaSharedEM_entityManagerFactory");
+        JpaRepositoryFactory jrf = new JpaRepositoryFactory(em);
+        UserRepository userRepository = jrf.getRepository(UserRepository.class, RepositoryFragments.empty());
+        // UserRepository userRepository = Application.appCtx.getBean(UserRepository.class);
+
+        // runTomcat();
+        runExp1(userRepository);
         
         System.out.println("Closing application context...");
         appCtx.close();
@@ -52,8 +74,8 @@ public class Application {
         embeddedTomcat.start();
     }        
 
-    private static void runExp1() {
+    private static void runExp1(UserRepository userRepository) {
         Experiment ex = new Experiment();
-        ex.run();
+        ex.run(userRepository);
     }
 }

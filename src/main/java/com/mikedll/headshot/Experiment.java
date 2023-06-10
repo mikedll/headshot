@@ -19,12 +19,12 @@ public class Experiment {
         };
     }        
     
-    public void run() {
+    public void run(UserRepository userRepository) {
         int count = 2;
         List<Thread> list = new ArrayList<Thread>(count);
         Runnable sleeper = buildSleep();
         for(int i = 0; i < count; i++) {
-            UserRepository userRepository = Application.appCtx.getBean(UserRepository.class);
+            // System.out.println("userRepository from getBean() is " + userRepository);
             final int iCopy = i;
             Thread td = new Thread() {
                     public void run() {
@@ -55,7 +55,7 @@ public class Experiment {
         if(count == 0) {
             sleeper.run();
         } else {
-            sleeper.run();
+            // sleeper.run();
         }
     }
 }
