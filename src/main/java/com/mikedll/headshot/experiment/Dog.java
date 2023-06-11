@@ -13,6 +13,6 @@ public class Dog extends Animal {
 
     @Tacky(path="/bark")    
     public String bark() {
-        return "ARF!";
+        return "ARF! my name is " + this.name;
     }
 }

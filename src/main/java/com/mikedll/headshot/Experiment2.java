@@ -66,7 +66,7 @@ public class Experiment2 {
                         System.out.println("ClassNotFoundException for " + classMetadata.getClassName() + ": " + ex.getMessage());
                     }
                     if(clazz != null) {
-                        Pair<Supplier<Pair<String,String>>, String> toRun = handleAnnotations(clazz, firstMethod);
+                        Pair<Supplier<Pair<String,String>>, String> toRun = buildHandler(clazz, firstMethod);
                         if(toRun.getValue1() != null) {
                             System.out.println("Error when handling method: " + toRun.getValue1());
                             continue;
@@ -86,25 +86,18 @@ public class Experiment2 {
         }
     }
 
-    public Pair<Supplier<Pair<String,String>>, String> handleAnnotations(Class clazz, MethodMetadata methodMetadata) {
-        Constructor<?>[] candidates = clazz.getDeclaredConstructors();
-        Constructor<?> ctorToUse = null;
-        for(Constructor<?> candidate : candidates) {
-            Class<?>[] parameterTypes = candidate.getParameterTypes();
+    public Pair<Supplier<Pair<String,String>>, String> buildHandler(Class clazz, MethodMetadata methodMetadata) {
+        Constructor[] candidates = clazz.getDeclaredConstructors();
+        Constructor qualifyingCtor = null;
+        for(Constructor candidate : candidates) {
+            Class[] parameterTypes = candidate.getParameterTypes();
             if(parameterTypes.length == 2 && parameterTypes[0] == String.class && parameterTypes[1] == Integer.class) {
-                ctorToUse = candidate;
+                qualifyingCtor = candidate;
                 break;
             }
         }
 
-        Object targetObject = null;
-        if(ctorToUse != null) {
-            try {
-                targetObject = ctorToUse.newInstance(new Object[] { "Minny", 15 });
-            } catch (Throwable ex) {
-                return new Pair<>(null, "Exception when instantiating " + clazz + ": " + ex.getMessage());
-            }
-        } else {
+        if(qualifyingCtor == null) {
             return new Pair<>(null, "found no suitable constructor");
         }
 
@@ -121,14 +114,20 @@ public class Experiment2 {
             return new Pair<>(null, "no method by name " + methodMetadata.getMethodName() + " found");
         }
 
-        // constructorToUse = clazz.getDeclaredConstructor();
-
         final Method methodToUse = annotatedMethod;
-        final Object targetObjectToUse = targetObject;
+        final Constructor ctorToUse = qualifyingCtor;
         Supplier<Pair<String,String>> toRun = () -> {
             String happyResult = null;
+
+            Object targetObject = null;
             try {
-                happyResult = (String)methodToUse.invoke(targetObjectToUse);
+                targetObject = ctorToUse.newInstance(new Object[] { "Minny", 15 });
+            } catch (Throwable ex) {
+                return new Pair<>(null, "Exception when instantiating " + clazz + ": " + ex.getMessage());
+            }
+            
+            try {
+                happyResult = (String)methodToUse.invoke(targetObject);
             } catch (Throwable ex) {
                 return Pair.with(null, "Exception when running Tacky method: " + ex.getMessage());
             }

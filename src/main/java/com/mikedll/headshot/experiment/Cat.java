@@ -13,7 +13,7 @@ public class Cat extends Animal {
 
     @Tacky(path="/purr")
     public String purr() {
-        return "purr";
+        return "purr. my name is " + this.name;
     }
 
 }
