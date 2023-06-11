@@ -3,7 +3,6 @@ package com.mikedll.headshot;
 import io.github.cdimascio.dotenv.Dotenv;
 
 import com.mikedll.headshot.db.DatabaseConfiguration;
-import com.mikedll.headshot.experiment.Experiment2;
 
 public class Application {
     
@@ -13,9 +12,8 @@ public class Application {
         System.out.println("Starting app in " + Env.env + " environment...");        
 
         // UserRepository userRepository = DatabaseConfiguration.getUserRepository();
-        // runTomcat();
+        runTomcat();
         // runExp1(userRepository);
-        runExp2();
 
         if(DatabaseConfiguration.dataSource != null) {
             System.out.println("Closing data source...");
@@ -47,10 +45,5 @@ public class Application {
     private static void runExp1(UserRepository userRepository) {
         Experiment ex = new Experiment();
         ex.run(userRepository);
-    }
-
-    private static void runExp2() {
-        Experiment2 ex = new Experiment2();
-        ex.run();
     }
 }

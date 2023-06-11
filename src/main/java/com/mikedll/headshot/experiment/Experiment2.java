@@ -38,10 +38,7 @@ import org.javatuples.Pair;
 
 public class Experiment2 {
 
-    private String[] names = new String[] { "Minny", "Mickey", "Tom" };
-    private Integer[] ages = new Integer[] { 21, 25, 39 };
-
-    public void run() {
+    public List<RequestHandler> findHandlers() {
         ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
         String path = "classpath*:com/mikedll/headshot/experiment/**/*.class";
 
@@ -52,7 +49,7 @@ public class Experiment2 {
             resources = resolver.getResources(path);
         } catch(IOException ex) {
             System.out.println("IOException when scanning for controllers: " + ex.getMessage());
-            return;
+            return null;
         }
 
         List<RequestHandler> requestHandlers = new ArrayList<>();
@@ -62,7 +59,7 @@ public class Experiment2 {
                 metadataReader = metadataReaderFactory.getMetadataReader(resource);
             } catch(IOException ex) {
                 System.out.println("IOException when retrieving metadata reader: " + ex.getMessage());
-                return;
+                return null;
             }
             AnnotationMetadata classMetadata = metadataReader.getAnnotationMetadata();
 
@@ -87,30 +84,7 @@ public class Experiment2 {
             }
         }
 
-        runTests(requestHandlers);
-    }
-
-    public void runTests(List<RequestHandler> requestHandlers) {
-        if(requestHandlers.size() == 0) {
-            System.out.println("Request specs size was 0, returning early");
-            return;
-        }
-
-        System.out.println("Request handlers:");
-        requestHandlers.forEach(rh -> System.out.println(rh));
-
-        int count = 500000;
-        List<Request> requests = new ArrayList<>(count);
-        
-        for(int i = 0; i < count; i++) {
-            String name = names[(int)(Math.random() * 3.0)];
-            Integer age = ages[(int)(Math.random() * 3.0)];
-            RequestHandler requestHandler = requestHandlers.get((int)(Math.random() * requestHandlers.size()));
-
-            requests.add(new Request(requestHandler.path, requestHandler.method, name, age));
-        }
-
-        requests.forEach(r -> dispatch(requestHandlers, r));
+        return requestHandlers;
     }
 
     public void dispatch(List<RequestHandler> requestHandlers, Request request) {

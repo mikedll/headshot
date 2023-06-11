@@ -119,7 +119,7 @@ public class Controller {
         }
 
         if(session.get("user_id") != null) {
-            Optional<User> user = myUserRepository.findById(new Long((Integer)session.get("user_id")));
+            Optional<User> user = myUserRepository.findById((Long)session.get("user_id"));
             if(user.isPresent()) this.currentUser = user.get();
         }
 

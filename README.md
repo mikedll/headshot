@@ -17,6 +17,10 @@ Trying to get a java web app going.
 
     mvn test
 
+### Benchmarks
+
+    mvn test-compile exec:java@benchmarks
+
 ### Links on using java.
 
 [Maven Quickstart](https://maven.apache.org/guides/getting-started/maven-in-five-minutes.html)
