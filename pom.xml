@@ -119,6 +119,26 @@
             <artifactId>spring-boot</artifactId>
             <version>${spring-boot.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.javatuples</groupId>
+            <artifactId>javatuples</artifactId>
+            <version>1.2</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.openjdk.jmh</groupId>
+            <artifactId>jmh-core</artifactId>
+            <version>1.36</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.openjdk.jmh</groupId>
+            <artifactId>jmh-generator-annprocess</artifactId>
+            <version>1.36</version>
+            <scope>test</scope>
+        </dependency>        
         
     </dependencies>
 
@@ -200,7 +220,17 @@
                         <configuration>
                             <mainClass>com.mikedll.headshot.GetKeys</mainClass>
                         </configuration>
-                    </execution>                    
+                    </execution>
+                    <execution>
+                        <id>benchmarks</id>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                        <configuration>
+                            <classpathScope>test</classpathScope>
+                            <mainClass>com.mikedll.headshot.Benchmarking</mainClass>
+                        </configuration>
+                    </execution>
                 </executions>
             </plugin>
 
