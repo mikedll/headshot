@@ -21,5 +21,5 @@ A java web app.
 
     mvn test-compile exec:java@benchmarks
 
-Dispatching to if-statements takes about 417.254ns/op. Using lambdas takes 1289ns/op.
+Dispatching to if-statements takes about 417ns/op. Using lambdas takes 1,289ns/op.
 
