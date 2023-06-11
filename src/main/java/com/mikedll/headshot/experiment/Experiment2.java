@@ -53,6 +53,7 @@ public class Experiment2 {
             return;
         }
 
+        List<RequestSpec> requestSpecs = new ArrayList<>();
         for(Resource resource : resources) {
             MetadataReader metadataReader = null;
             try {
@@ -62,7 +63,7 @@ public class Experiment2 {
                 return;
             }
             AnnotationMetadata classMetadata = metadataReader.getAnnotationMetadata();
-                
+
             Set<MethodMetadata> methods = classMetadata.getAnnotatedMethods("com.mikedll.headshot.experiment.Tacky");
             Class clazz = null;
             for(MethodMetadata method : methods) {
@@ -79,18 +80,32 @@ public class Experiment2 {
                     System.out.println("Error when building handler for method " + method + ": " + toRun.getValue1());
                     continue;
                 }
-
-                String name = names[(int)(Math.random() * 3.0)];
-                Integer age = ages[(int)(Math.random() * 3.0)];
-                Pair<String,String> result = toRun.getValue0().apply(Pair.with(name, age));
-                if(result.getValue1() != null) {
-                    System.out.println("Error when running function: " + result.getValue1());
-                } else {
-                    System.out.println("Ran function and got: " + result.getValue0());
-                }
+                requestSpecs.add(new RequestSpec("/", "GET", toRun.getValue0()));
             }
         }
+
+        runTests(requestSpecs);        
     }
+
+    public void runTests(List<RequestSpec> requestSpecs) {
+        if(requestSpecs.size() == 0) {
+            System.out.println("Request specs size was 0, returning early");
+            return;
+        }
+        
+        int count = 5;
+        for(int i = 0; i < count; i++) {
+            String name = names[(int)(Math.random() * 3.0)];
+            Integer age = ages[(int)(Math.random() * 3.0)];
+            RequestSpec requestSpec = requestSpecs.get((int)(Math.random() * requestSpecs.size()));
+            Pair<String,String> result = requestSpec.handler.apply(Pair.with(name, age));
+            if(result.getValue1() != null) {
+                System.out.println("Error when running function: " + result.getValue1());
+            } else {
+                System.out.println("Ran function and got: " + result.getValue0());
+            }                
+        }            
+    }        
 
     public Pair<AnimalHandler, String> buildHandler(Class clazz, MethodMetadata methodMetadata) {
         Constructor[] candidates = clazz.getDeclaredConstructors();
