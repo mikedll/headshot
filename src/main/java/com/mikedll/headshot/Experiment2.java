@@ -12,6 +12,10 @@ import java.util.ArrayList;
 import java.io.IOException;
 import java.util.LinkedHashSet;
 
+import java.lang.ClassNotFoundException;
+
+import java.lang.reflect.Constructor;
+
 import org.springframework.core.io.UrlResource;
 import org.springframework.core.io.support.PropertiesLoaderUtils;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
@@ -40,7 +44,7 @@ public class Experiment2 {
         List<Properties> result = new ArrayList<>();
 
         ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
-        String path = "classpath*:com/mikedll/headshot/controller/**/*.class";
+        String path = "classpath*:com/mikedll/headshot/experiment/**/*.class";
 
         CachingMetadataReaderFactory metadataReaderFactory = new CachingMetadataReaderFactory();
         try {
@@ -48,11 +52,25 @@ public class Experiment2 {
             for(Resource resource : resources) {
                 MetadataReader metadataReader = metadataReaderFactory.getMetadataReader(resource);
                 AnnotationMetadata classMetadata = metadataReader.getAnnotationMetadata();
-                classMetadata.getAnnotatedMethods("com.mikedll.headshot.controller.Request").forEach(m -> {
-                        System.out.println("annotated method: " + m);
-                    });
                 
+                System.out.println("class: " + classMetadata.getClass());
+                Set<MethodMetadata> methods = classMetadata.getAnnotatedMethods("com.mikedll.headshot.experiment.Tacky");
+                for(MethodMetadata method : methods) {
+                    System.out.println("annotated method: " + method + " of class " + method.getClass());
+                    System.out.println("  method: " + method.getMethodName());
+                }
 
+                if(methods.size() > 0) {
+                    Class clazz = null;
+                    try {
+                        clazz = Class.forName(classMetadata.getClassName());
+                    } catch (ClassNotFoundException ex) {
+                        System.out.println("ClassNotFoundException for " + classMetadata.getClassName() + ": " + ex.getMessage());
+                    }
+                    if(clazz != null) {
+                        handleAnnotations(clazz);
+                    }
+                }            
             }
         } catch(IOException ex) {
             System.out.println("IOException when scanning for controllers: " + ex.getMessage());
@@ -60,5 +78,32 @@ public class Experiment2 {
         // Set<String> types = new HashSet<>();
 
         result.forEach(p -> System.out.println(p));
+    }
+
+    public void handleAnnotations(Class clazz) {
+        Constructor<?>[] candidates = clazz.getDeclaredConstructors();
+        Constructor<?> ctorToUse = null;
+        for(Constructor<?> candidate : candidates) {
+            Class<?>[] parameterTypes = candidate.getParameterTypes();
+            if(parameterTypes.length == 2 && parameterTypes[0] == String.class && parameterTypes[1] == Integer.class) {
+                System.out.println("Found matching constructor");
+                ctorToUse = candidate;
+            }
+        }
+
+        if(ctorToUse != null) {
+            System.out.println("Found constructor: " + ctorToUse);
+            Object created = null;
+            try {
+                created = ctorToUse.newInstance(new Object[] { "Minny", 15 });
+            } catch (Throwable ex) {
+                System.out.println("Exception when instantiating " + clazz + ": " + ex.getMessage());
+            }
+            System.out.println("created: " + created); 
+        }
+                
+        // method.invoke(bean, arguments);
+        // constructorToUse = clazz.getDeclaredConstructor();
+        
     }
 }
