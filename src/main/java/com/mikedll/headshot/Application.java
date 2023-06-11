@@ -1,12 +1,21 @@
 package com.mikedll.headshot;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import io.github.cdimascio.dotenv.Dotenv;
 
+import org.javatuples.Pair;
+
 import com.mikedll.headshot.db.DatabaseConfiguration;
+import com.mikedll.headshot.controller.Scanner;
+import com.mikedll.headshot.controller.RequestHandler;
 
 public class Application {
 
-    private DatabaseConfiguration dbConf = new DatabaseConfiguration();
+    public static DatabaseConfiguration dbConf = new DatabaseConfiguration();
+
+    public static List<RequestHandler> requestHandlers;
     
     public static void main(String[] args) {
         Application app = new Application();
@@ -19,6 +28,13 @@ public class Application {
         System.out.println("Starting app in " + Env.env + " environment...");        
 
         dbConf.makeRepositories();
+        Pair<List<RequestHandler>, String> scanResult = (new Scanner()).scan();
+        if(scanResult.getValue1() != null) {
+            System.out.println("Error when scanning for handlers: " + scanResult.getValue1());
+            dbConf.shutdown();
+            return;
+        }
+        this.requestHandlers = scanResult.getValue0();
 
         runTomcat();
         // runExp1();
@@ -49,7 +65,7 @@ public class Application {
     }        
 
     private void runExp1() {
-        UserRepository userRepository = dbConf.appGetRepository(this, UserRepository.class);
+        UserRepository userRepository = dbConf.getRepository(this, UserRepository.class);
         Experiment ex = new Experiment();
         ex.run(userRepository);
     }

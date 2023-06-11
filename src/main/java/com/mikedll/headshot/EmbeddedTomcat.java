@@ -49,7 +49,6 @@ public class EmbeddedTomcat {
         ctx.setPath("");
         ctx.setName("Default Context");
         ctx.addLifecycleListener(new FixContextListener());
-
         ctx.setParentClassLoader(EmbeddedTomcat.class.getClassLoader());
         
         Wrapper defaultServlet = ctx.createWrapper();

@@ -8,5 +8,6 @@ import java.lang.annotation.RetentionPolicy;
 public @interface Request {
 
     String path();
-    
+
+    HttpMethod method() default HttpMethod.GET;
 }

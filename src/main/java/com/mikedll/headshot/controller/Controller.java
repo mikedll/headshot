@@ -10,7 +10,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Cookie;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.templatemode.TemplateMode;
 import org.thymeleaf.templateresolver.FileTemplateResolver;
@@ -24,24 +23,41 @@ import com.mikedll.headshot.UserRepository;
 import com.mikedll.headshot.User;
 import com.mikedll.headshot.CookieManager;
 import com.mikedll.headshot.Env;
+import com.mikedll.headshot.Application;
 
 public class Controller {
-    protected FileTemplateResolver templateResolver = new FileTemplateResolver();
+    private FileTemplateResolver templateResolver = new FileTemplateResolver();
 
-    protected TemplateEngine templateEngine = new TemplateEngine();
-
-    protected Map<String,Object> session = null;
+    private TemplateEngine templateEngine = new TemplateEngine();
 
     private final String cookieName = "HEADSHOT_SESSION";
+
+    private UserRepository baseUserRepository;
+
+    private boolean cookieFiltersOkay = false;
+
+    private boolean authOkay = false;
+    
+    private boolean rendered = false;
+
+    private boolean baseDbAccess = false;
+    
+    protected HttpServletRequest req;
+    
+    protected HttpServletResponse res;
+
+    protected boolean requireAuthentication = true;
 
     protected CookieManager cookieManager = new CookieManager(Env.cookieSigningKey);
 
     protected User currentUser;
 
-    @Autowired
-    private UserRepository myUserRepository;
+    protected Map<String,Object> session = null;    
     
     public Controller() {
+        this.req = req;
+        this.res = res;
+        
         // HTML is the default mode, but we will set it anyway for better understanding of code
         templateResolver.setTemplateMode(TemplateMode.HTML);
         templateResolver.setPrefix("web_app_views/");
@@ -51,8 +67,16 @@ public class Controller {
         templateEngine.addDialect(new LayoutDialect());
         templateEngine.setTemplateResolver(templateResolver);
     }
+
+    public void setRequest(HttpServletRequest req) {
+        this.req = req;
+    }
+
+    public void setResponse(HttpServletResponse res) {
+        this.res = res;
+    }
     
-    public Context defaultCtx(HttpServletRequest req) {
+    public Context defaultCtx() {
         Context ctx = new Context(req.getLocale());
 
         String snippet = "<!-- google analytics disabled -->";
@@ -79,11 +103,15 @@ public class Controller {
     public void clearSession() {
         this.session = new LinkedHashMap<String,Object>();
     }
+
+    public boolean canAccessDb() {
+        return this.baseDbAccess || (this.authOkay && this.cookieFiltersOkay);
+    }
     
     /*
      * Returns false if service of the given request should be aborted.
      */
-    public boolean beforeFilters(HttpServletRequest req, HttpServletResponse res) {
+    public boolean cookieFilters() {
         boolean cookieCheckOkay = true;
         for(Cookie cookie : req.getCookies()) {
             if(cookie.getName().equals(cookieName)) {
@@ -92,7 +120,7 @@ public class Controller {
                     result = cookieManager.verify(cookie.getValue());
                 } catch (UnsupportedEncodingException ex) {
                     System.out.println("UnsupportedEncodingException when verifing cookie: " + ex.getMessage());
-                    sendInternalServerError(res, "Internal logic error: unsupported encoding when parsing cookie");
+                    sendInternalServerError("Internal logic error: unsupported encoding when parsing cookie");
                     return false;
                 } catch (JsonProcessingException ex) {
                     System.out.println("JsonProcessingException when verifing cookie: " + ex.getMessage());
@@ -111,22 +139,60 @@ public class Controller {
         }
 
         if(!cookieCheckOkay) {
-            System.out.println("beforeFilters is resetting cookies redirecting to root");
+            System.out.println("cookieFilters is resetting cookies redirecting to root");
             clearSession();
-            flushCookies(res);
-            sendRedirect(res, localOrigin(req) + "/");
+            sendCookies();
+            sendRedirect(localOrigin() + "/");
             return false;
         }
 
+        this.cookieFiltersOkay = true;        
+        return this.cookieFiltersOkay;
+    }
+
+    public boolean authFilters() {
         if(session.get("user_id") != null) {
-            Optional<User> user = myUserRepository.findById((Long)session.get("user_id"));
+            this.baseDbAccess = true;
+            this.baseUserRepository = Application.dbConf.getRepository(this, UserRepository.class);
+            this.baseDbAccess = false;
+            Optional<User> user = baseUserRepository.findById(((Integer)session.get("user_id")).longValue());
             if(user.isPresent()) this.currentUser = user.get();
         }
 
+        this.authOkay = (!this.requireAuthentication || this.currentUser != null);
+
+        if(!this.authOkay) {
+            clearSession();
+            sendCookies();
+            sendRedirect(localOrigin() + "/");
+        }
+        
+        return this.authOkay;
+    }
+    
+    public boolean prepare() {        
+        if(!cookieFilters()) return false;
+
+        declareAuthRequirements();
+        if(!authFilters()) return false;
+        
+        acquireDbAccess();
         return true;
     }
 
-    public void flushCookies(HttpServletResponse res) {
+    /*
+     * For subclasses to override and request db access.
+     */
+    public void acquireDbAccess() {
+    }
+
+    /*
+     * For subclasses to override.
+     */
+    public void declareAuthRequirements() {
+    }
+
+    public void sendCookies() {
         try {
             Cookie sessionCookie = new Cookie(cookieName, cookieManager.cookieString(this.session));
             sessionCookie.setAttribute("SameSite", "Lax");
@@ -139,7 +205,7 @@ public class Controller {
         }
     }
 
-    public String localOrigin(HttpServletRequest req) {
+    public String localOrigin() {
         String scheme = "http://";
         String fullHost = req.getServerName();
         int port = req.getServerPort();
@@ -150,27 +216,42 @@ public class Controller {
         return scheme + fullHost;
     }
 
-    public void sendInternalServerError(HttpServletResponse res, String message) {
+    public void sendInternalServerError(String message) {
+        if(this.rendered) {
+            throw new RequestException("response already sent");
+        }
+        
         try {
             res.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, message);
         } catch (IOException ex) {
             throw new RuntimeException("failed to send 500", ex);
         }
+        this.rendered = true;
     }
 
-    public void render(String template, Context ctx, HttpServletResponse res) {
+    public void render(String template, Context ctx) {
+        if(this.rendered) {
+            throw new RequestException("response already sent");
+        }
+        
         try {
             templateEngine.process(template, ctx, res.getWriter());
         } catch (IOException ex) {
             throw new RuntimeException("failed to render template: " + template, ex);
         }
+        this.rendered = true;
     }
 
-    public void sendRedirect(HttpServletResponse res, String path) {
+    public void sendRedirect(String path) {
+        if(this.rendered) {
+            throw new RequestException("response already sent");
+        }
+        
         try {
             res.sendRedirect(path);
         } catch (IOException ex) {
             throw new RequestException("IOException when redirecting to: " + path + ", " + ex.getMessage(), ex);
         }
+        this.rendered = true;
     }
 }

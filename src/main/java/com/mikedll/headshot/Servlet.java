@@ -13,6 +13,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.ServletContext;
 
+import org.javatuples.Pair;
+
 import com.mikedll.headshot.controller.*;
 
 public class Servlet extends HttpServlet {
@@ -23,33 +25,30 @@ public class Servlet extends HttpServlet {
 
         String path = req.getRequestURI().toString();
         System.out.println("Path: " + path);
-        if(path.equals("/oauth2/authorization/github")) {
-            LoginController controller = new LoginController();
-            controller.oauth2LoginStart(req, res);
-        } else if(path.equals("/login/oauth2/code/github")) {
-            LoginController controller = new LoginController();
-            controller.oauth2CodeReceive(req, res);
-        } else if(path.equals("/reload_user_info")) {
-            LoginController controller = new LoginController();
-            controller.reloadUserInfo(req, res);
-        } else if(path.equals("/logout")) {
-            LoginController controller = new LoginController();
-            controller.logout(req, res);
-        } else if(path.equals("/profile")) {
-            RootController controller = new RootController();
-            controller.profile(req, res);
-        } else if(path.equals("/session")) {
-            RootController controller = new RootController();
-            controller.session(req, res);                
-        } else if(path.equals("/")) {
-            RootController controller = new RootController();
-            controller.index(req, res);
-        } else {
+
+        HttpMethod method = HttpMethod.fromServletReq(req.getMethod());
+        RequestHandler matchingHandler = Application.requestHandlers
+            .stream()
+            .filter(rh -> rh.path.equals(path) && rh.method.equals(method))
+            .findAny()
+            .orElse(null);
+
+        if(matchingHandler == null) {
             try {
                 res.sendError(HttpServletResponse.SC_NOT_FOUND, "the requested resource was not found");
             } catch (IOException ex) {
                 throw new RuntimeException("failed to send 404", ex);
-            }                
+            }
+            return;
+        }
+        
+        String error = matchingHandler.func.apply(Pair.with(req, res));
+        if(error != null) {
+            try {
+                res.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, error);
+            } catch (IOException ex) {
+                throw new RuntimeException("failed to send 500", ex);
+            }
         }
     }
 }
