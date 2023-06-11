@@ -53,7 +53,7 @@ public class Experiment2 {
             return;
         }
 
-        List<RequestSpec> requestSpecs = new ArrayList<>();
+        List<RequestHandler> requestSpecs = new ArrayList<>();
         for(Resource resource : resources) {
             MetadataReader metadataReader = null;
             try {
@@ -80,14 +80,14 @@ public class Experiment2 {
                     System.out.println("Error when building handler for method " + method + ": " + toRun.getValue1());
                     continue;
                 }
-                requestSpecs.add(new RequestSpec("/", "GET", toRun.getValue0()));
+                requestSpecs.add(new RequestHandler("/", "GET", toRun.getValue0()));
             }
         }
 
         runTests(requestSpecs);        
     }
 
-    public void runTests(List<RequestSpec> requestSpecs) {
+    public void runTests(List<RequestHandler> requestSpecs) {
         if(requestSpecs.size() == 0) {
             System.out.println("Request specs size was 0, returning early");
             return;
@@ -97,7 +97,7 @@ public class Experiment2 {
         for(int i = 0; i < count; i++) {
             String name = names[(int)(Math.random() * 3.0)];
             Integer age = ages[(int)(Math.random() * 3.0)];
-            RequestSpec requestSpec = requestSpecs.get((int)(Math.random() * requestSpecs.size()));
+            RequestHandler requestSpec = requestSpecs.get((int)(Math.random() * requestSpecs.size()));
             Pair<String,String> result = requestSpec.handler.apply(Pair.with(name, age));
             if(result.getValue1() != null) {
                 System.out.println("Error when running function: " + result.getValue1());

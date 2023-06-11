@@ -1,7 +1,7 @@
 
 package com.mikedll.headshot.experiment;
 
-public class RequestSpec {
+public class RequestHandler {
 
     public String path;
 
@@ -9,7 +9,7 @@ public class RequestSpec {
 
     public AnimalHandler handler;
     
-    public RequestSpec(String path, String method, AnimalHandler handler) {
+    public RequestHandler(String path, String method, AnimalHandler handler) {
         this.path = path;
         this.method = method;
         this.handler = handler;
