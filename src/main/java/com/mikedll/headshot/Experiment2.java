@@ -94,10 +94,10 @@ public class Experiment2 {
             }
         }
 
+        Object targetObject = null;
         if(ctorToUse != null) {
-            Object created = null;
             try {
-                created = ctorToUse.newInstance(new Object[] { "Minny", 15 });
+                targetObject = ctorToUse.newInstance(new Object[] { "Minny", 15 });
             } catch (Throwable ex) {
                 return new Pair<>(null, "Exception when instantiating " + clazz + ": " + ex.getMessage());
             }
@@ -106,22 +106,30 @@ public class Experiment2 {
         }
 
         Method[] methods = clazz.getMethods();
-        Method found = null;
+        Method annotatedMethod = null;
         for(Method candidate : methods) {
-            if(candidate.getName() == methodMetadata.getMethodName()) {
-                found = candidate;
+            if(candidate.getName().equals(methodMetadata.getMethodName())) {
+                annotatedMethod = candidate;
                 break;
             }
         }
 
-        if(found == null) {
+        if(annotatedMethod == null) {
             return new Pair<>(null, "no method by name " + methodMetadata.getMethodName() + " found");
-        }            
-                
-        // method.invoke(bean, arguments);
+        }
+
         // constructorToUse = clazz.getDeclaredConstructor();
 
-        Supplier<String> toRun = () -> { return null; };
+        final Method methodToUse = annotatedMethod;
+        final Object targetObjectToUse = targetObject;
+        Supplier<String> toRun = () -> {
+            try {
+                methodToUse.invoke(targetObjectToUse);
+            } catch (Throwable ex) {
+                return "Exception when running Tacky method: " + ex.getMessage();
+            }
+            return null;
+        };
         return new Pair<>(toRun, null);
     }
 }
