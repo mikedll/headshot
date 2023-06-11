@@ -14,4 +14,8 @@ public class RequestHandler {
         this.method = method;
         this.handler = handler;
     }
+
+    public String toString() {
+        return method + " " + path;
+    }
 }

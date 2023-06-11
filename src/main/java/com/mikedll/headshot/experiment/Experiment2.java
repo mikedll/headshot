@@ -7,6 +7,7 @@ import java.util.Set;
 import java.util.Enumeration;
 import java.net.URL;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.ArrayList;
 import java.io.IOException;
@@ -44,6 +45,7 @@ public class Experiment2 {
         ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
         String path = "classpath*:com/mikedll/headshot/experiment/**/*.class";
 
+        final String tackyAnnotation = "com.mikedll.headshot.experiment.Tacky";
         CachingMetadataReaderFactory metadataReaderFactory = new CachingMetadataReaderFactory();
         Resource[] resources = null;
         try {
@@ -53,7 +55,7 @@ public class Experiment2 {
             return;
         }
 
-        List<RequestHandler> requestSpecs = new ArrayList<>();
+        List<RequestHandler> requestHandlers = new ArrayList<>();
         for(Resource resource : resources) {
             MetadataReader metadataReader = null;
             try {
@@ -64,7 +66,7 @@ public class Experiment2 {
             }
             AnnotationMetadata classMetadata = metadataReader.getAnnotationMetadata();
 
-            Set<MethodMetadata> methods = classMetadata.getAnnotatedMethods("com.mikedll.headshot.experiment.Tacky");
+            Set<MethodMetadata> methods = classMetadata.getAnnotatedMethods(tackyAnnotation);
             Class clazz = null;
             for(MethodMetadata method : methods) {
                 if(clazz == null) {
@@ -80,32 +82,53 @@ public class Experiment2 {
                     System.out.println("Error when building handler for method " + method + ": " + toRun.getValue1());
                     continue;
                 }
-                requestSpecs.add(new RequestHandler("/", "GET", toRun.getValue0()));
+                Map<String, Object> attrs = method.getAnnotationAttributes(tackyAnnotation);
+                requestHandlers.add(new RequestHandler((String)attrs.get("path"), (String)attrs.get("method"), toRun.getValue0()));
             }
         }
 
-        runTests(requestSpecs);        
+        runTests(requestHandlers);
     }
 
-    public void runTests(List<RequestHandler> requestSpecs) {
-        if(requestSpecs.size() == 0) {
+    public void runTests(List<RequestHandler> requestHandlers) {
+        if(requestHandlers.size() == 0) {
             System.out.println("Request specs size was 0, returning early");
             return;
         }
+
+        System.out.println("Request handlers:");
+        requestHandlers.forEach(rh -> System.out.println(rh));
+
+        int count = 500000;
+        List<Request> requests = new ArrayList<>(count);
         
-        int count = 5;
         for(int i = 0; i < count; i++) {
             String name = names[(int)(Math.random() * 3.0)];
             Integer age = ages[(int)(Math.random() * 3.0)];
-            RequestHandler requestSpec = requestSpecs.get((int)(Math.random() * requestSpecs.size()));
-            Pair<String,String> result = requestSpec.handler.apply(Pair.with(name, age));
-            if(result.getValue1() != null) {
-                System.out.println("Error when running function: " + result.getValue1());
-            } else {
-                System.out.println("Ran function and got: " + result.getValue0());
-            }                
-        }            
-    }        
+            RequestHandler requestHandler = requestHandlers.get((int)(Math.random() * requestHandlers.size()));
+
+            requests.add(new Request(requestHandler.path, requestHandler.method, name, age));
+        }
+
+        requests.forEach(r -> dispatch(requestHandlers, r));
+    }
+
+    public void dispatch(List<RequestHandler> requestHandlers, Request request) {
+        RequestHandler matchinHandler = requestHandlers
+            .stream()
+            .filter(rh -> rh.path.equals(request.path()) && rh.method.equals(request.method()))
+            .findAny()
+            .orElse(null);
+
+        if(matchinHandler == null) {
+            throw new RuntimeException("failed to find matching handler");
+        }
+        
+        Pair<String,String> result = matchinHandler.handler.apply(Pair.with(request.name(), request.age()));
+        if(result.getValue1() != null) {
+            throw new RuntimeException("Error when running function: " + result.getValue1());
+        }
+    }
 
     public Pair<AnimalHandler, String> buildHandler(Class clazz, MethodMetadata methodMetadata) {
         Constructor[] candidates = clazz.getDeclaredConstructors();

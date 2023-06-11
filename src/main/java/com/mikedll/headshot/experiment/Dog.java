@@ -13,7 +13,7 @@ public class Dog extends Animal {
 
     @Tacky(path="/bark")    
     public String bark() {
-        return "ARF! my name is " + this.name;
+        return "ARF! my name is " + this.name + " and my age is " + age;
     }
 
     @Tacky(path="/rollover", method="POST")    
