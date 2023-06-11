@@ -111,7 +111,7 @@ public class Scanner {
         RequestHandlerFunc toRun = (pair) -> {
             Object targetObject = null;
             try {
-                targetObject = ctorToUse.newInstance(new Object[] {});
+                targetObject = ctorToUse.newInstance();
             } catch (Throwable ex) {
                 return "Exception when instantiating " + clazz + ": " + ex.getMessage();
             }
@@ -125,13 +125,16 @@ public class Scanner {
             }
 
             try {
-                methodToUse.invoke(targetObject);
+                methodToUse.invoke(controller);
             } catch (IllegalAccessException ex) {
                 return "IllegalAccessException when running controller action: " + ex.getMessage();
-            } catch (RequestException ex) {
-                return "RequestException when running controller action: " + ex.getMessage();
             } catch (InvocationTargetException ex) {
-                return "InvocationTargetException when running controller action: " + ex.getMessage();
+                if(ex.getCause() != null) {
+                    return ex.getCause().getClass().getName() + ": " + ex.getCause().getMessage();
+                } else {
+                    // have never tested this path.
+                    return "InvocationTargetException when running controller action: " + ex.getMessage();
+                }
             }
 
             // Arrays.asList(Thread.currentThread().getStackTrace()).forEach(t -> System.out.println(t));
