@@ -33,6 +33,7 @@ import org.springframework.transaction.interceptor.TransactionInterceptor;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.data.repository.core.support.RepositoryProxyPostProcessor;
+import org.springframework.transaction.TransactionManager;
 
 /**
  * {@link RepositoryProxyPostProcessor} to add transactional behaviour to repository proxies. Adds a
@@ -46,7 +47,8 @@ import org.springframework.data.repository.core.support.RepositoryProxyPostProce
 public class TransactionalRepositoryProxyPostProcessor implements RepositoryProxyPostProcessor {
 
     private final boolean enableDefaultTransactions;
-
+    private final TransactionManager transactionManager;
+    
     /**
      * Creates a new {@link TransactionalRepositoryProxyPostProcessor} using the given {@link ListableBeanFactory} and
      * transaction manager bean name.
@@ -55,14 +57,14 @@ public class TransactionalRepositoryProxyPostProcessor implements RepositoryProx
      * @param transactionManagerName must not be {@literal null} or empty.
      * @param enableDefaultTransaction
      */
-    public TransactionalRepositoryProxyPostProcessor(boolean enableDefaultTransaction) {
+    public TransactionalRepositoryProxyPostProcessor(TransactionManager transactionManager, boolean enableDefaultTransaction) {
         this.enableDefaultTransactions = enableDefaultTransaction;
+        this.transactionManager = transactionManager;
     }
 
     public void postProcess(ProxyFactory factory, RepositoryInformation repositoryInformation) {
-
         TransactionInterceptor transactionInterceptor = new TransactionInterceptor();
-        transactionInterceptor.setTransactionManager(new DatabaseConfiguration().getTransactionManager());
+        transactionInterceptor.setTransactionManager(this.transactionManager);
         transactionInterceptor
             .setTransactionAttributeSource(new RepositoryAnnotationTransactionAttributeSource(repositoryInformation, enableDefaultTransactions));
         transactionInterceptor.afterPropertiesSet();

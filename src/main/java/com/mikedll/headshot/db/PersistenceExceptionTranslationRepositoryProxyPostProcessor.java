@@ -23,6 +23,7 @@ import org.springframework.dao.support.PersistenceExceptionTranslationIntercepto
 import org.springframework.data.repository.core.RepositoryInformation;
 import org.springframework.data.repository.core.support.RepositoryProxyPostProcessor;
 import org.springframework.util.Assert;
+import org.springframework.dao.support.PersistenceExceptionTranslator;
 
 /**
  * {@link RepositoryProxyPostProcessor} to register a {@link PersistenceExceptionTranslationInterceptor} on the
@@ -41,9 +42,9 @@ public class PersistenceExceptionTranslationRepositoryProxyPostProcessor impleme
 	 *
 	 * @param beanFactory must not be {@literal null}.
 	 */
-	public PersistenceExceptionTranslationRepositoryProxyPostProcessor() {
+	public PersistenceExceptionTranslationRepositoryProxyPostProcessor(PersistenceExceptionTranslator emfBean) {
 		this.interceptor = new PersistenceExceptionTranslationInterceptor();
-    this.interceptor.setPersistenceExceptionTranslator(new DatabaseConfiguration().getEntityManagerFactoryBean());
+    this.interceptor.setPersistenceExceptionTranslator(emfBean);
 		this.interceptor.afterPropertiesSet();
 	}
 

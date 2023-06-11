@@ -4,55 +4,57 @@ import java.lang.StackTraceElement;
 import java.util.Map;
 import java.util.LinkedHashMap;
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 
 import javax.sql.DataSource;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.EntityManager;
 
-import org.hibernate.cfg.AvailableSettings;
+import com.zaxxer.hikari.HikariDataSource;
 
+import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy;
 import org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform;
 
 import org.springframework.core.io.ResourceLoader;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Bean;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.orm.jpa.JpaTransactionManager;
-import com.zaxxer.hikari.HikariDataSource;
 import org.springframework.orm.jpa.JpaVendorAdapter;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.orm.jpa.vendor.AbstractJpaVendorAdapter;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
-import org.springframework.orm.hibernate5.SpringBeanContainer;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.orm.jpa.SharedEntityManagerCreator;
-import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactory;
 import org.springframework.data.repository.core.support.RepositoryComposition.RepositoryFragments;
 import org.springframework.data.repository.core.support.RepositoryProxyPostProcessor;
-import org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor;
 
 import org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy;
 
 import com.mikedll.headshot.UserRepository;
 import com.mikedll.headshot.Env;
 
-@Configuration
 public class DatabaseConfiguration {
 
     private static final String JTA_PLATFORM = "hibernate.transaction.jta.platform";
 
-    public static HikariDataSource dataSource;
+    private HikariDataSource dataSource;
 
-    public static LocalContainerEntityManagerFactoryBean entityManagerFactoryBean;
+    private LocalContainerEntityManagerFactoryBean entityManagerFactoryBean;
 
-    public static PlatformTransactionManager transactionManager;
+    private PlatformTransactionManager transactionManager;
 
-    public static RepositoryProxyPostProcessor exceptionPostProcessor;
+    private RepositoryProxyPostProcessor exceptionPostProcessor;
 
-    public static RepositoryProxyPostProcessor transactionPostProcessor;
+    private RepositoryProxyPostProcessor transactionPostProcessor;
+
+    private JpaRepositoryFactory jpaRepositoryFactory;
+
+    private Map<Class<?>, Object> repositories;
+
+    public DatabaseConfiguration() {
+        this.repositories = new LinkedHashMap<>();
+    }
     
     public PlatformTransactionManager getTransactionManager() {
         if(this.transactionManager != null) {
@@ -60,15 +62,20 @@ public class DatabaseConfiguration {
         }
 
         JpaTransactionManager transactionManager = new JpaTransactionManager();
+        System.out.println("Making transaction manager, requesting bean on next line");
         transactionManager.setEntityManagerFactory(getEntityManagerFactoryBean().getObject());
+
         this.transactionManager = transactionManager;
         return this.transactionManager;
     }
 
 		DataSource getDataSource() {
-        if(dataSource != null) {
-            return dataSource;
+        if(this.dataSource != null) {
+            return this.dataSource;
         }
+
+        System.out.println("Making data source");
+
         
         HikariDataSource dataSource = new HikariDataSource();
 
@@ -80,18 +87,12 @@ public class DatabaseConfiguration {
         return this.dataSource;
 		}
 
-    public JpaVendorAdapter jpaVendorAdapter() {
-    		AbstractJpaVendorAdapter adapter = new HibernateJpaVendorAdapter();
-        adapter.setShowSql(true);
-        return adapter;
-    }
-
     public RepositoryProxyPostProcessor getExceptionPostProcessor() {
         if(this.exceptionPostProcessor != null) {
             return this.exceptionPostProcessor;
         }
 
-        this.exceptionPostProcessor = new PersistenceExceptionTranslationRepositoryProxyPostProcessor();
+        this.exceptionPostProcessor = new PersistenceExceptionTranslationRepositoryProxyPostProcessor(getEntityManagerFactoryBean());
         return this.exceptionPostProcessor;
     }
 
@@ -100,7 +101,7 @@ public class DatabaseConfiguration {
             return this.transactionPostProcessor;
         }
 
-        this.transactionPostProcessor = new TransactionalRepositoryProxyPostProcessor(true);
+        this.transactionPostProcessor = new TransactionalRepositoryProxyPostProcessor(getTransactionManager(), true);
         return this.transactionPostProcessor;
     }    
 
@@ -108,10 +109,14 @@ public class DatabaseConfiguration {
         if(this.entityManagerFactoryBean != null) {
             return entityManagerFactoryBean;
         }
-        
+
+        System.out.println("Making bean");
         this.entityManagerFactoryBean = new LocalContainerEntityManagerFactoryBean();
+
+    		AbstractJpaVendorAdapter adapter = new HibernateJpaVendorAdapter();
+        adapter.setShowSql(true);
         
-        this.entityManagerFactoryBean.setJpaVendorAdapter(jpaVendorAdapter());
+        this.entityManagerFactoryBean.setJpaVendorAdapter(adapter);
         this.entityManagerFactoryBean.setDataSource(getDataSource());
         this.entityManagerFactoryBean.setPackagesToScan("com.mikedll.headshot");
 
@@ -122,19 +127,42 @@ public class DatabaseConfiguration {
         hibernateSettings.put(JTA_PLATFORM, new NoJtaPlatform());
         this.entityManagerFactoryBean.getJpaPropertyMap().putAll(hibernateSettings);
 
-        this.entityManagerFactoryBean.afterPropertiesSet();        
+        this.entityManagerFactoryBean.afterPropertiesSet();
+
         return this.entityManagerFactoryBean;
     }
 
-    public static UserRepository getUserRepository() {
-        DatabaseConfiguration dbConf = new DatabaseConfiguration();
-        EntityManagerFactory emf = dbConf.getEntityManagerFactoryBean().getObject();
+    public JpaRepositoryFactory getJpaRepositoryFactory() {
+        if(this.jpaRepositoryFactory != null) {
+            return this.jpaRepositoryFactory;
+        }
 
+        System.out.println("Making jpa repository, requesting bean on next line");
+        EntityManagerFactory emf = getEntityManagerFactoryBean().getObject();
         EntityManager em = SharedEntityManagerCreator.createSharedEntityManager(emf);
-        
-        JpaRepositoryFactory jpaRepoFactory = new JpaRepositoryFactory(em);
-        jpaRepoFactory.addRepositoryProxyPostProcessor(dbConf.getExceptionPostProcessor());
-        jpaRepoFactory.addRepositoryProxyPostProcessor(dbConf.getTransactionPostProcessor());
-        return jpaRepoFactory.getRepository(UserRepository.class, RepositoryFragments.empty());
+        this.jpaRepositoryFactory = new JpaRepositoryFactory(em);
+        this.jpaRepositoryFactory.addRepositoryProxyPostProcessor(getExceptionPostProcessor());
+        this.jpaRepositoryFactory.addRepositoryProxyPostProcessor(getTransactionPostProcessor());
+
+        return this.jpaRepositoryFactory;
+    }
+
+    public void makeRepositories() {
+        System.out.println("Making user repository");
+        this.repositories.put(UserRepository.class, getJpaRepositoryFactory().getRepository(UserRepository.class, RepositoryFragments.empty()));
+    }
+    
+    public <T> T getRepository(T repositoryClass) {
+        if(this.repositories.get(repositoryClass) == null) {
+            throw new RuntimeException("Request for repository that does not exist: " + repositoryClass);
+        }
+
+        return (T)this.repositories.get(repositoryClass);
+    }
+
+    public void shutdown() {
+        if(dataSource != null) {
+            dataSource.close();
+        }
     }
 }

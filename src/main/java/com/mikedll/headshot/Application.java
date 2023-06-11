@@ -5,23 +5,29 @@ import io.github.cdimascio.dotenv.Dotenv;
 import com.mikedll.headshot.db.DatabaseConfiguration;
 
 public class Application {
+
+    private DatabaseConfiguration dbConf = new DatabaseConfiguration();
     
-    public static void main(String[] args) {        
-        loadDotEnv();
-        
-        System.out.println("Starting app in " + Env.env + " environment...");        
-
-        // UserRepository userRepository = DatabaseConfiguration.getUserRepository();
-        runTomcat();
-        // runExp1(userRepository);
-
-        if(DatabaseConfiguration.dataSource != null) {
-            System.out.println("Closing data source...");
-            DatabaseConfiguration.dataSource.close();
-        }
+    public static void main(String[] args) {
+        Application app = new Application();
+        app.run(args);        
     }
 
-    private static void loadDotEnv() {
+    public void run(String[] args) {
+        loadDotEnv();
+
+        System.out.println("Starting app in " + Env.env + " environment...");        
+
+        dbConf.makeRepositories();
+
+        runTomcat();
+        // app.runExp1(userRepository);
+
+        System.out.println("Shutting down database...");
+        dbConf.shutdown();        
+    }
+
+    private void loadDotEnv() {
         Dotenv dotenv = Dotenv.load();
         Env.githubConfig = new GithubConfig(dotenv.get("GITHUB_CLIENT_ID"), dotenv.get("GITHUB_CLIENT_SECRET"));
         Env.cookieSigningKey = dotenv.get("COOKIE_SIGNING_KEY");
@@ -30,10 +36,10 @@ public class Application {
         if(Env.env == null) {
             Env.env = "development";
         }
-        // pool size?
+        // db connection pool size?
     }
 
-    private static void runTomcat() {
+    private void runTomcat() {
         System.out.println("Initializing tomcat...");
         EmbeddedTomcat embeddedTomcat = new EmbeddedTomcat();
         embeddedTomcat.prepare();
@@ -42,7 +48,7 @@ public class Application {
         embeddedTomcat.start();
     }        
 
-    private static void runExp1(UserRepository userRepository) {
+    private void runExp1(UserRepository userRepository) {
         Experiment ex = new Experiment();
         ex.run(userRepository);
     }
