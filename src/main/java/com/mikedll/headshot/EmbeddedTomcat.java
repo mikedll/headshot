@@ -21,10 +21,6 @@ import org.apache.catalina.Host;
 import org.apache.catalina.startup.Tomcat.FixContextListener;
 import org.apache.catalina.loader.WebappLoader;
 
-import org.springframework.util.ClassUtils;
-import org.springframework.boot.web.embedded.tomcat.TomcatEmbeddedWebappClassLoader;
-import org.springframework.boot.web.server.WebServerException;
-
 public class EmbeddedTomcat {
 
     private int port = 8080;
@@ -54,12 +50,7 @@ public class EmbeddedTomcat {
         ctx.setName("Default Context");
         ctx.addLifecycleListener(new FixContextListener());
 
-        // Setup class loading
-        ClassLoader parentClassLoader = ClassUtils.getDefaultClassLoader();
-        WebappLoader loader = new WebappLoader();
-        loader.setLoaderInstance(new TomcatEmbeddedWebappClassLoader(parentClassLoader));
-        loader.setDelegate(true);
-        ctx.setLoader(loader);
+        ctx.setParentClassLoader(EmbeddedTomcat.class.getClassLoader());
         
         Wrapper defaultServlet = ctx.createWrapper();
         defaultServlet.setName("default");
@@ -96,8 +87,7 @@ public class EmbeddedTomcat {
             return tempDir;
         }
         catch (IOException ex) {
-            throw new WebServerException(
-                                         "Unable to create tempDir. java.io.tmpdir is set to " + System.getProperty("java.io.tmpdir"), ex);
+            throw new RuntimeException("Unable to create tempDir. java.io.tmpdir is set to " + System.getProperty("java.io.tmpdir"), ex);
         }
     }
     

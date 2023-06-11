@@ -145,7 +145,7 @@ public class DatabaseConfiguration {
 
     public void makeRepositories() {
         this.repositories.put(UserRepository.class,
-                                      getJpaRepositoryFactory().getRepository(UserRepository.class, RepositoryFragments.empty()));
+                              getJpaRepositoryFactory().getRepository(UserRepository.class, RepositoryFragments.empty()));
     }
     
     public <T> T appGetRepository(Application app, Class<T> repositoryClass) {
