@@ -19,36 +19,39 @@ public class Application {
     public static List<RequestHandler> requestHandlers;
     
     public void run(String[] args) {
-        loadDotEnv();
-
-        System.out.println("Starting app in " + Env.env + " environment...");        
-
         String error = setUp();
         if(error != null) {
             System.out.println(error);
+            shutdown();
             return;
         }
         
         runTomcat();
         // runExp1();
 
-        System.out.println("Shutting down database...");
-        dbConf.shutdown();        
+        shutdown();
     }
 
     /*
      * Return error on failure, null on success.
      */
     private String setUp() {
+        loadDotEnv();
+        System.out.println("Starting app in " + Env.env + " environment...");
+        
         dbConf.makeRepositories();
         Pair<List<RequestHandler>, String> scanResult = (new Scanner()).scan();
         if(scanResult.getValue1() != null) {
-            dbConf.shutdown();
             return "Error when scanning for handlers: " + scanResult.getValue1();
         }
         this.requestHandlers = scanResult.getValue0();
         Controller.setupTemplateEngine();
         return null;
+    }
+
+    private void shutdown() {
+        System.out.println("Shutting down database...");
+        dbConf.shutdown();        
     }
 
     private void loadDotEnv() {
