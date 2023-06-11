@@ -11,10 +11,10 @@ import java.util.Properties;
 import java.util.ArrayList;
 import java.io.IOException;
 import java.util.LinkedHashSet;
-
+import java.util.function.Supplier;
 import java.lang.ClassNotFoundException;
-
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 
 import org.springframework.core.io.UrlResource;
 import org.springframework.core.io.support.PropertiesLoaderUtils;
@@ -33,16 +33,13 @@ import org.springframework.core.annotation.AnnotationFilter;
 import org.springframework.core.annotation.MergedAnnotations.SearchStrategy;
 import org.springframework.util.ReflectionUtils;
 
+import org.javatuples.Pair;
+
 import com.mikedll.headshot.controller.Request;
 
 public class Experiment2 {
 
     public void run() {
-        System.out.println("Hello");
-
-        ClassLoader classLoader = this.getClass().getClassLoader();
-        List<Properties> result = new ArrayList<>();
-
         ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
         String path = "classpath*:com/mikedll/headshot/experiment/**/*.class";
 
@@ -55,9 +52,11 @@ public class Experiment2 {
                 
                 System.out.println("class: " + classMetadata.getClassName());
                 Set<MethodMetadata> methods = classMetadata.getAnnotatedMethods("com.mikedll.headshot.experiment.Tacky");
+                MethodMetadata firstMethod = null;
                 for(MethodMetadata method : methods) {
-                    System.out.println("annotated method: " + method + " of class " + method.getClass());
-                    System.out.println("  method: " + method.getMethodName());
+                    if(firstMethod == null) {
+                        firstMethod = method;
+                    }
                 }
 
                 if(methods.size() > 0) {
@@ -68,42 +67,61 @@ public class Experiment2 {
                         System.out.println("ClassNotFoundException for " + classMetadata.getClassName() + ": " + ex.getMessage());
                     }
                     if(clazz != null) {
-                        handleAnnotations(clazz);
+                        Pair<Supplier<String>, String> toRun = handleAnnotations(clazz, firstMethod);
+                        if(toRun.getValue1() != null) {
+                            System.out.println("Error when handling method: " + toRun.getValue1());
+                            continue;
+                        }
+
+                        String result = toRun.getValue0().get();
+                        System.out.println("Ran supplier and got: " + result);
                     }
                 }            
             }
         } catch(IOException ex) {
             System.out.println("IOException when scanning for controllers: " + ex.getMessage());
         }
-        // Set<String> types = new HashSet<>();
-
-        result.forEach(p -> System.out.println(p));
     }
 
-    public void handleAnnotations(Class clazz) {
+    public Pair<Supplier<String>, String> handleAnnotations(Class clazz, MethodMetadata methodMetadata) {
         Constructor<?>[] candidates = clazz.getDeclaredConstructors();
         Constructor<?> ctorToUse = null;
         for(Constructor<?> candidate : candidates) {
             Class<?>[] parameterTypes = candidate.getParameterTypes();
             if(parameterTypes.length == 2 && parameterTypes[0] == String.class && parameterTypes[1] == Integer.class) {
-                System.out.println("Found matching constructor");
                 ctorToUse = candidate;
+                break;
             }
         }
 
         if(ctorToUse != null) {
-            System.out.println("Found constructor: " + ctorToUse);
             Object created = null;
             try {
                 created = ctorToUse.newInstance(new Object[] { "Minny", 15 });
             } catch (Throwable ex) {
-                System.out.println("Exception when instantiating " + clazz + ": " + ex.getMessage());
+                return new Pair<>(null, "Exception when instantiating " + clazz + ": " + ex.getMessage());
             }
-            System.out.println("created: " + created); 
+        } else {
+            return new Pair<>(null, "found no suitable constructor");
         }
+
+        Method[] methods = clazz.getMethods();
+        Method found = null;
+        for(Method candidate : methods) {
+            if(candidate.getName() == methodMetadata.getMethodName()) {
+                found = candidate;
+                break;
+            }
+        }
+
+        if(found == null) {
+            return new Pair<>(null, "no method by name " + methodMetadata.getMethodName() + " found");
+        }            
                 
         // method.invoke(bean, arguments);
         // constructorToUse = clazz.getDeclaredConstructor();
-        
+
+        Supplier<String> toRun = () -> { return null; };
+        return new Pair<>(toRun, null);
     }
 }
