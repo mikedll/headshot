@@ -53,7 +53,7 @@ public class Experiment2 {
                 MetadataReader metadataReader = metadataReaderFactory.getMetadataReader(resource);
                 AnnotationMetadata classMetadata = metadataReader.getAnnotationMetadata();
                 
-                System.out.println("class: " + classMetadata.getClass());
+                System.out.println("class: " + classMetadata.getClassName());
                 Set<MethodMetadata> methods = classMetadata.getAnnotatedMethods("com.mikedll.headshot.experiment.Tacky");
                 for(MethodMetadata method : methods) {
                     System.out.println("annotated method: " + method + " of class " + method.getClass());
