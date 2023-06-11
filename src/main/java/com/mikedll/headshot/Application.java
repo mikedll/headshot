@@ -21,7 +21,7 @@ public class Application {
         dbConf.makeRepositories();
 
         runTomcat();
-        // app.runExp1(userRepository);
+        // runExp1();
 
         System.out.println("Shutting down database...");
         dbConf.shutdown();        
@@ -48,7 +48,8 @@ public class Application {
         embeddedTomcat.start();
     }        
 
-    private void runExp1(UserRepository userRepository) {
+    private void runExp1() {
+        UserRepository userRepository = dbConf.getRepository(UserRepository.class);
         Experiment ex = new Experiment();
         ex.run(userRepository);
     }

@@ -2,6 +2,7 @@ package com.mikedll.headshot.db;
 
 import java.lang.StackTraceElement;
 import java.util.Map;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
@@ -53,16 +54,15 @@ public class DatabaseConfiguration {
     private Map<Class<?>, Object> repositories;
 
     public DatabaseConfiguration() {
-        this.repositories = new LinkedHashMap<>();
+        this.repositories = new HashMap<>();
     }
-    
+   
     public PlatformTransactionManager getTransactionManager() {
         if(this.transactionManager != null) {
             return this.transactionManager;
         }
 
         JpaTransactionManager transactionManager = new JpaTransactionManager();
-        System.out.println("Making transaction manager, requesting bean on next line");
         transactionManager.setEntityManagerFactory(getEntityManagerFactoryBean().getObject());
 
         this.transactionManager = transactionManager;
@@ -74,9 +74,6 @@ public class DatabaseConfiguration {
             return this.dataSource;
         }
 
-        System.out.println("Making data source");
-
-        
         HikariDataSource dataSource = new HikariDataSource();
 
         dataSource.setJdbcUrl(Env.dbUrl);
@@ -110,7 +107,6 @@ public class DatabaseConfiguration {
             return entityManagerFactoryBean;
         }
 
-        System.out.println("Making bean");
         this.entityManagerFactoryBean = new LocalContainerEntityManagerFactoryBean();
 
     		AbstractJpaVendorAdapter adapter = new HibernateJpaVendorAdapter();
@@ -137,7 +133,6 @@ public class DatabaseConfiguration {
             return this.jpaRepositoryFactory;
         }
 
-        System.out.println("Making jpa repository, requesting bean on next line");
         EntityManagerFactory emf = getEntityManagerFactoryBean().getObject();
         EntityManager em = SharedEntityManagerCreator.createSharedEntityManager(emf);
         this.jpaRepositoryFactory = new JpaRepositoryFactory(em);
@@ -148,16 +143,16 @@ public class DatabaseConfiguration {
     }
 
     public void makeRepositories() {
-        System.out.println("Making user repository");
-        this.repositories.put(UserRepository.class, getJpaRepositoryFactory().getRepository(UserRepository.class, RepositoryFragments.empty()));
+        this.repositories.put(UserRepository.class,
+                                      getJpaRepositoryFactory().getRepository(UserRepository.class, RepositoryFragments.empty()));
     }
     
-    public <T> T getRepository(T repositoryClass) {
+    public <T> T getRepository(Class<T> repositoryClass) {
         if(this.repositories.get(repositoryClass) == null) {
             throw new RuntimeException("Request for repository that does not exist: " + repositoryClass);
         }
 
-        return (T)this.repositories.get(repositoryClass);
+        return repositoryClass.cast(this.repositories.get(repositoryClass));
     }
 
     public void shutdown() {
