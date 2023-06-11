@@ -113,6 +113,12 @@ public class Controller {
      */
     public boolean cookieFilters() {
         boolean cookieCheckOkay = true;
+
+        if(req.getCookies() == null) {
+            this.cookieFiltersOkay = true;
+            return this.cookieFiltersOkay;
+        }
+        
         for(Cookie cookie : req.getCookies()) {
             if(cookie.getName().equals(cookieName)) {
                 CookieManager.VerifyResult result = null;
@@ -151,7 +157,7 @@ public class Controller {
     }
 
     public boolean authFilters() {
-        if(session.get("user_id") != null) {
+        if(this.session != null && session.get("user_id") != null) {
             this.baseDbAccess = true;
             this.baseUserRepository = Application.dbConf.getRepository(this, UserRepository.class);
             this.baseDbAccess = false;
@@ -177,6 +183,7 @@ public class Controller {
         if(!authFilters()) return false;
         
         acquireDbAccess();
+
         return true;
     }
 
