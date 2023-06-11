@@ -23,21 +23,32 @@ public class Application {
 
         System.out.println("Starting app in " + Env.env + " environment...");        
 
-        dbConf.makeRepositories();
-        Pair<List<RequestHandler>, String> scanResult = (new Scanner()).scan();
-        if(scanResult.getValue1() != null) {
-            System.out.println("Error when scanning for handlers: " + scanResult.getValue1());
-            dbConf.shutdown();
+        String error = setUp();
+        if(error != null) {
+            System.out.println(error);
             return;
         }
-        this.requestHandlers = scanResult.getValue0();
-        Controller.setupTemplateEngine();
-
+        
         runTomcat();
         // runExp1();
 
         System.out.println("Shutting down database...");
         dbConf.shutdown();        
+    }
+
+    /*
+     * Return error on failure, null on success.
+     */
+    private String setUp() {
+        dbConf.makeRepositories();
+        Pair<List<RequestHandler>, String> scanResult = (new Scanner()).scan();
+        if(scanResult.getValue1() != null) {
+            dbConf.shutdown();
+            return "Error when scanning for handlers: " + scanResult.getValue1();
+        }
+        this.requestHandlers = scanResult.getValue0();
+        Controller.setupTemplateEngine();
+        return null;
     }
 
     private void loadDotEnv() {
