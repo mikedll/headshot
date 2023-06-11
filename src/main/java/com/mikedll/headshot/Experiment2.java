@@ -67,14 +67,18 @@ public class Experiment2 {
                         System.out.println("ClassNotFoundException for " + classMetadata.getClassName() + ": " + ex.getMessage());
                     }
                     if(clazz != null) {
-                        Pair<Supplier<String>, String> toRun = handleAnnotations(clazz, firstMethod);
+                        Pair<Supplier<Pair<String,String>>, String> toRun = handleAnnotations(clazz, firstMethod);
                         if(toRun.getValue1() != null) {
                             System.out.println("Error when handling method: " + toRun.getValue1());
                             continue;
                         }
 
-                        String result = toRun.getValue0().get();
-                        System.out.println("Ran supplier and got: " + result);
+                        Pair<String,String> result = toRun.getValue0().get();
+                        if(result.getValue1() != null) {
+                            System.out.println("Error when running supplier: " + result.getValue1());
+                        } else {
+                            System.out.println("Ran supplier and got: " + result.getValue0());
+                        }
                     }
                 }            
             }
@@ -83,7 +87,7 @@ public class Experiment2 {
         }
     }
 
-    public Pair<Supplier<String>, String> handleAnnotations(Class clazz, MethodMetadata methodMetadata) {
+    public Pair<Supplier<Pair<String,String>>, String> handleAnnotations(Class clazz, MethodMetadata methodMetadata) {
         Constructor<?>[] candidates = clazz.getDeclaredConstructors();
         Constructor<?> ctorToUse = null;
         for(Constructor<?> candidate : candidates) {
@@ -122,14 +126,15 @@ public class Experiment2 {
 
         final Method methodToUse = annotatedMethod;
         final Object targetObjectToUse = targetObject;
-        Supplier<String> toRun = () -> {
+        Supplier<Pair<String,String>> toRun = () -> {
+            String happyResult = null;
             try {
-                methodToUse.invoke(targetObjectToUse);
+                happyResult = (String)methodToUse.invoke(targetObjectToUse);
             } catch (Throwable ex) {
-                return "Exception when running Tacky method: " + ex.getMessage();
+                return Pair.with(null, "Exception when running Tacky method: " + ex.getMessage());
             }
-            return null;
+            return Pair.with(happyResult, null);
         };
-        return new Pair<>(toRun, null);
+        return Pair.with(toRun, null);
     }
 }
