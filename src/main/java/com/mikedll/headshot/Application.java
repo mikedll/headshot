@@ -1,8 +1,9 @@
 package com.mikedll.headshot;
 
-import com.mikedll.headshot.db.DatabaseConfiguration;
-
 import io.github.cdimascio.dotenv.Dotenv;
+
+import com.mikedll.headshot.db.DatabaseConfiguration;
+import com.mikedll.headshot.experiment.Experiment2;
 
 public class Application {
     

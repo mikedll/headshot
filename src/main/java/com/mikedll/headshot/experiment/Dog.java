@@ -15,4 +15,10 @@ public class Dog extends Animal {
     public String bark() {
         return "ARF! my name is " + this.name;
     }
+
+    @Tacky(path="/rollover", method="POST")    
+    public String rollover() {
+        return "I'm rolling over. my name and age are " + this.name + "/" + this.age;
+    }
+    
 }

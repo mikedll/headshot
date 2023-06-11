@@ -1,4 +1,4 @@
-package com.mikedll.headshot;
+package com.mikedll.headshot.experiment;
 
 import java.lang.ClassNotFoundException;
 
@@ -11,10 +11,10 @@ import java.util.Properties;
 import java.util.ArrayList;
 import java.io.IOException;
 import java.util.LinkedHashSet;
-import java.util.function.Supplier;
 import java.lang.ClassNotFoundException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import java.lang.Math;
 
 import org.springframework.core.io.UrlResource;
 import org.springframework.core.io.support.PropertiesLoaderUtils;
@@ -35,58 +35,64 @@ import org.springframework.util.ReflectionUtils;
 
 import org.javatuples.Pair;
 
-import com.mikedll.headshot.controller.Request;
-
 public class Experiment2 {
+
+    private String[] names = new String[] { "Minny", "Mickey", "Tom" };
+    private Integer[] ages = new Integer[] { 21, 25, 39 };
 
     public void run() {
         ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
         String path = "classpath*:com/mikedll/headshot/experiment/**/*.class";
 
         CachingMetadataReaderFactory metadataReaderFactory = new CachingMetadataReaderFactory();
+        Resource[] resources = null;
         try {
-            Resource[] resources = resolver.getResources(path);
-            for(Resource resource : resources) {
-                MetadataReader metadataReader = metadataReaderFactory.getMetadataReader(resource);
-                AnnotationMetadata classMetadata = metadataReader.getAnnotationMetadata();
-                
-                Set<MethodMetadata> methods = classMetadata.getAnnotatedMethods("com.mikedll.headshot.experiment.Tacky");
-                MethodMetadata firstMethod = null;
-                for(MethodMetadata method : methods) {
-                    if(firstMethod == null) {
-                        firstMethod = method;
-                    }
-                }
+            resources = resolver.getResources(path);
+        } catch(IOException ex) {
+            System.out.println("IOException when scanning for controllers: " + ex.getMessage());
+            return;
+        }
 
-                if(methods.size() > 0) {
-                    Class clazz = null;
+        for(Resource resource : resources) {
+            MetadataReader metadataReader = null;
+            try {
+                metadataReader = metadataReaderFactory.getMetadataReader(resource);
+            } catch(IOException ex) {
+                System.out.println("IOException when retrieving metadata reader: " + ex.getMessage());
+                return;
+            }
+            AnnotationMetadata classMetadata = metadataReader.getAnnotationMetadata();
+                
+            Set<MethodMetadata> methods = classMetadata.getAnnotatedMethods("com.mikedll.headshot.experiment.Tacky");
+            Class clazz = null;
+            for(MethodMetadata method : methods) {
+                if(clazz == null) {
                     try {
                         clazz = Class.forName(classMetadata.getClassName());
                     } catch (ClassNotFoundException ex) {
                         System.out.println("ClassNotFoundException for " + classMetadata.getClassName() + ": " + ex.getMessage());
+                        break;
                     }
-                    if(clazz != null) {
-                        Pair<Supplier<Pair<String,String>>, String> toRun = buildHandler(clazz, firstMethod);
-                        if(toRun.getValue1() != null) {
-                            System.out.println("Error when handling method: " + toRun.getValue1());
-                            continue;
-                        }
+                }
+                Pair<AnimalHandler, String> toRun = buildHandler(clazz, method);
+                if(toRun.getValue1() != null) {
+                    System.out.println("Error when building handler for method " + method + ": " + toRun.getValue1());
+                    continue;
+                }
 
-                        Pair<String,String> result = toRun.getValue0().get();
-                        if(result.getValue1() != null) {
-                            System.out.println("Error when running function: " + result.getValue1());
-                        } else {
-                            System.out.println("Ran function and got: " + result.getValue0());
-                        }
-                    }
-                }            
+                String name = names[(int)(Math.random() * 3.0)];
+                Integer age = ages[(int)(Math.random() * 3.0)];
+                Pair<String,String> result = toRun.getValue0().apply(Pair.with(name, age));
+                if(result.getValue1() != null) {
+                    System.out.println("Error when running function: " + result.getValue1());
+                } else {
+                    System.out.println("Ran function and got: " + result.getValue0());
+                }
             }
-        } catch(IOException ex) {
-            System.out.println("IOException when scanning for controllers: " + ex.getMessage());
         }
     }
 
-    public Pair<Supplier<Pair<String,String>>, String> buildHandler(Class clazz, MethodMetadata methodMetadata) {
+    public Pair<AnimalHandler, String> buildHandler(Class clazz, MethodMetadata methodMetadata) {
         Constructor[] candidates = clazz.getDeclaredConstructors();
         Constructor qualifyingCtor = null;
         for(Constructor candidate : candidates) {
@@ -116,12 +122,12 @@ public class Experiment2 {
 
         final Method methodToUse = annotatedMethod;
         final Constructor ctorToUse = qualifyingCtor;
-        Supplier<Pair<String,String>> toRun = () -> {
+        AnimalHandler toRun = (pair) -> {
             String happyResult = null;
 
             Object targetObject = null;
             try {
-                targetObject = ctorToUse.newInstance(new Object[] { "Minny", 15 });
+                targetObject = ctorToUse.newInstance(new Object[] { pair.getValue0(), pair.getValue1() });
             } catch (Throwable ex) {
                 return new Pair<>(null, "Exception when instantiating " + clazz + ": " + ex.getMessage());
             }
