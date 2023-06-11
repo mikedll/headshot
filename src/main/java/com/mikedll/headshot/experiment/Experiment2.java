@@ -17,22 +17,14 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.Math;
 
-import org.springframework.core.io.UrlResource;
-import org.springframework.core.io.support.PropertiesLoaderUtils;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.core.io.Resource;
 import org.springframework.core.type.classreading.CachingMetadataReaderFactory;
 import org.springframework.core.type.classreading.MetadataReader;
-import org.springframework.core.type.classreading.MetadataReaderFactory;
-import org.springframework.core.type.ClassMetadata;
 import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.core.type.MethodMetadata;
 import org.springframework.core.annotation.MergedAnnotations;
-import org.springframework.core.annotation.RepeatableContainers;
-import org.springframework.core.annotation.AnnotationFilter;
-import org.springframework.core.annotation.MergedAnnotations.SearchStrategy;
-import org.springframework.util.ReflectionUtils;
 
 import org.javatuples.Pair;
 
