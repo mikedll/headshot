@@ -74,9 +74,9 @@ public class Experiment2 {
 
                         Pair<String,String> result = toRun.getValue0().get();
                         if(result.getValue1() != null) {
-                            System.out.println("Error when running supplier: " + result.getValue1());
+                            System.out.println("Error when running function: " + result.getValue1());
                         } else {
-                            System.out.println("Ran supplier and got: " + result.getValue0());
+                            System.out.println("Ran function and got: " + result.getValue0());
                         }
                     }
                 }            
