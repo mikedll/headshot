@@ -104,6 +104,21 @@ public class Experiment2 {
         }
     }
 
+    public void dispatchBasic(Request request) {
+        if(request.path().equals("/bark") && request.method().equals("GET")) {
+            Dog animal = new Dog(request.name(), request.age());
+            animal.bark();
+        } else if(request.path().equals("/rollover") && request.method().equals("POST")) {
+            Dog animal = new Dog(request.name(), request.age());
+            animal.rollover();            
+        } else if(request.path().equals("/purr") && request.method().equals("GET")) {
+            Cat animal = new Cat(request.name(), request.age());
+            animal.purr();            
+        } else {
+            throw new RuntimeException("unrecognized path/method: " + request.path() + "/" + request.method());
+        }
+    }
+
     public Pair<AnimalHandler, String> buildHandler(Class clazz, MethodMetadata methodMetadata) {
         Constructor[] candidates = clazz.getDeclaredConstructors();
         Constructor qualifyingCtor = null;

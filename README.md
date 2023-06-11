@@ -21,6 +21,8 @@ Trying to get a java web app going.
 
     mvn test-compile exec:java@benchmarks
 
+Dispatching to if-statements takes about 417.254ns/op. Using lambdas takes 1289ns/op.
+
 ### Links on using java.
 
 [Maven Quickstart](https://maven.apache.org/guides/getting-started/maven-in-five-minutes.html)

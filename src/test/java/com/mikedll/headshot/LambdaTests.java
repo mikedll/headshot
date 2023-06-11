@@ -50,5 +50,29 @@ public class LambdaTests {
         Request request = new Request(requestHandler.path, requestHandler.method, name, age);
 
         plan.exp.dispatch(plan.requestHandlers, request);
+    }
+
+    @Benchmark
+    @Fork(value = 0, warmups = 0)
+    @Warmup(iterations = 1)
+    @OutputTimeUnit(TimeUnit.NANOSECONDS)
+    @BenchmarkMode(Mode.AverageTime)    
+    public void runTestsNoLambda(LambaHandlerPlan plan) {
+        if(plan.requestHandlers.size() == 0) {
+            System.out.println("Request specs size was 0, returning early");
+            return;
+        }
+
+        // System.out.println("Request handlers:");
+        // plan.requestHandlers.forEach(rh -> System.out.println(rh));
+
+        String name = plan.names[(int)(Math.random() * 3.0)];
+        Integer age = plan.ages[(int)(Math.random() * 3.0)];
+        RequestHandler requestHandler = plan.requestHandlers.get((int)(Math.random() * plan.requestHandlers.size()));
+
+        Request request = new Request(requestHandler.path, requestHandler.method, name, age);
+
+        plan.exp.dispatchBasic(request);
     }  
+    
 }
