@@ -26,9 +26,9 @@ import com.mikedll.headshot.Env;
 import com.mikedll.headshot.Application;
 
 public class Controller {
-    private FileTemplateResolver templateResolver = new FileTemplateResolver();
+    private static FileTemplateResolver templateResolver = new FileTemplateResolver();
 
-    private TemplateEngine templateEngine = new TemplateEngine();
+    private static TemplateEngine templateEngine = new TemplateEngine();
 
     private final String cookieName = "HEADSHOT_SESSION";
 
@@ -53,20 +53,6 @@ public class Controller {
     protected User currentUser;
 
     protected Map<String,Object> session = null;    
-    
-    public Controller() {
-        this.req = req;
-        this.res = res;
-        
-        // HTML is the default mode, but we will set it anyway for better understanding of code
-        templateResolver.setTemplateMode(TemplateMode.HTML);
-        templateResolver.setPrefix("web_app_views/");
-        templateResolver.setSuffix(".html");
-        templateResolver.setCacheable(Env.env == "production");
-
-        templateEngine.addDialect(new LayoutDialect());
-        templateEngine.setTemplateResolver(templateResolver);
-    }
 
     public void setRequest(HttpServletRequest req) {
         this.req = req;
@@ -261,4 +247,16 @@ public class Controller {
         }
         this.rendered = true;
     }
+
+    public static void setupTemplateEngine() {
+        // HTML is the default mode, but we will set it anyway for better understanding of code
+        templateResolver.setTemplateMode(TemplateMode.HTML);
+        templateResolver.setPrefix("web_app_views/");
+        templateResolver.setSuffix(".html");
+        templateResolver.setCacheable(Env.env == "production");
+
+        templateEngine.addDialect(new LayoutDialect());
+        templateEngine.setTemplateResolver(templateResolver);
+    }        
+    
 }

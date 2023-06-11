@@ -9,6 +9,7 @@ import org.javatuples.Pair;
 
 import com.mikedll.headshot.db.DatabaseConfiguration;
 import com.mikedll.headshot.controller.Scanner;
+import com.mikedll.headshot.controller.Controller;
 import com.mikedll.headshot.controller.RequestHandler;
 
 public class Application {
@@ -17,11 +18,6 @@ public class Application {
 
     public static List<RequestHandler> requestHandlers;
     
-    public static void main(String[] args) {
-        Application app = new Application();
-        app.run(args);        
-    }
-
     public void run(String[] args) {
         loadDotEnv();
 
@@ -35,6 +31,7 @@ public class Application {
             return;
         }
         this.requestHandlers = scanResult.getValue0();
+        Controller.setupTemplateEngine();
 
         runTomcat();
         // runExp1();
@@ -69,4 +66,9 @@ public class Application {
         Experiment ex = new Experiment();
         ex.run(userRepository);
     }
+
+    public static void main(String[] args) {
+        Application app = new Application();
+        app.run(args);        
+    }    
 }
