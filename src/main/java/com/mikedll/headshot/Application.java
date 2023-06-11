@@ -49,7 +49,7 @@ public class Application {
     }        
 
     private void runExp1() {
-        UserRepository userRepository = dbConf.getRepository(UserRepository.class);
+        UserRepository userRepository = dbConf.appGetRepository(this, UserRepository.class);
         Experiment ex = new Experiment();
         ex.run(userRepository);
     }

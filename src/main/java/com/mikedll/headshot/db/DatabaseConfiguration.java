@@ -34,6 +34,7 @@ import org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy;
 
 import com.mikedll.headshot.UserRepository;
 import com.mikedll.headshot.Env;
+import com.mikedll.headshot.Application;
 
 public class DatabaseConfiguration {
 
@@ -147,7 +148,7 @@ public class DatabaseConfiguration {
                                       getJpaRepositoryFactory().getRepository(UserRepository.class, RepositoryFragments.empty()));
     }
     
-    public <T> T getRepository(Class<T> repositoryClass) {
+    public <T> T appGetRepository(Application app, Class<T> repositoryClass) {
         if(this.repositories.get(repositoryClass) == null) {
             throw new RuntimeException("Request for repository that does not exist: " + repositoryClass);
         }
