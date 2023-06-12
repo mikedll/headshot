@@ -17,6 +17,14 @@ A java web app.
 
     mvn test
 
+Specific test class:
+
+    mvn test -Dtest=RequestAnnotationTests
+
+Specific test in a class:
+
+    mvn test -Dtest=RequestAnnotationTests#searchParamsCorrect
+
 ### Benchmarks
 
     mvn test-compile exec:java@benchmarks
