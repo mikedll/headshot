@@ -158,7 +158,7 @@ public class Controller {
             sendCookies();
             sendRedirect(localOrigin() + "/");
         }
-        
+
         return this.authOkay;
     }
     
