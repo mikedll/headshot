@@ -2,8 +2,6 @@
 package com.mikedll.headshot;
 
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.Date;
 
 import java.lang.StackTraceElement;
 
