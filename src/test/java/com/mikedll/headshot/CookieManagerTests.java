@@ -74,18 +74,6 @@ public class CookieManagerTests {
         
         Assertions.assertTrue(result.ok());
         Assertions.assertEquals(toSign, result.deserialized());
-
-        Map<String,Object> deserialized = (Map<String,Object>)result.deserialized();
-        Map<String,Object> mike = (Map<String,Object>)deserialized.get("mike");
-        
-        Assertions.assertEquals(mike.get("age"), 30);
-        Assertions.assertEquals(mike.get("name"), "Mike");
-
-        List<Map<String,Object>> people = (List<Map<String,Object>>)result.deserialized().get("people");
-        Assertions.assertEquals(2, people.size());
-        Map<String,Object> herman = (Map<String,Object>)people.get(0);
-        Assertions.assertEquals(herman.get("name"), "Herman");
-        Assertions.assertEquals(herman.get("age"), 25);
     }
 
     @Test
