@@ -34,6 +34,47 @@ public class ControllerTests {
             Assertions.fail("setup failed");
         }
     }    
+
+    public Request get(String path) throws IOException {
+        return get(path, null);
+    }
+    
+    public Request get(String path, Map<String,Object> session) throws IOException {
+        HttpServletRequest req = mock(HttpServletRequest.class);
+        HttpServletResponse res = mock(HttpServletResponse.class);
+
+        when(req.getRequestURI()).thenReturn(path);
+        when(req.getMethod()).thenReturn("GET");
+        StringWriter stringWriter = new StringWriter();
+        PrintWriter printWriter = new PrintWriter(stringWriter);
+        when(res.getWriter()).thenReturn(printWriter);
+
+        if(session != null) {
+            CookieManager cookieManager = new CookieManager(Env.cookieSigningKey);
+            String cookieString = cookieManager.cookieString(session);
+        
+            Cookie cookie = mock(Cookie.class);
+            when(cookie.getName()).thenReturn(Controller.COOKIE_NAME);
+            when(cookie.getValue()).thenReturn(cookieString);
+            when(req.getCookies()).thenReturn(new Cookie[] { cookie });
+        }
+        
+        return new Request(req, res, printWriter, stringWriter);
+    }
+
+    private record Request(HttpServletRequest req, HttpServletResponse res, PrintWriter printWriter, StringWriter stringWriter) {}
+    
+    @Test
+    public void testRoot() throws IOException, ServletException {
+        Servlet servlet = new Servlet();
+
+        Request request = get("/");
+        servlet.doGet(request.req(), request.res());
+
+        request.printWriter().flush();
+        Assertions.assertTrue(request.stringWriter().toString().contains("This is the app"));
+        Assertions.assertTrue(request.stringWriter().toString().contains("Login with Github"));
+    }    
     
     @Test
     public void testRootLoggedIn() throws IOException, ServletException {
@@ -52,29 +93,16 @@ public class ControllerTests {
         
         Servlet servlet = new Servlet();
 
-        HttpServletRequest req = mock(HttpServletRequest.class);
-        HttpServletResponse res = mock(HttpServletResponse.class);
-
         Map<String, Object> session = new LinkedHashMap<String, Object>();
         session.put("user_id", user.getId());
 
-        CookieManager cookieManager = new CookieManager(Env.cookieSigningKey);
-        String cookieString = cookieManager.cookieString(session);
-        
-        Cookie cookie = mock(Cookie.class);
-        when(cookie.getName()).thenReturn(Controller.COOKIE_NAME);
-        when(cookie.getValue()).thenReturn(cookieString);
-        when(req.getCookies()).thenReturn(new Cookie[] { cookie });
-        when(req.getRequestURI()).thenReturn("/");
-        when(req.getMethod()).thenReturn("GET");
-        StringWriter stringWriter = new StringWriter();
-        PrintWriter printWriter = new PrintWriter(stringWriter);
-        when(res.getWriter()).thenReturn(printWriter);
-        
-        servlet.doGet(req, res);
+        Request request = get("/", session);
 
-        printWriter.flush();
-        Assertions.assertTrue(stringWriter.toString().contains("This is the app"));
-        Assertions.assertTrue(stringWriter.toString().contains("Randal Johnson"));
+        servlet.doGet(request.req(), request.res());
+
+        request.printWriter().flush();
+        Assertions.assertTrue(request.stringWriter().toString().contains("This is the app"));
+        Assertions.assertTrue(request.stringWriter().toString().contains("Randal Johnson"));
     }
+    
 }
