@@ -22,7 +22,7 @@ public class RequestAnnotationTests {
         Assertions.assertTrue(requestHandlers.size() > 0);
 
         RequestHandler found = requestHandlers.stream()
-            .filter(rh -> rh.path.equals("/junit/sample")).findAny().orElse(null);
+            .filter(rh -> rh.path.equals("/")).findAny().orElse(null);
         Assertions.assertNotNull(found);
     }
 
