@@ -13,6 +13,7 @@ import jakarta.servlet.ServletException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import static org.mockito.Mockito.*;
 
 import com.mikedll.headshot.controller.Controller;
@@ -23,6 +24,13 @@ public class ControllerTests {
     public static void setUp() throws IOException {
         MySuite.setUp();
     }
+
+    @BeforeEach
+    public void checkSetup() throws IOException {
+        if(!MySuite.setupUpOkay()) {
+            Assertions.fail("setup failed");
+        }
+    }    
     
     @Test
     public void testRootLoggedIn() throws IOException, ServletException {
