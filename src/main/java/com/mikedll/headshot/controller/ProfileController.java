@@ -10,9 +10,7 @@ public class ProfileController extends Controller {
     
     @Request(path="/profile")
     public void profile() {
-        Context ctx = defaultCtx();
-        ctx.setVariable("name", this.currentUser.getName());
-        render("profile", ctx);        
+        render("profile", defaultCtx());
     }
 
     @Request(path="/session")
