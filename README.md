@@ -15,8 +15,8 @@ A java web app.
 
 ### Run Tests
 
-First, you need to create a .env.test with DB_URL, and you need to create the
-database that that points to.
+First, you need to create a `.env.test` file with DB_URL, and you need
+to create the database that that points to.
 
     mvn test
 
