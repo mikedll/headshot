@@ -16,13 +16,19 @@ import org.javatuples.Pair;
 import com.mikedll.headshot.controller.*;
 
 public class Servlet extends HttpServlet {
+
+    public boolean shouldLog() {
+        return Env.shouldLog();
+    }
     
     @Override
     protected final void doGet(HttpServletRequest req, HttpServletResponse res)
         throws ServletException, IOException {
 
         String path = req.getRequestURI().toString();
-        System.out.println("Path: " + path);
+        if(shouldLog()) {
+            System.out.println("Path: " + path);
+        }
 
         HttpMethod method = HttpMethod.fromServletReq(req.getMethod());
         RequestHandler matchingHandler = Application.requestHandlers

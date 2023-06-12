@@ -5,6 +5,7 @@ tmp/
 src/main/resources/*.yaml
 
 .env
+.env.test
   
 BOOT-INF/
 

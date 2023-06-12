@@ -17,7 +17,9 @@
         <spring.version>6.0.9</spring.version>
         <spring-security.version>6.0.3</spring-security.version>
         <spring-data.version>3.1.0</spring-data.version>
+        <junit-platform.version>1.9.3</junit-platform.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <runSuite>**/MySuite.java</runSuite>
     </properties>
 
     <dependencies>
@@ -97,17 +99,16 @@
         </dependency>
         
         <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-api</artifactId>
-            <version>5.9.3</version>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot</artifactId>
             <version>${spring-boot.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.13.0</version>
+        </dependency>        
 
         <dependency>
             <groupId>org.javatuples</groupId>
@@ -115,6 +116,29 @@
             <version>1.2</version>
         </dependency>
 
+        <!-- begin test -->
+        
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>5.9.3</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.junit.platform</groupId>
+            <artifactId>junit-platform-suite-api</artifactId>
+            <version>${junit-platform.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.junit.platform</groupId>
+            <artifactId>junit-platform-suite-engine</artifactId>
+            <version>${junit-platform.version}</version>
+            <scope>test</scope>
+        </dependency>        
+        
         <dependency>
             <groupId>org.openjdk.jmh</groupId>
             <artifactId>jmh-core</artifactId>
@@ -127,7 +151,14 @@
             <artifactId>jmh-generator-annprocess</artifactId>
             <version>1.36</version>
             <scope>test</scope>
-        </dependency>        
+        </dependency>
+
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>5.3.1</version>
+            <scope>test</scope>
+        </dependency>
         
     </dependencies>
 
@@ -227,6 +258,11 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.1.0</version>
+                <configuration>
+                    <includes>
+                        <include>${runSuite}</include>
+                    </includes>
+                </configuration>                
             </plugin>
             
         </plugins>

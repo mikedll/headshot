@@ -71,7 +71,7 @@ public class DatabaseConfiguration {
         return this.transactionManager;
     }
 
-		DataSource getDataSource() {
+		public DataSource getDataSource() {
         if(this.dataSource != null) {
             return this.dataSource;
         }

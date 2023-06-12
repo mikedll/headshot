@@ -17,6 +17,8 @@ public class Application {
     public static DatabaseConfiguration dbConf = new DatabaseConfiguration();
 
     public static List<RequestHandler> requestHandlers;
+
+    private boolean loadedEnv;
     
     public void run(String[] args) {
         String error = setUp();
@@ -35,9 +37,11 @@ public class Application {
     /*
      * Return error on failure, null on success.
      */
-    private String setUp() {
+    public String setUp() {
         loadDotEnv();
-        System.out.println("Starting app in " + Env.env + " environment...");
+        if(Env.shouldLog()) {
+            System.out.println("Starting app in " + Env.env + " environment...");
+        }
         
         dbConf.makeRepositories();
         Pair<List<RequestHandler>, String> scanResult = (new Scanner()).scan();
@@ -54,7 +58,15 @@ public class Application {
         dbConf.shutdown();        
     }
 
+    public void markEnvLoaded() {
+        this.loadedEnv = true;
+    }
+
     private void loadDotEnv() {
+        if(loadedEnv) {
+            return;
+        }
+        
         Dotenv dotenv = Dotenv.load();
         Env.githubConfig = new GithubConfig(dotenv.get("GITHUB_CLIENT_ID"), dotenv.get("GITHUB_CLIENT_SECRET"));
         Env.cookieSigningKey = dotenv.get("COOKIE_SIGNING_KEY");
