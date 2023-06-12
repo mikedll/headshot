@@ -6,7 +6,7 @@ public class RootController extends Controller {
     public void declareAuthRequirements() {
         this.requireAuthentication = false;
     }
-        
+
     @Request(path="/")
     public void index() {
         render("index", defaultCtx());        
