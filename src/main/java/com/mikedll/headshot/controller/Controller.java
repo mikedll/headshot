@@ -30,7 +30,7 @@ public class Controller {
 
     private static TemplateEngine templateEngine = new TemplateEngine();
 
-    private final String cookieName = "HEADSHOT_SESSION";
+    public static final String COOKIE_NAME = "HEADSHOT_SESSION";
 
     private UserRepository baseUserRepository;
 
@@ -106,7 +106,7 @@ public class Controller {
         }
         
         for(Cookie cookie : req.getCookies()) {
-            if(cookie.getName().equals(cookieName)) {
+            if(cookie.getName().equals(COOKIE_NAME)) {
                 CookieManager.VerifyResult result = null;
                 try {
                     result = cookieManager.verify(cookie.getValue());
@@ -187,7 +187,7 @@ public class Controller {
 
     public void sendCookies() {
         try {
-            Cookie sessionCookie = new Cookie(cookieName, cookieManager.cookieString(this.session));
+            Cookie sessionCookie = new Cookie(COOKIE_NAME, cookieManager.cookieString(this.session));
             sessionCookie.setAttribute("SameSite", "Lax");
             sessionCookie.setAttribute("Path", "/");            
             res.addCookie(sessionCookie);

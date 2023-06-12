@@ -71,18 +71,25 @@ public class DatabaseConfiguration {
         return this.transactionManager;
     }
 
-		public DataSource getDataSource() {
-        if(this.dataSource != null) {
-            return this.dataSource;
-        }
-
+    /*
+     * Only tests should call this. For some reason,
+     * my changes to the database aren't working in tests.
+     */
+    public HikariDataSource buildDataSource() {
         HikariDataSource dataSource = new HikariDataSource();
 
         dataSource.setJdbcUrl(Env.dbUrl);
 				dataSource.setPoolName("default");
         dataSource.setMaximumPoolSize(Env.poolSize);
+        return dataSource;
+    }
+    
+		public DataSource getDataSource() {
+        if(this.dataSource != null) {
+            return this.dataSource;
+        }
 
-        this.dataSource = dataSource;
+        this.dataSource = buildDataSource();
         return this.dataSource;
 		}
 
@@ -122,6 +129,7 @@ public class DatabaseConfiguration {
         hibernateSettings.put(AvailableSettings.IMPLICIT_NAMING_STRATEGY, SpringImplicitNamingStrategy.class.getName());
         hibernateSettings.put(AvailableSettings.PHYSICAL_NAMING_STRATEGY, CamelCaseToUnderscoresNamingStrategy.class.getName());
         hibernateSettings.put(AvailableSettings.SCANNER, "org.hibernate.boot.archive.scan.internal.DisabledScanner");
+        
         hibernateSettings.put(JTA_PLATFORM, new NoJtaPlatform());
         this.entityManagerFactoryBean.getJpaPropertyMap().putAll(hibernateSettings);
 
