@@ -118,6 +118,8 @@ public class AssetFingerprinter {
     }
 
     /*
+     * Shouldn't be used in practice by the app. Just here for testing ease.
+     * 
      * Callable in prod as long as you're not recalculating fingerprints.
      * Just calculate them once at startup.
      */
@@ -133,5 +135,23 @@ public class AssetFingerprinter {
         String targetBasename = assetFilePrefix + "-" + fingerprint + "." + assetFileExtension;
         return targetBasename;
     }
-    
+
+    public Map<String,String> getForViews() {
+        synchronized(this) {
+            return getForViewsWithoutLock();
+        }
+    }
+
+    /*
+     * Callable in prod after refreshing once at startup and no more.
+     */
+    public Map<String,String> getForViewsWithoutLock() {
+        Map<String,String> toReturn = new HashMap<>();
+
+        assetToFingerprint.keySet().forEach(k -> {
+                toReturn.put(k, EmbeddedTomcat.PUBLIC_ROOT_DIR + "/" + getWithoutLock(k));
+            });
+
+        return toReturn;
+    }
 }

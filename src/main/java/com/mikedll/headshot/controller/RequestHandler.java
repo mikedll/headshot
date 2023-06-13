@@ -79,6 +79,7 @@ public class RequestHandler {
             controller.setRequest(pair.getValue0());
             controller.setResponse(pair.getValue1());
             controller.setDbConf(Application.dbConf);
+            controller.setAssetFingerprinter(Application.assetFingerprinter);
             if(!controller.prepare()) {
                 // this is normal execution, not an error.
                 return null;

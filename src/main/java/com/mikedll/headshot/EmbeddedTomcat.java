@@ -30,6 +30,8 @@ public class EmbeddedTomcat {
     
     private final Tomcat tomcat;
 
+    public static final String PUBLIC_ROOT_DIR = "/static";
+
     public EmbeddedTomcat() {
         this.tomcat = new Tomcat();
     }
@@ -74,12 +76,12 @@ public class EmbeddedTomcat {
         ctx.addChild(staticServlet);
 
         ctx.addServletMappingDecoded("/", "default");
-        ctx.addServletMappingDecoded("/static/*", "static");
+        ctx.addServletMappingDecoded(PUBLIC_ROOT_DIR + "/*", "static");
 
         // Make context aware of our static resources
         File localStaticRoot = new File("web_assets");
         WebResourceRoot resources = new StandardRoot(ctx);
-        DirResourceSet dirSet = new DirResourceSet(resources, "/static", localStaticRoot.getAbsolutePath(), "/");
+        DirResourceSet dirSet = new DirResourceSet(resources, PUBLIC_ROOT_DIR, localStaticRoot.getAbsolutePath(), "/");
         dirSet.setReadOnly(true);
         resources.addPreResources(dirSet);        
         ctx.setResources(resources);

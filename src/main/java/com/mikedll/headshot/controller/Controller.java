@@ -26,6 +26,7 @@ import com.mikedll.headshot.CookieManager;
 import com.mikedll.headshot.Env;
 import com.mikedll.headshot.Application;
 import com.mikedll.headshot.db.DatabaseConfiguration;
+import com.mikedll.headshot.AssetFingerprinter;
 
 public class Controller {
     private static FileTemplateResolver templateResolver = new FileTemplateResolver();
@@ -43,6 +44,8 @@ public class Controller {
     private boolean rendered = false;
 
     private boolean baseDbAccess = false;
+
+    private AssetFingerprinter assetFingerprinter;
     
     protected HttpServletRequest req;
     
@@ -69,6 +72,10 @@ public class Controller {
     public void setDbConf(DatabaseConfiguration dbConf) {
         this.dbConf = dbConf;
     }
+
+    public void setAssetFingerprinter(AssetFingerprinter af) {
+        this.assetFingerprinter = af;
+    }
     
     public Context defaultCtx() {
         Context ctx = new Context(req.getLocale());
@@ -90,6 +97,7 @@ public class Controller {
         // adjust for prod
         ctx.setVariable("googleAnalytics", snippet);
         ctx.setVariable("currentUser", currentUser);
+        ctx.setVariable("assets", this.assetFingerprinter.getForViewsWithoutLock());
 
         return ctx;
     }

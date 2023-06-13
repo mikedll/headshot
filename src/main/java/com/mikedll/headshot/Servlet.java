@@ -45,6 +45,10 @@ public class Servlet extends HttpServlet {
             }
             return;
         }
+
+        if(Env.env == "development") {
+            Application.assetFingerprinter.refresh();
+        }
         
         String error = matchingHandler.func.apply(Pair.with(req, res));
         if(error != null) {

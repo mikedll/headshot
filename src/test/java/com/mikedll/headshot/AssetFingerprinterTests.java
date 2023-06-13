@@ -2,6 +2,7 @@ package com.mikedll.headshot;
 
 import java.io.IOException;
 import java.io.File;
+import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.Test;
@@ -15,7 +16,7 @@ public class AssetFingerprinterTests {
     }
     
     @Test
-    public void testRefresh() {
+    public void testCalcs() {
         AssetFingerprinter subject = new AssetFingerprinter();
         subject.setInputDir("src/test/files/assets_fingerprinting");
         subject.setOutputDir("tmp/tool_output");
@@ -24,6 +25,18 @@ public class AssetFingerprinterTests {
         Assertions.assertNull(subject.get("testSource.js.map"));
         Assertions.assertEquals("testSource-3972902cb1170fdb2e6a11c5ff1b8b71f8854cc3aa2ddd0139e805fcf1cdb284.js", subject.get("testSource.js"));
         Assertions.assertEquals("testSource-3972902cb1170fdb2e6a11c5ff1b8b71f8854cc3aa2ddd0139e805fcf1cdb284.js", subject.getWithoutLock("testSource.js"));        
+    }
+
+    @Test
+    public void testGetForViews() {
+        AssetFingerprinter subject = new AssetFingerprinter();
+        subject.setInputDir("src/test/files/assets_fingerprinting");
+        subject.setOutputDir("tmp/tool_output");
+        subject.refresh();
+        Map<String,String> all = subject.getForViews();
+        Assertions.assertEquals("/static/testSource-3972902cb1170fdb2e6a11c5ff1b8b71f8854cc3aa2ddd0139e805fcf1cdb284.js", all.get("testSource.js"));
+        Map<String,String> all2 = subject.getForViewsWithoutLock();
+        Assertions.assertEquals("/static/testSource-3972902cb1170fdb2e6a11c5ff1b8b71f8854cc3aa2ddd0139e805fcf1cdb284.js", all2.get("testSource.js"));
     }
 
     @Test

@@ -18,6 +18,8 @@ public class Application {
 
     public static List<RequestHandler> requestHandlers;
 
+    public static AssetFingerprinter assetFingerprinter = new AssetFingerprinter();
+
     private boolean loadedEnv;
     
     public void run(String[] args) {
@@ -43,13 +45,18 @@ public class Application {
             System.out.println("Starting app in " + Env.env + " environment...");
         }
         
+        System.out.println("Making repositories...");
         dbConf.makeRepositories();
+        System.out.println("Scanning for request handlers...");
         Pair<List<RequestHandler>, String> scanResult = (new Scanner()).scan();
         if(scanResult.getValue1() != null) {
             return "Error when scanning for handlers: " + scanResult.getValue1();
         }
         this.requestHandlers = scanResult.getValue0();
+        System.out.println("Creating thymeleaf template engine...");
         Controller.setupTemplateEngine();
+        System.out.println("Refreshing assets...");
+        assetFingerprinter.refresh();
         return null;
     }
 
