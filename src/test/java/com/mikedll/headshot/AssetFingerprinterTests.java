@@ -3,10 +3,11 @@ package com.mikedll.headshot;
 import java.io.IOException;
 import java.io.File;
 import java.util.Map;
-
+    
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 
 public class AssetFingerprinterTests {
 
@@ -14,12 +15,22 @@ public class AssetFingerprinterTests {
     public void clean() throws IOException {
         FileUtils.cleanDirectory(new File("tmp/tool_output"));
     }
+
+    @Test
+    public void handleNoFiles() {
+        AssetFingerprinter subject = new AssetFingerprinter();
+        subject.setInputPath("src/test/files/non_existent_dir");
+        subject.setOutputPath("tmp/tool_output");
+        subject.refresh();
+
+        Assertions.assertNull(subject.get("testSource.js.map"));
+    }
     
     @Test
     public void testCalcs() {
         AssetFingerprinter subject = new AssetFingerprinter();
-        subject.setInputDir("src/test/files/assets_fingerprinting");
-        subject.setOutputDir("tmp/tool_output");
+        subject.setInputPath("src/test/files/assets_fingerprinting");
+        subject.setOutputPath("tmp/tool_output");
         subject.refresh();
 
         Assertions.assertNull(subject.get("testSource.js.map"));
@@ -31,8 +42,8 @@ public class AssetFingerprinterTests {
     @Test
     public void testGetForViews() {
         AssetFingerprinter subject = new AssetFingerprinter();
-        subject.setInputDir("src/test/files/assets_fingerprinting");
-        subject.setOutputDir("tmp/tool_output");
+        subject.setInputPath("src/test/files/assets_fingerprinting");
+        subject.setOutputPath("tmp/tool_output");
         subject.refresh();
         Map<String,String> all = subject.getForViews();
         Assertions.assertEquals("/static/testSource-3972902cb1170fdb2e6a11c5ff1b8b71f8854cc3aa2ddd0139e805fcf1cdb284.js", all.get("testSource.js"));
@@ -43,8 +54,8 @@ public class AssetFingerprinterTests {
     @Test
     public void testFSUpdates() throws IOException {
         AssetFingerprinter subject = new AssetFingerprinter();
-        subject.setInputDir("src/test/files/assets_fingerprinting");
-        subject.setOutputDir("tmp/tool_output");
+        subject.setInputPath("src/test/files/assets_fingerprinting");
+        subject.setOutputPath("tmp/tool_output");
 
         File toReplace = new File("tmp/tool_output/testSource-e6cc5f3cc2184e0585c5f9230252487153b79b6ee242ae44df1c08eb8c889c51.js");
         FileUtils.write(toReplace, "nothing to see", "UTF-8");

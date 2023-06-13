@@ -11,6 +11,9 @@ import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.Optional;
+import java.util.Arrays;
+import java.util.Collections;
 
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.FileUtils;
@@ -23,18 +26,18 @@ public class AssetFingerprinter {
     
     private Map<String,String> assetToFingerprint = new HashMap<>();
 
-    private String outputDir = "web_assets";
+    private String outputPath = "web_assets";
 
-    private String inputDir = "javascript/bundled";
+    private String inputPath = "javascript/bundled";
     
     private Instant lastRefreshAt;
 
-    public void setOutputDir(String path) {
-        this.outputDir = path;
+    public void setOutputPath(String path) {
+        this.outputPath = path;
     }
 
-    public void setInputDir(String path) {
-        this.inputDir = path;
+    public void setInputPath(String path) {
+        this.inputPath = path;
     }
 
     /*
@@ -42,7 +45,8 @@ public class AssetFingerprinter {
      * Ignores .map files.
      */
     public Set<File> listFiles(String dir) {
-        return Stream.of(new File(dir).listFiles())
+        return Optional.ofNullable(new File(dir).listFiles()).map(Arrays::asList).orElse(Collections.emptyList())
+            .stream()
             .filter(f -> !f.isDirectory())
             .filter(f -> {
                     String ext = f.getName().substring(f.getName().lastIndexOf(".") + 1);
@@ -57,8 +61,14 @@ public class AssetFingerprinter {
      */ 
     public void refresh() {
         synchronized(this) {
-            Set<File> inputFiles = listFiles(this.inputDir);
-            Set<File> existingOutputFiles = listFiles(this.outputDir);
+
+            File outputDir = new File(outputPath);
+            if(!outputDir.exists()) {
+                outputDir.mkdirs();
+            }
+                
+            Set<File> inputFiles = listFiles(this.inputPath);
+            Set<File> existingOutputFiles = listFiles(this.outputPath);
             
             inputFiles.forEach(inputFile -> {
                     Instant lastModified = Instant.ofEpochMilli(inputFile.lastModified());
@@ -100,9 +110,9 @@ public class AssetFingerprinter {
                                 });
 
                         try {
-                            FileUtils.copyFile(inputFile, new File(this.outputDir + "/" + targetOutputName));
+                            FileUtils.copyFile(inputFile, new File(this.outputPath + "/" + targetOutputName));
                         } catch(IOException ex) {
-                            throw new RuntimeException("IOException when copying " + targetOutputName + " to output dir " + this.outputDir);
+                            throw new RuntimeException("IOException when copying " + targetOutputName + " to output dir " + this.outputPath);
                         }
                     }
                 });
