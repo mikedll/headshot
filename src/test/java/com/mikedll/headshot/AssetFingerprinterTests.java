@@ -23,6 +23,7 @@ public class AssetFingerprinterTests {
         subject.refresh();
 
         Assertions.assertNull(subject.get("testSource.js.map"));
+        Assertions.assertNull(subject.get(".keep"));
         Assertions.assertEquals("testSource-3972902cb1170fdb2e6a11c5ff1b8b71f8854cc3aa2ddd0139e805fcf1cdb284.js", subject.get("testSource.js"));
         Assertions.assertEquals("testSource-3972902cb1170fdb2e6a11c5ff1b8b71f8854cc3aa2ddd0139e805fcf1cdb284.js", subject.getWithoutLock("testSource.js"));        
     }

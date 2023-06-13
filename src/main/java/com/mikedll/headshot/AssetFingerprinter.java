@@ -46,7 +46,7 @@ public class AssetFingerprinter {
             .filter(f -> !f.isDirectory())
             .filter(f -> {
                     String ext = f.getName().substring(f.getName().lastIndexOf(".") + 1);
-                    return !ext.equals("") && !ext.equals("map");
+                    return !ext.equals("") && !ext.equals("map") && !ext.equals("keep");
                 })
             .collect(Collectors.toSet());
     }
