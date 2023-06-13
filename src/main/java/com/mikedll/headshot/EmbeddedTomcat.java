@@ -55,7 +55,7 @@ public class EmbeddedTomcat {
         ctx.setParentClassLoader(EmbeddedTomcat.class.getClassLoader());
         
 
-        // Dynamic content - use our servlet
+        // General content - use our servlet
         Wrapper defaultServlet = ctx.createWrapper();
         defaultServlet.setName("default");
         defaultServlet.setServletClass("com.mikedll.headshot.Servlet");
@@ -64,7 +64,7 @@ public class EmbeddedTomcat {
         ctx.addChild(defaultServlet);
 
 
-        // Static content - use default servlet
+        // Static content under /static - use default servlet
         Wrapper staticServlet = ctx.createWrapper();
         staticServlet.setName("static");
         staticServlet.setServletClass("org.apache.catalina.servlets.DefaultServlet");
@@ -81,8 +81,7 @@ public class EmbeddedTomcat {
         WebResourceRoot resources = new StandardRoot(ctx);
         DirResourceSet dirSet = new DirResourceSet(resources, "/static", localStaticRoot.getAbsolutePath(), "/");
         dirSet.setReadOnly(true);
-        resources.addPreResources(dirSet);
-        
+        resources.addPreResources(dirSet);        
         ctx.setResources(resources);
 
         this.tomcat.getHost().addChild(ctx);

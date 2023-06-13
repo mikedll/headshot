@@ -1,0 +1,25 @@
+{
+  "name": "headshot",
+  "version": "1.0.0",
+  "description": "Github repo tours",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "tsc": "tsc -noEmit --watch",
+    "buildw": "esbuild ./javascript/main.ts --bundle --sourcemap --outfile=./javascript/bundled/main.js --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mikedll/headshot.git"
+  },
+  "author": "Michael Rivera",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mikedll/headshot/issues"
+  },
+  "homepage": "https://github.com/mikedll/headshot#readme",
+  "dependencies": {
+    "esbuild": "^0.18.2",
+    "typescript": "^5.1.3"
+  }
+}

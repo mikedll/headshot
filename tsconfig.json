@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "module": "es2020",
+    "lib": ["dom", "es2015"],
+    "noImplicitAny": true,
+    "strict": true,
+    "moduleResolution": "node",
+    "experimentalDecorators": true,
+  }
+}

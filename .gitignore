@@ -6,6 +6,9 @@ src/main/resources/*.yaml
 
 .env
 .env.test
+
+javascript/bundled/
+node_modules/
   
 BOOT-INF/
 web_assets/
