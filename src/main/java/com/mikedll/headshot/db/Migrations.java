@@ -35,7 +35,7 @@ public class Migrations {
             .stream()
             .filter(f -> !f.isDirectory())
             .collect(Collectors.toList());
-    }        
+    }
 
     /*
      * Returns error on failure, null on success.
