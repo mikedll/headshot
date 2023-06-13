@@ -158,7 +158,7 @@ public class Controller {
             this.baseUserRepository = dbConf.getRepository(this, UserRepository.class);
             this.baseDbAccess = false;
             Optional<User> user = baseUserRepository.findById(((Integer)session.get("user_id")).longValue());
-            if(user.isPresent()) this.currentUser = user.get();
+            this.currentUser = user.orElse(null);
         }
 
         this.authOkay = (!this.requireAuthentication || this.currentUser != null);
