@@ -77,19 +77,17 @@ public class AssetFingerprinter {
                         assetToFingerprint.put(inputFile.getName(), fingerprint);
 
                         String inputFileName = inputFile.getName();
-                        System.out.println("AssetFingerprinter#refresh Considering: " + inputFileName);
                         int dot = inputFileName.lastIndexOf(".");
                         String inputFilePrefix = inputFileName.substring(0, dot);
                         String inputFileExtension = inputFileName.substring(inputFileName.lastIndexOf(".") + 1);
-                        String targetOutputName = inputFilePrefix + "-" + fingerprint + inputFileExtension;
+                        String targetOutputName = inputFilePrefix + "-" + fingerprint + "." + inputFileExtension;
 
                         // Delete old output files that came from this input file
+                        Pattern pattern = Pattern.compile(inputFilePrefix + "-\\w{64}\\." + inputFileExtension);
                         existingOutputFiles.stream().filter(outputFile -> {
-                                Pattern pattern = Pattern.compile(inputFilePrefix + "-\\w{64}\\." + inputFileExtension);
                                 Matcher matcher = pattern.matcher(outputFile.getName());
                                 return matcher.find();
                             }).forEach(conflictingOutputFile -> {
-                                    System.out.println("Input file conflicts with output file: " + inputFileName + " with " + conflictingOutputFile.getName());
                                     try {
                                         FileUtils.delete(conflictingOutputFile);
                                     } catch (IOException ex) {
