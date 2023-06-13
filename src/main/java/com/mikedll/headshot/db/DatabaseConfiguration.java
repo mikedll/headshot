@@ -119,8 +119,8 @@ public class DatabaseConfiguration {
         this.entityManagerFactoryBean = new LocalContainerEntityManagerFactoryBean();
 
     		AbstractJpaVendorAdapter adapter = new HibernateJpaVendorAdapter();
-        adapter.setShowSql(true);
-        
+        adapter.setShowSql(Env.env != "test");
+
         this.entityManagerFactoryBean.setJpaVendorAdapter(adapter);
         this.entityManagerFactoryBean.setDataSource(getDataSource());
         this.entityManagerFactoryBean.setPackagesToScan("com.mikedll.headshot");

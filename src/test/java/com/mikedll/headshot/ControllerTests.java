@@ -30,7 +30,7 @@ public class ControllerTests {
 
     @BeforeEach
     public void checkSetup() throws IOException {
-        if(!MySuite.setupUpOkay()) {
+        if(!MySuite.beforeDbTest()) {
             Assertions.fail("setup failed");
         }
     }    
@@ -78,19 +78,7 @@ public class ControllerTests {
     
     @Test
     public void testRootLoggedIn() throws IOException, ServletException {
-
-        Application app = MySuite.getApp();
-        UserRepository userRepository = app.dbConf.getRepository(app, UserRepository.class);
-        User user = new User();
-        user.setName("Randal Johnson");
-        user.setGithubId(2000L);
-        user.setGithubLogin("randal.johnson");
-        user.setUrl("http://api.github.com/randal.johnson");
-        user.setHtmlUrl("http://www.github.com/randal.johnson");
-        user.setReposUrl("http://api.github.com/randal.johnson/repos");
-        user.setAccessToken("asdf");
-        userRepository.save(user);
-        
+        User user = Factories.makeUser();
         Servlet servlet = new Servlet();
 
         Map<String, Object> session = new LinkedHashMap<String, Object>();
@@ -102,7 +90,23 @@ public class ControllerTests {
 
         request.printWriter().flush();
         Assertions.assertTrue(request.stringWriter().toString().contains("This is the app"));
-        Assertions.assertTrue(request.stringWriter().toString().contains("Randal Johnson"));
+        Assertions.assertTrue(request.stringWriter().toString().contains(user.getName()));
+    }
+
+    @Test
+    public void testProfile() throws IOException, ServletException {
+        User user = Factories.makeUser();
+        Servlet servlet = new Servlet();
+
+        Map<String, Object> session = new LinkedHashMap<String, Object>();
+        session.put("user_id", user.getId());
+
+        Request request = get("/profile", session);
+
+        servlet.doGet(request.req(), request.res());
+
+        request.printWriter().flush();
+        Assertions.assertTrue(request.stringWriter().toString().contains(user.getHtmlUrl()));
     }
     
 }

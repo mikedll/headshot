@@ -63,7 +63,7 @@ public class MySuite {
                 return false;
             }
         } catch(SQLException ex) {
-            System.out.println("SQLException: " + ex.getMessage());
+            System.out.println("SQLException when handling connection: " + ex.getMessage());
             broken = true;
             return false;
         }
@@ -76,8 +76,39 @@ public class MySuite {
         return true;
     }
 
-    public static boolean setupUpOkay() {
-        return !broken && setup;
+    /*
+     * Returns true on success, false on failure.
+     */ 
+    public static boolean beforeDbTest() {
+        if(broken || !setup) {
+            return false;
+        }
+
+        return truncateDatabase();
+    }
+
+    /*
+     * Returns true on success, false on failure.
+     */ 
+    public static boolean truncateDatabase() {
+        if(Env.env == "production") {
+            throw new RuntimeException("can't truncate database in production");
+        }
+
+        DataSource ds = app.dbConf.getDataSource();
+        try(Connection conn = ds.getConnection()) {
+            try (Statement stmt = conn.createStatement()) {
+                stmt.execute("TRUNCATE users RESTART IDENTITY CASCADE;");
+            } catch(SQLException ex) {
+                System.out.println("SQLException when truncating database: " + ex.getMessage());
+                return false;
+            }
+        } catch(SQLException ex) {
+            System.out.println("SQLException when handling connection: " + ex.getMessage());
+            return false;
+        }
+
+        return true;
     }
 
     public static Application getApp() {
