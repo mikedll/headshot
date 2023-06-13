@@ -57,7 +57,7 @@ public class LoginController extends Controller {
 
     @Override
     public void acquireDbAccess() {
-        this.userRepository = Application.dbConf.getRepository(this, UserRepository.class);
+        this.userRepository = dbConf.getRepository(this, UserRepository.class);
     }
 
     @Request(path="/oauth2/authorization/github")

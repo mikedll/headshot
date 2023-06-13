@@ -24,6 +24,7 @@ import com.mikedll.headshot.User;
 import com.mikedll.headshot.CookieManager;
 import com.mikedll.headshot.Env;
 import com.mikedll.headshot.Application;
+import com.mikedll.headshot.db.DatabaseConfiguration;
 
 public class Controller {
     private static FileTemplateResolver templateResolver = new FileTemplateResolver();
@@ -52,7 +53,9 @@ public class Controller {
 
     protected User currentUser;
 
-    protected Map<String,Object> session = null;    
+    protected Map<String,Object> session = null;
+
+    protected DatabaseConfiguration dbConf;
 
     public void setRequest(HttpServletRequest req) {
         this.req = req;
@@ -60,6 +63,10 @@ public class Controller {
 
     public void setResponse(HttpServletResponse res) {
         this.res = res;
+    }
+
+    public void setDbConf(DatabaseConfiguration dbConf) {
+        this.dbConf = dbConf;
     }
     
     public Context defaultCtx() {
@@ -145,7 +152,7 @@ public class Controller {
     public boolean authFilters() {
         if(this.session != null && session.get("user_id") != null) {
             this.baseDbAccess = true;
-            this.baseUserRepository = Application.dbConf.getRepository(this, UserRepository.class);
+            this.baseUserRepository = dbConf.getRepository(this, UserRepository.class);
             this.baseDbAccess = false;
             Optional<User> user = baseUserRepository.findById(((Integer)session.get("user_id")).longValue());
             if(user.isPresent()) this.currentUser = user.get();
