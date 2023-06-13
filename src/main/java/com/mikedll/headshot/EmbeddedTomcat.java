@@ -20,6 +20,9 @@ import org.apache.catalina.core.StandardContext;
 import org.apache.catalina.Host;
 import org.apache.catalina.startup.Tomcat.FixContextListener;
 import org.apache.catalina.loader.WebappLoader;
+import org.apache.catalina.WebResourceRoot;
+import org.apache.catalina.webresources.DirResourceSet;
+import org.apache.catalina.webresources.StandardRoot;
 
 public class EmbeddedTomcat {
 
@@ -51,17 +54,36 @@ public class EmbeddedTomcat {
         ctx.addLifecycleListener(new FixContextListener());
         ctx.setParentClassLoader(EmbeddedTomcat.class.getClassLoader());
         
+
+        // Dynamic content - use our servlet
         Wrapper defaultServlet = ctx.createWrapper();
         defaultServlet.setName("default");
         defaultServlet.setServletClass("com.mikedll.headshot.Servlet");
         defaultServlet.addInitParameter("debug", "0");
-        defaultServlet.addInitParameter("listings", "false");
         defaultServlet.setLoadOnStartup(1);
-        // Otherwise the default location of a Spring DispatcherServlet cannot be set
-        defaultServlet.setOverridable(true);
-
         ctx.addChild(defaultServlet);
+
+
+        // Static content - use default servlet
+        Wrapper staticServlet = ctx.createWrapper();
+        staticServlet.setName("static");
+        staticServlet.setServletClass("org.apache.catalina.servlets.DefaultServlet");
+        staticServlet.addInitParameter("debug", "0");
+        staticServlet.addInitParameter("listings", "false");
+        staticServlet.setLoadOnStartup(1);
+        ctx.addChild(staticServlet);
+
         ctx.addServletMappingDecoded("/", "default");
+        ctx.addServletMappingDecoded("/static/*", "static");
+
+        // Make context aware of our static resources
+        File localStaticRoot = new File("web_assets");
+        WebResourceRoot resources = new StandardRoot(ctx);
+        DirResourceSet dirSet = new DirResourceSet(resources, "/static", localStaticRoot.getAbsolutePath(), "/");
+        dirSet.setReadOnly(true);
+        resources.addPreResources(dirSet);
+        
+        ctx.setResources(resources);
 
         this.tomcat.getHost().addChild(ctx);
 

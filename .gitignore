@@ -8,6 +8,7 @@ src/main/resources/*.yaml
 .env.test
   
 BOOT-INF/
+web_assets/
 
 .emacs.desktop
 .emacs.desktop.lock  
