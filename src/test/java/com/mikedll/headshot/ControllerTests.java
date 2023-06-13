@@ -74,6 +74,35 @@ public class ControllerTests {
         request.printWriter().flush();
         Assertions.assertTrue(request.stringWriter().toString().contains("This is the app"));
         Assertions.assertTrue(request.stringWriter().toString().contains("Login with Github"));
+    }
+
+    @Test
+    public void testBadCookie() throws IOException, ServletException {
+        HttpServletRequest req = mock(HttpServletRequest.class);
+        HttpServletResponse res = mock(HttpServletResponse.class);
+
+        when(req.getRequestURI()).thenReturn("/profile");
+        when(req.getMethod()).thenReturn("GET");
+        when(req.getServerName()).thenReturn("localhost");
+        when(req.getServerPort()).thenReturn(80);
+        StringWriter stringWriter = new StringWriter();
+        PrintWriter printWriter = new PrintWriter(stringWriter);
+        when(res.getWriter()).thenReturn(printWriter);
+
+        String cookieString = "sillynonsense";
+        
+        Cookie cookie = mock(Cookie.class);
+        when(cookie.getName()).thenReturn(Controller.COOKIE_NAME);
+        when(cookie.getValue()).thenReturn(cookieString);
+        when(req.getCookies()).thenReturn(new Cookie[] { cookie });
+        
+        Request request = new Request(req, res, printWriter, stringWriter);
+        
+        Servlet servlet = new Servlet();
+
+        servlet.doGet(request.req(), request.res());
+
+        verify(res).sendRedirect("http://localhost/");
     }    
     
     @Test

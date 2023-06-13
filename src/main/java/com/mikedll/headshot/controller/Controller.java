@@ -2,7 +2,8 @@ package com.mikedll.headshot.controller;
 
 import java.io.IOException;
 import java.util.Map;
-import java.util.LinkedHashMap;
+import java.util.HashMap;
+import java.util.Arrays;
 import java.io.UnsupportedEncodingException;
 import java.util.Optional;
 
@@ -94,7 +95,7 @@ public class Controller {
     }
 
     public void clearSession() {
-        this.session = new LinkedHashMap<String,Object>();
+        this.session = new HashMap<String,Object>();
     }
 
     public boolean canAccessDb() {
@@ -111,30 +112,32 @@ public class Controller {
             this.cookieFiltersOkay = true;
             return this.cookieFiltersOkay;
         }
+
+        Cookie cookie = Arrays.asList(req.getCookies()).stream()
+            .filter(c -> c.getName().equals(COOKIE_NAME)).findAny().orElse(null);
         
-        for(Cookie cookie : req.getCookies()) {
-            if(cookie.getName().equals(COOKIE_NAME)) {
-                CookieManager.VerifyResult result = null;
-                try {
-                    result = cookieManager.verify(cookie.getValue());
-                } catch (UnsupportedEncodingException ex) {
-                    System.out.println("UnsupportedEncodingException when verifing cookie: " + ex.getMessage());
-                    sendInternalServerError("Internal logic error: unsupported encoding when parsing cookie");
-                    return false;
-                } catch (JsonProcessingException ex) {
-                    System.out.println("JsonProcessingException when verifing cookie: " + ex.getMessage());
-                    cookieCheckOkay = false;
-                }
-                
-                if(result.ok()) {
-                    this.session = result.deserialized();
-                } else {
-                    // We found a cookie by our name but the sig test failed. This is a hack attempt.
-                    cookieCheckOkay = false;
-                }
-            } else {
-                this.session = new LinkedHashMap<String,Object>();
+        if(cookie != null) {
+            CookieManager.VerifyResult result = null;
+            try {
+                result = cookieManager.verify(cookie.getValue());
+            } catch (UnsupportedEncodingException ex) {
+                System.out.println("UnsupportedEncodingException when verifing cookie: " + ex.getMessage());
+                sendInternalServerError("Internal logic error: unsupported encoding when parsing cookie");
+                return false;
+            } catch (JsonProcessingException ex) {
+                // Probably a hack attempt. No reason for json to be malformed.
+                System.out.println("JsonProcessingException when verifing cookie: " + ex.getMessage());
+                cookieCheckOkay = false;
             }
+                
+            if(result.ok()) {
+                this.session = result.deserialized();
+            } else {
+                // We found a cookie by our name but the sig test failed. This is a hack attempt.
+                cookieCheckOkay = false;
+            }
+        } else {
+            this.session = new HashMap<String,Object>();
         }
 
         if(!cookieCheckOkay) {

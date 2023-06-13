@@ -2,7 +2,7 @@ package com.mikedll.headshot;
 
 import java.security.NoSuchAlgorithmException;
 import java.util.Map;
-import java.util.LinkedHashMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -33,13 +33,13 @@ public class CookieManagerTests {
     }
 
     public Map<String,Object> toSign() {
-        Map<String, Object> toSign = new LinkedHashMap<String, Object>();
-        Map<String,Object> p1 = new LinkedHashMap<String,Object>();
+        Map<String, Object> toSign = new HashMap<String, Object>();
+        Map<String,Object> p1 = new HashMap<String,Object>();
         p1.put("name", "Mike");
         p1.put("age", 30);
         toSign.put("mike", p1);
 
-        Map<String,Object> p2 = new LinkedHashMap<String,Object>();
+        Map<String,Object> p2 = new HashMap<String,Object>();
         p2.put("name", "Harry");
         p2.put("age", 40);
         toSign.put("harry", p2);
@@ -48,12 +48,12 @@ public class CookieManagerTests {
         toSign.put("oauth2code", "fdsfdsfdsfsf");
 
         List<Map<String,Object>> people = new ArrayList<Map<String,Object>>();
-        Map<String,Object> p3 = new LinkedHashMap<String,Object>();
+        Map<String,Object> p3 = new HashMap<String,Object>();
         p3.put("name", "Herman");
         p3.put("age", 25);
         people.add(p3);
         
-        Map<String,Object> p4 = new LinkedHashMap<String,Object>();
+        Map<String,Object> p4 = new HashMap<String,Object>();
         p4.put("name", "Sally");
         p4.put("age", 21);
         people.add(p3);
