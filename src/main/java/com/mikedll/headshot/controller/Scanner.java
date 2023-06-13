@@ -28,7 +28,11 @@ public class Scanner {
 
     public static final String ANNOTATION = "com.mikedll.headshot.controller.Request";
 
-    private final String scanPath = "classpath*:com/mikedll/headshot/controller/**/*.class";
+    private String scanPath = "classpath*:com/mikedll/headshot/controller/**/*.class";
+
+    public void setScanPath(String path) {
+        this.scanPath = path;
+    }
 
     public Pair<List<RequestHandler>, String> scan() {
         ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();

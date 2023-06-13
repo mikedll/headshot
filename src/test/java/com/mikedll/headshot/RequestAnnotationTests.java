@@ -26,4 +26,15 @@ public class RequestAnnotationTests {
         Assertions.assertNotNull(found);
     }
 
+    @Test
+    public void requestOnNonController() {
+        Scanner scanner = new Scanner();
+        scanner.setScanPath("classpath*:com/mikedll/headshot/notcontroller/*.class");
+
+        Pair<List<RequestHandler>,String> result = scanner.scan();
+        String expected = "Error when building handler for method com.mikedll.headshot.notcontroller.NotController.index(): "
+            + "Class com.mikedll.headshot.notcontroller.NotController of method 'index' is not a subclass of Controller";
+            
+        Assertions.assertEquals(expected, result.getValue1());
+    }
 }

@@ -32,7 +32,7 @@ public class Experiment {
                             // sleeper.run();
                         }
                         System.out.println("We have " + userRepository.count() + " users");
-                        Optional<User> user = userRepository.findById(new Long(1));
+                        Optional<User> user = userRepository.findById(1L);
                         if(user.isPresent()) {
                             System.out.println("User name: " + user.get().getName());
                         }
