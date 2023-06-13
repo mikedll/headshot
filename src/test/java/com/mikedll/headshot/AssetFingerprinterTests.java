@@ -9,6 +9,11 @@ import org.junit.jupiter.api.Assertions;
 
 public class AssetFingerprinterTests {
 
+    @BeforeEach
+    public void clean() throws IOException {
+        FileUtils.cleanDirectory(new File("tmp/tool_output"));
+    }
+    
     @Test
     public void testRefresh() {
         AssetFingerprinter subject = new AssetFingerprinter();
@@ -16,6 +21,7 @@ public class AssetFingerprinterTests {
         subject.setOutputDir("tmp/tool_output");
         subject.refresh();
 
+        Assertions.assertNull(subject.get("testSource.js.map"));
         Assertions.assertEquals("testSource-3972902cb1170fdb2e6a11c5ff1b8b71f8854cc3aa2ddd0139e805fcf1cdb284.js", subject.get("testSource.js"));
         Assertions.assertEquals("testSource-3972902cb1170fdb2e6a11c5ff1b8b71f8854cc3aa2ddd0139e805fcf1cdb284.js", subject.getWithoutLock("testSource.js"));        
     }
@@ -37,5 +43,6 @@ public class AssetFingerprinterTests {
         Assertions.assertFalse(toReplace.exists());
         Assertions.assertFalse(toReplace2.exists());
         Assertions.assertTrue(new File("tmp/tool_output/testSource-3972902cb1170fdb2e6a11c5ff1b8b71f8854cc3aa2ddd0139e805fcf1cdb284.js").exists());
-    }    
+    }
+
 }

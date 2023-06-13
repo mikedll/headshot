@@ -39,11 +39,15 @@ public class AssetFingerprinter {
 
     /*
      * Only returns files that have a non-empty extension.
+     * Ignores .map files.
      */
     public Set<File> listFiles(String dir) {
         return Stream.of(new File(dir).listFiles())
             .filter(f -> !f.isDirectory())
-            .filter(f -> !f.getName().substring(f.getName().lastIndexOf(".") + 1).equals(""))
+            .filter(f -> {
+                    String ext = f.getName().substring(f.getName().lastIndexOf(".") + 1);
+                    return !ext.equals("") && !ext.equals("map");
+                })
             .collect(Collectors.toSet());
     }
 
@@ -55,7 +59,7 @@ public class AssetFingerprinter {
         synchronized(this) {
             Set<File> inputFiles = listFiles(this.inputDir);
             Set<File> existingOutputFiles = listFiles(this.outputDir);
-
+            
             inputFiles.forEach(inputFile -> {
                     Instant lastModified = Instant.ofEpochMilli(inputFile.lastModified());
                     if(lastRefreshAt == null || lastModified.compareTo(lastRefreshAt) > 0) {
@@ -119,7 +123,10 @@ public class AssetFingerprinter {
      */
     public String getWithoutLock(String assetFileName) {
         String fingerprint = assetToFingerprint.get(assetFileName);
-
+        if(fingerprint == null) {
+            return null;
+        }
+        
         int dot = assetFileName.lastIndexOf(".");
         String assetFilePrefix = assetFileName.substring(0, dot);
         String assetFileExtension = assetFileName.substring(assetFileName.lastIndexOf(".") + 1);
