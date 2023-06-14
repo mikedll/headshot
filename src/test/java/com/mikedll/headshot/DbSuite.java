@@ -33,10 +33,8 @@ public class DbSuite extends TestSuite {
     @Override
     public boolean doSetUp() throws IOException {
         Dotenv dotenv = Dotenv.configure().filename(".env.test").load();
-        Env.cookieSigningKey = "eVKgwkis9APaD2o2/suPAv9sgs156+fMTBDDbM1vgwU=";
         Env.dbUrl = dotenv.get("DB_URL");
-        Env.env = "test";
-        
+
         app = new Application();
 
         // This is ridiculous. These changes aren't working unless I close and reopen
@@ -80,7 +78,7 @@ public class DbSuite extends TestSuite {
      * Returns true on success, false on failure.
      */
     @Override
-    public boolean doBeforeTest() {
+    public boolean doBeforeEach() {
         return truncateDatabase();        
     }
 

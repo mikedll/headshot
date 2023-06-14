@@ -14,14 +14,24 @@ import jakarta.servlet.http.Cookie;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.BeforeEach;
 import static org.mockito.Mockito.*;
 
 import com.mikedll.headshot.controller.Controller;
 
-@ExtendWith(DbSetup.class)
 public class ControllerTests {
 
+    @BeforeEach
+    public void beforeEach() throws IOException {
+        DbSuite suite = TestSuite.getSuite(DbSuite.class);
+        suite.setUp();
+
+        if(!suite.beforeEach()) {
+            Assertions.fail("suite beforeTest");
+        }
+    }
+    
+    
     public Request get(String path) throws IOException {
         return get(path, null);
     }

@@ -1,5 +1,6 @@
 package com.mikedll.headshot.db;
 
+import java.io.IOException;
 import java.io.File;
 import java.util.List;
 import java.util.ArrayList;
@@ -13,16 +14,31 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.Optional;
 import java.util.Arrays;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.ResultSet;
+import javax.sql.DataSource;
+
+import org.apache.commons.io.FileUtils;
 
 public class Migrations {
 
-    private List<String> files = new ArrayList<>();
+    private List<String> forwards = new ArrayList<>();
 
+    private List<String> reverses = new ArrayList<>();
+    
     private String migrationsRoot = "db";
 
     public static final String FORWARD = "forward";
 
-    public static final String REVERSE = "reverse";    
+    public static final String REVERSE = "reverse";
+
+    private DataSource dataSource;
+
+    public Migrations(DataSource dataSource) {
+        this.dataSource = dataSource;
+    }
     
     public void setMigrationsRoot(String path) {
         this.migrationsRoot = path;
@@ -49,7 +65,8 @@ public class Migrations {
      * Returns error on failure, null on success.
      */
     public String readMigrations() {
-        this.files = new ArrayList<>();
+        this.forwards = new ArrayList<>();
+        this.reverses = new ArrayList<>();
             
         List<File> forwards = listFiles(migrationsRoot + "/" + FORWARD);
         List<File> reverses = listFiles(migrationsRoot + "/" + REVERSE);
@@ -81,20 +98,44 @@ public class Migrations {
             }
         }
 
-        this.files = forwards.stream().map(File::getName).collect(Collectors.toList());
+        this.forwards = forwards.stream().map(File::getName).collect(Collectors.toList()); 
+        this.reverses = reverses.stream().map(File::getName).collect(Collectors.toList());
         return null;
     }
 
-    public String get(int index) {
-        return this.files.get(index);
+    public String getForward(int index) {
+        return this.forwards.get(index);
     }
 
     public int size() {
-        return this.files.size();
+        return this.forwards.size();
     }
 
     public String migrateForward() {
+        this.forwards.forEach(forward -> {
+                String sql = null;
+                try {
+                    sql = FileUtils.readFileToString(new File(String.format("%s/%s/%s", this.migrationsRoot, FORWARD, forward)), "UTF-8");
+                } catch (IOException ex) {
+                    throw new RuntimeException("Unable to read " + forward, ex);
+                }
+                System.out.println("Executing " + forward);
+                System.out.println(sql);
+                execute(sql);
+            });
         return null;
+    }
+
+    private void execute(String sql) {
+        try(Connection conn = dataSource.getConnection()) {
+            try (Statement stmt = conn.createStatement()) {
+                stmt.execute(sql);
+            } catch(SQLException ex) {
+                throw new RuntimeException("Failed to execute sql", ex);
+            }
+        } catch(SQLException ex) {
+            throw new RuntimeException("Failed to get sql connection", ex);
+        }
     }
 
     public static String tsOf(String filename) {

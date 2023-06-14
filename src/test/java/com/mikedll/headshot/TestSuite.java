@@ -9,6 +9,8 @@ import java.lang.InstantiationException;
 public abstract class TestSuite {
 
     private static Map<Class<?>, Object> suiteInstances = new HashMap<>();
+
+    private static boolean allSuitesSetup;
     
     private boolean setup;
     
@@ -33,25 +35,25 @@ public abstract class TestSuite {
 
     protected abstract void doTearDown();
 
-    protected abstract boolean doBeforeTest();
+    protected abstract boolean doBeforeEach();
     
     public boolean setUp() throws IOException {
-        teardownAllOtherSuites();
-
         if(setup) {
             return true;
         }
 
+        setUpAllSuites();
+        teardownAllOtherSuites();
         this.setup = doSetUp();
         return this.setup;
     }
 
-    public boolean beforeTest() {
+    public boolean beforeEach() {
         if(!setup) {
             return false;
         }
 
-        return doBeforeTest();
+        return doBeforeEach();
     }
 
     /*
@@ -65,6 +67,16 @@ public abstract class TestSuite {
 
                 ((TestSuite)this.suiteInstances.get(k)).doTearDown();
             });
+    }
+
+    private static void setUpAllSuites() {
+        if(allSuitesSetup == false) {
+            
+            Env.cookieSigningKey = "eVKgwkis9APaD2o2/suPAv9sgs156+fMTBDDbM1vgwU=";
+            Env.env = "test";
+            
+            allSuitesSetup = true;
+        }
     }
 
 }

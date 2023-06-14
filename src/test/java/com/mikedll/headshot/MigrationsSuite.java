@@ -21,54 +21,44 @@ public class MigrationsSuite extends TestSuite {
 
     private static boolean setup;
 
-    public MigrationsSuite() {
-        System.out.println("MigrationsSuite has been loaded");
-    }
+    public HikariDataSource dataSource;
         
     /*
      * Returns true on success, false on failure.
      */
     @Override
-    public boolean doSetUp() throws IOException {
-        System.out.println("Calling setUp in MigrationSuite");
-
-        /*
+    public boolean doSetUp() throws IOException {        
         Dotenv dotenv = Dotenv.configure().filename(".env.test").load();
-
-        HikariDataSource ds = buildDataSource();
-        try(Connection conn = ds.getConnection()) {
-            try (Statement stmt = conn.createStatement()) {
-                stmt.executeUpdate("DROP SCHEMA public CASCADE; CREATE SCHEMA public;");
-            } catch(SQLException ex) {
-                System.out.println("SQLException when dropping schema: " + ex.getMessage());
-                broken = true;
-                return false;
-            }
-
-            try (Statement stmt = conn.createStatement()) {
-                stmt.execute(schemaSql);
-            } catch(SQLException ex) {
-                System.out.println("SQLException when loading schema: " + ex.getMessage());
-                broken = true;
-                return false;
-            }
-        } catch(SQLException ex) {
-            System.out.println("SQLException when handling connection: " + ex.getMessage());
-            broken = true;
-            return false;
-        }
-        */
+        
+        this.dataSource = new HikariDataSource();
+        dataSource.setJdbcUrl(dotenv.get("DB_URL"));
+				dataSource.setPoolName("default");
+        dataSource.setMaximumPoolSize(1);
         
         return true;
     }
 
     @Override
-    public boolean doBeforeTest() {
+    public boolean doBeforeEach() {
+        try(Connection conn = dataSource.getConnection()) {
+            try (Statement stmt = conn.createStatement()) {
+                stmt.executeUpdate("DROP SCHEMA public CASCADE; CREATE SCHEMA public;");
+            } catch(SQLException ex) {
+                System.out.println("SQLException when dropping schema: " + ex.getMessage());
+                return false;
+            }
+        } catch(SQLException ex) {
+            System.out.println("SQLException when handling connection: " + ex.getMessage());
+            return false;
+        }
+        
         return true;
     }
 
     @Override
     public void doTearDown() {
-        
+        if(this.dataSource != null) {
+            this.dataSource.close();
+        }
     }
 }

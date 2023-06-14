@@ -6,13 +6,21 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Assertions;
 
 import com.mikedll.headshot.db.Migrations;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 
 public class MigrationsTests {
 
-    @BeforeAll
-    public static void setUp() throws IOException {
-        TestSuite.getSuite(MigrationsSuite.class).setUp();
+    private MigrationsSuite suite;
+    
+    @BeforeEach
+    public void beforeEach() throws IOException {
+        this.suite = TestSuite.getSuite(MigrationsSuite.class);
+
+        suite.setUp();
+        
+        if(!suite.beforeEach()) {
+            Assertions.fail("failed beforeEach");
+        }
     }
     
     @Test
@@ -23,7 +31,7 @@ public class MigrationsTests {
 
     @Test
     public void testNoFiles() {
-        Migrations migrations = new Migrations();
+        Migrations migrations = new Migrations(suite.dataSource);
         migrations.setMigrationsRoot("src/test/files/non_existent_dir");
         String error = migrations.readMigrations();
         Assertions.assertNull(error);
@@ -32,18 +40,18 @@ public class MigrationsTests {
     
     @Test
     public void testReadMigrations() {
-        Migrations migrations = new Migrations();
+        Migrations migrations = new Migrations(suite.dataSource);
         migrations.setMigrationsRoot("src/test/files/good_migrations");
         String error = migrations.readMigrations();
         
         Assertions.assertNull(error);
-        Assertions.assertEquals("20230613101849_create_dogs.sql", migrations.get(0));
-        Assertions.assertEquals("20230613102201_create_dog_humans.sql", migrations.get(2));
+        Assertions.assertEquals("20230613101849_create_dogs.sql", migrations.getForward(0));
+        Assertions.assertEquals("20230613102201_create_dog_humans.sql", migrations.getForward(2));
     }
 
     @Test
     public void testReadMigrationsMismatch() {
-        Migrations migrations = new Migrations();
+        Migrations migrations = new Migrations(suite.dataSource);
         migrations.setMigrationsRoot("src/test/files/bad_migrations");
         String error = migrations.readMigrations();
         Assertions.assertEquals("Missing matching forward-reverse pair for 20230613102201_create_dog_humans.sql", error);
@@ -51,7 +59,7 @@ public class MigrationsTests {
 
     @Test
     public void testReadMigrationsCountMismatch() {
-        Migrations migrations = new Migrations();
+        Migrations migrations = new Migrations(suite.dataSource);
         migrations.setMigrationsRoot("src/test/files/bad_count_migrations");
         String error = migrations.readMigrations();
         Assertions.assertEquals("File count mismatch between forward and reverse dirs under src/test/files/bad_count_migrations", error);
@@ -59,7 +67,7 @@ public class MigrationsTests {
 
     @Test
     public void testReadMigrationsTsMissing() {
-        Migrations migrations = new Migrations();
+        Migrations migrations = new Migrations(suite.dataSource);
         migrations.setMigrationsRoot("src/test/files/bad_ts_missing_migrations");
         String error = migrations.readMigrations();
         Assertions.assertEquals("Timestamp prefix missing in src/test/files/bad_ts_missing_migrations/reverse/file.txt", error);
@@ -67,10 +75,11 @@ public class MigrationsTests {
 
     @Test
     public void testMigrateForward() {
-        Migrations migrations = new Migrations();
+        Migrations migrations = new Migrations(suite.dataSource);
         migrations.setMigrationsRoot("src/test/files/good_migrations");
         String error = migrations.readMigrations();
 
         error = migrations.migrateForward();
+        Assertions.assertNull(error);
     }
 }
