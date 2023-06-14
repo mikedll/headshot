@@ -36,8 +36,14 @@ public class Migrations {
 
     private DataSource dataSource;
 
+    private boolean silent;
+
     public Migrations(DataSource dataSource) {
         this.dataSource = dataSource;
+    }
+
+    public void setSilent(boolean silent) {
+        this.silent = silent;
     }
     
     public void setMigrationsRoot(String path) {
@@ -119,8 +125,10 @@ public class Migrations {
                 } catch (IOException ex) {
                     throw new RuntimeException("Unable to read " + forward, ex);
                 }
-                System.out.println("Executing " + forward);
-                System.out.println(sql);
+                if(!this.silent) {
+                    System.out.println("Executing " + forward);
+                    System.out.println(sql);
+                }
                 execute(sql);
             });
         return null;

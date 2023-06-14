@@ -1,12 +1,16 @@
 package com.mikedll.headshot;
 
 import java.io.IOException;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Assertions;
 
-import com.mikedll.headshot.db.Migrations;
 import org.junit.jupiter.api.BeforeEach;
+import org.javatuples.Pair;
+
+import com.mikedll.headshot.db.Migrations;
 
 public class MigrationsTests {
 
@@ -74,12 +78,21 @@ public class MigrationsTests {
     }
 
     @Test
-    public void testMigrateForward() {
+    public void testMigrateForward() throws SQLException {
         Migrations migrations = new Migrations(suite.dataSource);
+        migrations.setSilent(true);
         migrations.setMigrationsRoot("src/test/files/good_migrations");
         String error = migrations.readMigrations();
 
         error = migrations.migrateForward();
         Assertions.assertNull(error);
+
+        Pair<String, String> result = SimpleSql.executeQuery(suite.dataSource, "SELECT * FROM dogs WHERE name = 'Rex';", (rs) -> {
+                Assertions.assertTrue(rs.next());
+                return rs.getString("name");
+            });
+
+        Assertions.assertNull(result.getValue1());
+        Assertions.assertEquals("Rex", result.getValue0());
     }
 }

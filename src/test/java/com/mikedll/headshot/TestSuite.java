@@ -56,9 +56,6 @@ public abstract class TestSuite {
         return doBeforeEach();
     }
 
-    /*
-     * Return true on success, false on failure.
-     */
     private void teardownAllOtherSuites() {
         this.suiteInstances.keySet().forEach(k -> {
                 if(this.getClass().isAssignableFrom(k)) {
