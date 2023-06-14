@@ -17,21 +17,19 @@ import org.junit.platform.suite.api.SelectClasses;
 
 @Suite
 @SelectClasses({MigrationsTests.class})
-public class MigrationsSuite {
+public class MigrationsSuite extends TestSuite {
 
     private static boolean setup;
 
-    public static void handleLaunchers() {
+    public MigrationsSuite() {
+        System.out.println("MigrationsSuite has been loaded");
     }
-    
+        
     /*
      * Returns true on success, false on failure.
      */
-    public static boolean setUp() throws IOException {
-        if(setup) {
-            return true;
-        }
-
+    @Override
+    public boolean doSetUp() throws IOException {
         System.out.println("Calling setUp in MigrationSuite");
 
         /*
@@ -61,7 +59,16 @@ public class MigrationsSuite {
         }
         */
         
-        setup = true;
         return true;
+    }
+
+    @Override
+    public boolean doBeforeTest() {
+        return true;
+    }
+
+    @Override
+    public void doTearDown() {
+        
     }
 }

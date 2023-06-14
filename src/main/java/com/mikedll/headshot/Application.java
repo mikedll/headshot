@@ -60,7 +60,7 @@ public class Application {
         return null;
     }
 
-    private void shutdown() {
+    public void shutdown() {
         System.out.println("Shutting down database...");
         dbConf.shutdown();        
     }

@@ -19,22 +19,19 @@ import org.junit.platform.suite.api.ExcludeClassNamePatterns;
 @Suite
 @SelectPackages({"com.mikedll.headshot"})
 @ExcludeClassNamePatterns(".*MigrationsTests")
-public class DbSuite {
+public class DbSuite extends TestSuite {
 
-    private static boolean setup;
+    private Application app;
 
-    private static boolean broken;
-
-    private static Application app;
-
+    public Application getApp() {
+        return app;
+    }
+    
     /*
      * Returns true on success, false on failure.
      */
-    public static boolean setUp() throws IOException {
-        if(setup) {
-            return true;
-        }
-
+    @Override
+    public boolean doSetUp() throws IOException {
         Dotenv dotenv = Dotenv.configure().filename(".env.test").load();
         Env.cookieSigningKey = "eVKgwkis9APaD2o2/suPAv9sgs156+fMTBDDbM1vgwU=";
         Env.dbUrl = dotenv.get("DB_URL");
@@ -53,7 +50,6 @@ public class DbSuite {
                 stmt.executeUpdate("DROP SCHEMA public CASCADE; CREATE SCHEMA public;");
             } catch(SQLException ex) {
                 System.out.println("SQLException when dropping schema: " + ex.getMessage());
-                broken = true;
                 return false;
             }
 
@@ -61,12 +57,10 @@ public class DbSuite {
                 stmt.execute(schemaSql);
             } catch(SQLException ex) {
                 System.out.println("SQLException when loading schema: " + ex.getMessage());
-                broken = true;
                 return false;
             }
         } catch(SQLException ex) {
             System.out.println("SQLException when handling connection: " + ex.getMessage());
-            broken = true;
             return false;
         }
         ds.close();
@@ -74,25 +68,26 @@ public class DbSuite {
         app.markEnvLoaded();
         app.setUp();
         
-        setup = true;
         return true;
     }
 
+    @Override
+    public void doTearDown() {
+        app.shutdown();
+    }
+
     /*
      * Returns true on success, false on failure.
-     */ 
-    public static boolean beforeDbTest() {
-        if(broken || !setup) {
-            return false;
-        }
-
-        return truncateDatabase();
+     */
+    @Override
+    public boolean doBeforeTest() {
+        return truncateDatabase();        
     }
 
     /*
      * Returns true on success, false on failure.
      */ 
-    public static boolean truncateDatabase() {
+    private boolean truncateDatabase() {
         if(Env.env == "production") {
             throw new RuntimeException("can't truncate database in production");
         }
@@ -111,9 +106,5 @@ public class DbSuite {
         }
 
         return true;
-    }
-
-    public static Application getApp() {
-        return app;
     }
 }
