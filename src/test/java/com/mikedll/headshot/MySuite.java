@@ -14,9 +14,11 @@ import org.apache.commons.io.FileUtils;
 
 import org.junit.platform.suite.api.Suite;
 import org.junit.platform.suite.api.SelectPackages;
+import org.junit.platform.suite.api.ExcludeClassNamePatterns;
 
 @Suite
 @SelectPackages({"com.mikedll.headshot"})
+@ExcludeClassNamePatterns(".*MigrationsTests")
 public class MySuite {
 
     private static boolean setup;

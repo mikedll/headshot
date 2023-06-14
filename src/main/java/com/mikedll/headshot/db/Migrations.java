@@ -30,6 +30,14 @@ public class Migrations {
 
     private static final Pattern filePattern = Pattern.compile("(\\d{14})_\\w+\\.sql");
 
+    private String findFormatProblem(List<File> files, String type) {
+        File bad = files.stream().filter(f -> tsOf(f.getName()) == null).findAny().orElse(null);
+        if(bad != null) {
+            return "Timestamp prefix missing in " + this.migrationsRoot + "/" + type + "/" + bad.getName();
+        }
+        return null;
+    }
+    
     public List<File> listFiles(String dir) {
         return Optional.ofNullable(new File(dir).listFiles()).map(Arrays::asList).orElse(Collections.emptyList())
             .stream()
@@ -77,20 +85,16 @@ public class Migrations {
         return null;
     }
 
-    private String findFormatProblem(List<File> files, String type) {
-        File bad = files.stream().filter(f -> tsOf(f.getName()) == null).findAny().orElse(null);
-        if(bad != null) {
-            return "Timestamp prefix missing in " + this.migrationsRoot + "/" + type + "/" + bad.getName();
-        }
-        return null;
-    }
-
     public String get(int index) {
         return this.files.get(index);
     }
 
     public int size() {
         return this.files.size();
+    }
+
+    public String migrateForward() {
+        return null;
     }
 
     public static String tsOf(String filename) {

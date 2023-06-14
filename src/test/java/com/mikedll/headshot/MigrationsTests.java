@@ -1,12 +1,21 @@
 package com.mikedll.headshot;
 
+import java.io.IOException;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Assertions;
 
 import com.mikedll.headshot.db.Migrations;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 
 public class MigrationsTests {
 
+    @BeforeAll
+    public static void setUp() throws IOException {
+        MigrationsSuite.setUp();
+    }
+    
     @Test
     public void testTsOf() {
         Assertions.assertEquals(null, Migrations.tsOf("blah"));
@@ -56,5 +65,13 @@ public class MigrationsTests {
         String error = migrations.readMigrations();
         Assertions.assertEquals("Timestamp prefix missing in src/test/files/bad_ts_missing_migrations/reverse/file.txt", error);
     }
-    
+
+    @Test
+    public void testMigrateForward() {
+        Migrations migrations = new Migrations();
+        migrations.setMigrationsRoot("src/test/files/good_migrations");
+        String error = migrations.readMigrations();
+
+        error = migrations.migrateForward();
+    }
 }

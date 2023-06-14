@@ -19,7 +19,7 @@
         <spring-data.version>3.1.0</spring-data.version>
         <junit-platform.version>1.9.3</junit-platform.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <runSuite>**/MySuite.java</runSuite>
+        <runSuite>**/*Suite.java</runSuite>
     </properties>
 
     <dependencies>
