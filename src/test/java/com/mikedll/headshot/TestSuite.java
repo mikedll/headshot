@@ -14,7 +14,7 @@ public abstract class TestSuite {
     
     private boolean setup;
     
-    public static <T> T getSuite(Class<T> suiteClass) {
+    public static <T extends TestSuite> T getSuite(Class<T> suiteClass) {
         if(suiteInstances.get(suiteClass) == null) {
             T newInstance = null;
             try {
