@@ -21,6 +21,9 @@ public class MigrationsSuite {
 
     private static boolean setup;
 
+    public static void handleLaunchers() {
+    }
+    
     /*
      * Returns true on success, false on failure.
      */

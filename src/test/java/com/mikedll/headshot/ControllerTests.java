@@ -2,7 +2,6 @@
 package com.mikedll.headshot;
 
 import java.io.IOException;
-
 import java.io.StringWriter;
 import java.io.PrintWriter;
 import java.util.Map;
@@ -15,25 +14,13 @@ import jakarta.servlet.http.Cookie;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
 import static org.mockito.Mockito.*;
 
 import com.mikedll.headshot.controller.Controller;
 
+@ExtendWith(DbSetup.class)
 public class ControllerTests {
-
-    @BeforeAll
-    public static void setUp() throws IOException {
-        MySuite.setUp();
-    }
-
-    @BeforeEach
-    public void checkSetup() throws IOException {
-        if(!MySuite.beforeDbTest()) {
-            Assertions.fail("setup failed");
-        }
-    }    
 
     public Request get(String path) throws IOException {
         return get(path, null);

@@ -3,7 +3,7 @@ package com.mikedll.headshot;
 public class Factories {
 
     public static User makeUser() {
-        Application app = MySuite.getApp();
+        Application app = DbSuite.getApp();
         UserRepository userRepository = app.dbConf.getRepository(app, UserRepository.class);
         User user = new User();
         user.setName("Randal Johnson");

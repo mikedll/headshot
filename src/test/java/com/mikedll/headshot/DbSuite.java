@@ -19,7 +19,7 @@ import org.junit.platform.suite.api.ExcludeClassNamePatterns;
 @Suite
 @SelectPackages({"com.mikedll.headshot"})
 @ExcludeClassNamePatterns(".*MigrationsTests")
-public class MySuite {
+public class DbSuite {
 
     private static boolean setup;
 

@@ -8,7 +8,9 @@ import org.junit.jupiter.api.Assertions;
 import com.mikedll.headshot.db.Migrations;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
 
+// @ExtendWith(DbSetup.class)
 public class MigrationsTests {
 
     @BeforeAll
