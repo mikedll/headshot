@@ -21,6 +21,7 @@ import java.sql.ResultSet;
 import javax.sql.DataSource;
 
 import org.apache.commons.io.FileUtils;
+import org.javatuples.Pair;
 
 public class Migrations {
 
@@ -33,6 +34,8 @@ public class Migrations {
     public static final String FORWARD = "forward";
 
     public static final String REVERSE = "reverse";
+
+    public static final String SCHEMA_MIGRATIONS_TABLE = "schema_migrations";
 
     private DataSource dataSource;
 
@@ -118,32 +121,61 @@ public class Migrations {
     }
 
     public String migrateForward() {
-        this.forwards.forEach(forward -> {
-                String sql = null;
-                try {
-                    sql = FileUtils.readFileToString(new File(String.format("%s/%s/%s", this.migrationsRoot, FORWARD, forward)), "UTF-8");
-                } catch (IOException ex) {
-                    throw new RuntimeException("Unable to read " + forward, ex);
-                }
-                if(!this.silent) {
-                    System.out.println("Executing " + forward);
-                    System.out.println(sql);
-                }
-                execute(sql);
-            });
+        String error = ensureMigrationsTableExists();
+        if(error != null) {
+            System.out.println("Error while migrating forward: " + error);
+            return error;
+        }
+
+        for(String forward : this.forwards) {
+            String sql = null;
+            try {
+                sql = FileUtils.readFileToString(new File(String.format("%s/%s/%s", this.migrationsRoot, FORWARD, forward)), "UTF-8");
+            } catch (IOException ex) {
+                throw new RuntimeException("Unable to read " + forward, ex);
+            }
+            if(!this.silent) {
+                System.out.println("Executing " + forward);
+                System.out.println(sql);
+            }
+            String migrationError = SimpleSql.execute(dataSource, sql);
+            if(migrationError != null) {
+                System.out.println("SQL Error: " + migrationError);
+                return migrationError;
+            }
+
+            String insertSql = "INSERT INTO " + SCHEMA_MIGRATIONS_TABLE + " (version) VALUES (?)";
+            String versionError = SimpleSql.executeUpdate(dataSource, insertSql, tsOf(forward));
+            if(versionError != null) {
+                System.out.println("SQL Error: " + versionError);
+                return versionError;
+            }
+        }
+
         return null;
     }
 
-    private void execute(String sql) {
-        try(Connection conn = dataSource.getConnection()) {
-            try (Statement stmt = conn.createStatement()) {
-                stmt.execute(sql);
-            } catch(SQLException ex) {
-                throw new RuntimeException("Failed to execute sql", ex);
-            }
-        } catch(SQLException ex) {
-            throw new RuntimeException("Failed to get sql connection", ex);
+    public String ensureMigrationsTableExists() {
+        String query = "SELECT table_name FROM information_schema.tables WHERE table_name = '" + SCHEMA_MIGRATIONS_TABLE + "';";
+        Pair<String, String> result = SimpleSql.executeQuery(dataSource, query, (rs) -> {
+                if(!rs.next()) {
+                    return null;
+                }
+
+                return rs.getString("table_name");
+            });
+        
+        // SQL error
+        if(result.getValue1() != null) {
+            return result.getValue1();
         }
+
+        // Table exists
+        if(result.getValue0() != null) {
+            return null;
+        }
+
+        return SimpleSql.execute(dataSource, "CREATE TABLE " + SCHEMA_MIGRATIONS_TABLE + " (id BIGSERIAL PRIMARY KEY, version CHARACTER VARYING);");
     }
 
     public static String tsOf(String filename) {

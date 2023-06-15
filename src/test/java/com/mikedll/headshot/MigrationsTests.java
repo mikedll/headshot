@@ -11,6 +11,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.javatuples.Pair;
 
 import com.mikedll.headshot.db.Migrations;
+import com.mikedll.headshot.db.SimpleSql;
 
 public class MigrationsTests {
 
@@ -78,7 +79,7 @@ public class MigrationsTests {
     }
 
     @Test
-    public void testMigrateForward() throws SQLException {
+    public void testMigrateForward() {
         Migrations migrations = new Migrations(suite.dataSource);
         migrations.setSilent(true);
         migrations.setMigrationsRoot("src/test/files/good_migrations");
@@ -94,5 +95,14 @@ public class MigrationsTests {
 
         Assertions.assertNull(result.getValue1());
         Assertions.assertEquals("Rex", result.getValue0());
+
+        String migrationQuery = "SELECT * FROM schema_migrations WHERE version = '20230613101849';";
+        result = SimpleSql.executeQuery(suite.dataSource, migrationQuery, (rs) -> {
+                Assertions.assertTrue(rs.next(), "found version row");
+                return rs.getString("version");
+            });
+
+        Assertions.assertNull(result.getValue1());
+        Assertions.assertEquals("20230613101849", result.getValue0());
     }
 }

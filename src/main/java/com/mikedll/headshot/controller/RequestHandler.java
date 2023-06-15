@@ -31,7 +31,7 @@ public class RequestHandler {
         return method + " " + path;
     }
 
-    public static Pair<RequestHandler, String> build(Class clazz, MethodMetadata methodMetadata) {
+    public static Pair<RequestHandler, String> build(Class<?> clazz, MethodMetadata methodMetadata) {
         if(!Controller.class.isAssignableFrom(clazz)) {
             return Pair.with(null, String.format("Class %s of method '%s' is not a subclass of Controller",
                                                  clazz.getName(), methodMetadata.getMethodName()));
