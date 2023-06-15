@@ -96,13 +96,13 @@ public class MigrationsTests {
         Assertions.assertNull(result.getValue1());
         Assertions.assertEquals("Rex", result.getValue0());
 
-        String migrationQuery = "SELECT * FROM schema_migrations WHERE version = '20230613101849';";
+        String migrationQuery = "SELECT * FROM schema_migrations WHERE version = '20230613102201';";
         result = SimpleSql.executeQuery(suite.dataSource, migrationQuery, (rs) -> {
                 Assertions.assertTrue(rs.next(), "found version row");
                 return rs.getString("version");
             });
 
         Assertions.assertNull(result.getValue1());
-        Assertions.assertEquals("20230613101849", result.getValue0());
+        Assertions.assertEquals("20230613102201", result.getValue0());
     }
 }
