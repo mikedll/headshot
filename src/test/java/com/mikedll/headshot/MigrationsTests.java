@@ -105,4 +105,29 @@ public class MigrationsTests {
         Assertions.assertNull(result.getValue1());
         Assertions.assertEquals("20230613102201", result.getValue0());
     }
+
+    @Test
+    public void testMigrationsTableExists() {
+        String sql = "CREATE TABLE " + Migrations.SCHEMA_MIGRATIONS_TABLE
+            + " (id BIGSERIAL PRIMARY KEY, version CHARACTER VARYING);";
+        SimpleSql.execute(suite.dataSource, sql);
+
+        Migrations migrations = new Migrations(suite.dataSource);
+        migrations.setSilent(true);
+        migrations.setMigrationsRoot("src/test/files/good_migrations");
+        String error = migrations.readMigrations();
+
+        error = migrations.migrateForward();
+        Assertions.assertNull(error);
+
+        String migrationQuery = "SELECT * FROM schema_migrations WHERE version = '20230613102201';";
+        Pair<String, String> result = SimpleSql.executeQuery(suite.dataSource, migrationQuery, (rs) -> {
+                Assertions.assertTrue(rs.next(), "found version row");
+                return rs.getString("version");
+            });
+
+        Assertions.assertNull(result.getValue1());
+        Assertions.assertEquals("20230613102201", result.getValue0());
+        
+    }
 }
