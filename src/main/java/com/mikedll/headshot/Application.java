@@ -8,6 +8,7 @@ import io.github.cdimascio.dotenv.Dotenv;
 import org.javatuples.Pair;
 
 import com.mikedll.headshot.db.DatabaseConfiguration;
+import com.mikedll.headshot.db.Migrations;
 import com.mikedll.headshot.controller.Scanner;
 import com.mikedll.headshot.controller.Controller;
 import com.mikedll.headshot.controller.RequestHandler;
@@ -21,19 +22,57 @@ public class Application {
     public static AssetFingerprinter assetFingerprinter = new AssetFingerprinter();
 
     private boolean loadedEnv;
-    
+
     public void run(String[] args) {
+        if(argInterception(args)) {
+            return;
+        }
+
+        /*
         String error = setUp();
         if(error != null) {
             System.out.println(error);
             shutdown();
             return;
         }
-        
+
         runTomcat();
         // runExp1();
 
         shutdown();
+        */
+    }
+
+    public boolean argInterception(String[] args) {
+        if(args.length == 1 && args[0].equals("migrate")) {
+            loadDotEnv();
+            Migrations migrations = new Migrations(dbConf.getDataSource());
+            migrations.readMigrations();
+            String error = migrations.migrateForward();
+            if(error != null) {
+                System.out.println("Error: " + error);
+            }
+            shutdown();
+            return true;
+        } else if(args.length == 2 && args[0].equals("migrate:reverse")) {
+            loadDotEnv();
+            Migrations migrations = new Migrations(dbConf.getDataSource());
+            migrations.readMigrations();
+            String error = migrations.reverse(args[1]);
+            if(error != null) {
+                System.out.println("Error: " + error);
+            }
+            shutdown();
+            return true;
+        } else if(args.length > 0) {
+            System.out.println("Error: unrecognized command line arguments");
+            System.out.println("with args:");
+            System.out.println("  migrate");
+            System.out.println("  migrate:reverse VERSION");
+            System.out.println("without args, runs web server");
+        }
+
+        return false;
     }
 
     /*
