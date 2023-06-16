@@ -1,14 +1,15 @@
 package com.mikedll.headshot;
 
+import java.io.File;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Assertions;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.javatuples.Pair;
+import org.apache.commons.io.FileUtils;
 
 import com.mikedll.headshot.db.Migrations;
 import com.mikedll.headshot.db.SimpleSql;
@@ -84,9 +85,10 @@ public class MigrationsTests {
         migrations.setSilent(true);
         migrations.setMigrationsRoot("src/test/files/good_migrations");
         String error = migrations.readMigrations();
+        Assertions.assertNull(error, "read migrations okay");
 
         error = migrations.migrateForward();
-        Assertions.assertNull(error);
+        Assertions.assertNull(error, "migrate forward okay");
 
         Pair<String, String> result = SimpleSql.executeQuery(suite.dataSource, "SELECT * FROM dogs WHERE name = 'Rex';", (rs) -> {
                 Assertions.assertTrue(rs.next());
@@ -108,12 +110,11 @@ public class MigrationsTests {
 
     @Test
     public void testMigrationsTableExists() {
-        String sql = "CREATE TABLE " + Migrations.SCHEMA_MIGRATIONS_TABLE
-            + " (id BIGSERIAL PRIMARY KEY, version CHARACTER VARYING);";
-        SimpleSql.execute(suite.dataSource, sql);
-
         Migrations migrations = new Migrations(suite.dataSource);
         migrations.setSilent(true);
+        
+        migrations.ensureMigrationsTableExists();
+
         migrations.setMigrationsRoot("src/test/files/good_migrations");
         String error = migrations.readMigrations();
 
@@ -127,7 +128,38 @@ public class MigrationsTests {
             });
 
         Assertions.assertNull(result.getValue1());
-        Assertions.assertEquals("20230613102201", result.getValue0());
+        Assertions.assertEquals("20230613102201", result.getValue0());        
+    }
+
+    @Test
+    public void testMigrationAlreadyRun() throws IOException {
+        Migrations migrations = new Migrations(suite.dataSource);
+        migrations.setSilent(true);
+
+        migrations.ensureMigrationsTableExists();
+        String root = "src/test/files/good_migrations";
+        File file = new File(String.format("%s/%s/%s", root, Migrations.FORWARD, "20230613101849_create_dogs.sql"));
+        String sql = FileUtils.readFileToString(file, "UTF-8");
+        String error = SimpleSql.execute(suite.dataSource, sql);
+        Assertions.assertNull(error, "manual migration okay");        
+        error = SimpleSql.execute(suite.dataSource, "INSERT INTO schema_migrations (version) VALUES ('20230613101849');");
+        Assertions.assertNull(error, "manual migration tracking okay");        
+        
+        migrations.setMigrationsRoot("src/test/files/good_migrations");
+        error = migrations.readMigrations();
+        Assertions.assertNull(error, "read migrations okay");
+
+        error = migrations.migrateForward();
+        Assertions.assertNull(error);
+
+        String migrationQuery = "SELECT * FROM schema_migrations WHERE version = '20230613102201';";
+        Pair<String, String> result = SimpleSql.executeQuery(suite.dataSource, migrationQuery, (rs) -> {
+                Assertions.assertTrue(rs.next(), "found version row");
+                return rs.getString("version");
+            });
+
+        Assertions.assertNull(result.getValue1());
+        Assertions.assertEquals("20230613102201", result.getValue0());        
         
     }
 }

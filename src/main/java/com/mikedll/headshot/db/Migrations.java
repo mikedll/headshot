@@ -5,6 +5,7 @@ import java.io.File;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Set;
+import java.util.HashSet;
 import java.util.stream.Stream;
 import java.util.stream.Collectors;
 import java.util.Collections;
@@ -120,6 +121,22 @@ public class Migrations {
         return this.forwards.size();
     }
 
+    public Pair<Set<String>, String> existingMigrations() {
+        Pair<Set<String>, String> result = SimpleSql.executeQuery(dataSource, "SELECT * FROM schema_migrations", (rs) -> {
+                Set<String> existing = new HashSet<>();
+                while(rs.next()) {
+                    existing.add(rs.getString("version"));
+                }
+                return existing;
+            });
+
+        if(result.getValue1() != null) {
+            return Pair.with(null, result.getValue1());
+        }
+
+        return Pair.with(result.getValue0(), null);
+    }
+    
     public String migrateForward() {
         String error = ensureMigrationsTableExists();
         if(error != null) {
@@ -127,7 +144,17 @@ public class Migrations {
             return error;
         }
 
+        Pair<Set<String>, String> existingResult = existingMigrations();
+        if(existingResult.getValue1() != null) {
+            return existingResult.getValue1();
+        }
+        Set<String> existing = existingResult.getValue0();
+
         for(String forward : this.forwards) {
+            if(existing.contains(tsOf(forward))) {
+                continue;
+            }
+            
             String sql = null;
             try {
                 sql = FileUtils.readFileToString(new File(String.format("%s/%s/%s", this.migrationsRoot, FORWARD, forward)), "UTF-8");
@@ -175,7 +202,10 @@ public class Migrations {
             return null;
         }
 
-        return SimpleSql.execute(dataSource, "CREATE TABLE " + SCHEMA_MIGRATIONS_TABLE + " (id BIGSERIAL PRIMARY KEY, version CHARACTER VARYING);");
+        String sql = "CREATE TABLE " + SCHEMA_MIGRATIONS_TABLE + " (id BIGSERIAL PRIMARY KEY, version CHARACTER VARYING);";
+        sql += "\n\n";
+        sql += "CREATE UNIQUE INDEX schema_migrations_version ON schema_migrations (version);";
+        return SimpleSql.execute(dataSource, sql);
     }
 
     public static String tsOf(String filename) {
