@@ -159,7 +159,48 @@ public class MigrationsTests {
             });
 
         Assertions.assertNull(result.getValue1());
-        Assertions.assertEquals("20230613102201", result.getValue0());        
-        
+        Assertions.assertEquals("20230613102201", result.getValue0());
+    }
+
+    @Test
+    public void testReverseNonexistent() {
+        Migrations migrations = new Migrations(suite.dataSource);
+        migrations.setSilent(true);
+        migrations.setMigrationsRoot("src/test/files/good_migrations");
+        migrations.readMigrations();
+        migrations.migrateForward();
+
+        String error = migrations.reverse("blah");
+        Assertions.assertEquals("'blah' is not a valid migration timestamp", error);
+
+        error = migrations.reverse("20230613109999");
+        Assertions.assertEquals("no migration with id '20230613109999' exists", error);
+    }
+
+    @Test
+    public void testReverse() {
+        Migrations migrations = new Migrations(suite.dataSource);
+        migrations.setSilent(true);
+        migrations.setMigrationsRoot("src/test/files/good_migrations");
+        migrations.readMigrations();
+        migrations.migrateForward();
+
+        String error = migrations.reverse("20230613102201");
+        Assertions.assertNull(error, "reverse okay");
+
+        String migrationQuery = "SELECT * FROM schema_migrations WHERE version = '20230613102201';";
+        Pair<String, String> result = SimpleSql.executeQuery(suite.dataSource, migrationQuery, (rs) -> {
+                Assertions.assertFalse(rs.next(), "version is gone");
+                return null;
+            });
+
+        Assertions.assertNull(result.getValue1());
+
+        String verifySql = "SELECT table_name FROM information_schema.tables WHERE table_name = 'dog_humans'";
+        Pair<String, String> verifyTableGone = SimpleSql.executeQuery(suite.dataSource, verifySql, (rs) -> {
+                Assertions.assertFalse(rs.next(), "table is also gone");
+                return null;
+            });
+        Assertions.assertNull(verifyTableGone.getValue1(), "clean table gone");
     }
 }

@@ -54,8 +54,10 @@ public class Migrations {
         this.migrationsRoot = path;
     }
 
+    private static final Pattern tsPattern = Pattern.compile("\\d{14}");
+    
     private static final Pattern filePattern = Pattern.compile("(\\d{14})_\\w+\\.sql");
-
+    
     private String findFormatProblem(List<File> files, String type) {
         File bad = files.stream().filter(f -> tsOf(f.getName()) == null).findAny().orElse(null);
         if(bad != null) {
@@ -159,7 +161,7 @@ public class Migrations {
             try {
                 sql = FileUtils.readFileToString(new File(String.format("%s/%s/%s", this.migrationsRoot, FORWARD, forward)), "UTF-8");
             } catch (IOException ex) {
-                throw new RuntimeException("Unable to read " + forward, ex);
+                return "Unable to read " + forward + ": " + ex.getMessage();
             }
             if(!this.silent) {
                 System.out.println("Executing " + forward);
@@ -177,6 +179,44 @@ public class Migrations {
                 System.out.println("SQL Error: " + versionError);
                 return versionError;
             }
+        }
+
+        return null;
+    }
+
+    public String reverse(String ts) {
+        Matcher matcher = tsPattern.matcher(ts);
+        if(!matcher.find()) {
+            return String.format("'%s' is not a valid migration timestamp", ts);
+        }
+        
+        String reverse = this.reverses.stream().filter(r -> tsOf(r).equals(ts)).findAny().orElse(null);
+        if(reverse == null) {
+            return String.format("no migration with id '%s' exists", ts);
+        }
+
+        String sql = null;
+        try {
+            sql = FileUtils.readFileToString(new File(String.format("%s/%s/%s", this.migrationsRoot, REVERSE, reverse)), "UTF-8");
+        } catch (IOException ex) {
+            return "Unable to read " + reverse + ": " + ex.getMessage();
+        }
+
+        if(!this.silent) {
+            System.out.println("Executing " + reverse);
+            System.out.println(sql);
+        }
+        String migrationError = SimpleSql.execute(dataSource, sql);
+        if(migrationError != null) {
+            System.out.println("SQL Error: " + migrationError);
+            return migrationError;
+        }
+
+        String deleteSql = "DELETE FROM " + SCHEMA_MIGRATIONS_TABLE + " WHERE version = ?";
+        String deleteVersionError = SimpleSql.executeUpdate(dataSource, deleteSql, ts);
+        if(deleteVersionError != null) {
+            System.out.println("SQL Error: " + deleteVersionError);
+            return deleteVersionError;
         }
 
         return null;
