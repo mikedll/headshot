@@ -28,7 +28,6 @@ public class Application {
             return;
         }
 
-        /*
         String error = setUp();
         if(error != null) {
             System.out.println(error);
@@ -40,7 +39,6 @@ public class Application {
         // runExp1();
 
         shutdown();
-        */
     }
 
     public boolean argInterception(String[] args) {
