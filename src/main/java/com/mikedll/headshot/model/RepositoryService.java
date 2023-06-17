@@ -76,7 +76,7 @@ public class RepositoryService {
 
         String insertSql = "INSERT INTO repositories (user_id, github_id, name, is_private, description, github_created_at)"
             + " VALUES (?, ?, ?, ?, ?, ?);";
-        for(Repository repository : input.stream().filter(i -> !result.getValue0().contains(i)).collect(Collectors.toList())) {
+        for(Repository repository : input.stream().filter(i -> !result.getValue0().contains(i.getGithubId())).collect(Collectors.toList())) {
             List<SqlArg> insertParams = new ArrayList<>(6);
             insertParams.add(new SqlArg(Long.class, user.getId()));
             insertParams.add(new SqlArg(Long.class, repository.getGithubId()));

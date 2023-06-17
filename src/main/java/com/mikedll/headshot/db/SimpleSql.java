@@ -119,6 +119,7 @@ public class SimpleSql {
                         return "Unhandled sql arg type: " + clazz;
                     }
                 }
+                System.out.println(sql);
                 stmt.executeUpdate();
             } catch(SQLException ex) {
                 return "Failed to execute SQL: " + ex.getMessage();
@@ -154,6 +155,7 @@ public class SimpleSql {
                         return Pair.with(null, "Unhandled sql arg type: " + clazz);
                     }
                 }
+                System.out.println(sql);
                 ResultSet resultSet = stmt.executeQuery();
                 return Pair.with(func.apply(new SimpleSql(resultSet)), null);
             } catch(SQLException ex) {
