@@ -253,7 +253,7 @@ public class Controller {
             if(req.getHeader("Accept").equals(CONTENT_TYPE_JSON)) {
                 System.out.println("entering because Accept was json");
                 Map<String,String> response = new HashMap<>();
-                response.put("errors", message);
+                response.put("error", message);
                 Pair<String,String> marshalled = JsonMarshal.marshal(response);
                 if(marshalled.getValue1() != null) {
                     System.out.println("error from marshal: " + marshalled.getValue1());

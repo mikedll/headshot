@@ -58,8 +58,6 @@ const dirLocation = () => {
           } else {
             throw "Failed to get directory listing (and failed to parse JSON response)";
           }
-        }).catch(e => {
-          throw `${r.status} Internal Server Error: Failed to get directory listing`;
         });
       }
     }).then((data: DirFile[]) => {
