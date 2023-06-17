@@ -249,23 +249,20 @@ public class Controller {
         }
 
         try {
-            System.out.println("Accept: " + req.getHeader("Accept"));
             if(req.getHeader("Accept").equals(CONTENT_TYPE_JSON)) {
                 System.out.println("entering because Accept was json");
                 Map<String,String> response = new HashMap<>();
                 response.put("error", message);
                 Pair<String,String> marshalled = JsonMarshal.marshal(response);
                 if(marshalled.getValue1() != null) {
-                    System.out.println("error from marshal: " + marshalled.getValue1());
                     res.sendError(status, message);
                 } else {
-                    System.out.println("send json error: " + marshalled.getValue0());
                     sendJson(marshalled.getValue0(), HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
                 }
             } else {
                 res.sendError(status, message);
             }
-            System.out.println("Rendering error: " + status);
+            System.out.println("Rendering " + status + " error: " + message);
             Arrays.asList(Thread.currentThread().getStackTrace()).forEach(e -> System.out.println(e));
         } catch (IOException ex) {
             throw new RuntimeException("failed to send 500", ex);
