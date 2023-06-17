@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
 
-pg_dump --schema-only headshot_development > ./db/schema.sql
+pg_dump --schema-only --no-owner headshot_development | sed -e '/^--/d' > ./db/schema.sql
 
 echo "Dumped PostgreSQL schema"
