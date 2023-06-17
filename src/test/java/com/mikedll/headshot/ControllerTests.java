@@ -99,7 +99,7 @@ public class ControllerTests {
 
         servlet.doGet(request.req(), request.res());
 
-        verify(res).sendRedirect("http://localhost/");
+        verify(res).sendRedirectWorld("http://localhost/");
     }    
     
     @Test

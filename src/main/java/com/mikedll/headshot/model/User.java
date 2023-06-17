@@ -1,5 +1,5 @@
 
-package com.mikedll.headshot;
+package com.mikedll.headshot.model;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;

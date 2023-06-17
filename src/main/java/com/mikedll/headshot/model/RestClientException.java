@@ -1,4 +1,4 @@
-package com.mikedll.headshot;
+package com.mikedll.headshot.model;
 
 public class RestClientException extends RuntimeException {
 

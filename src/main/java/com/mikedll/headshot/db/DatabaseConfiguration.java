@@ -32,7 +32,7 @@ import org.springframework.data.repository.core.support.RepositoryProxyPostProce
 
 import org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy;
 
-import com.mikedll.headshot.UserRepository;
+import com.mikedll.headshot.model.UserRepository;
 import com.mikedll.headshot.Env;
 import com.mikedll.headshot.Application;
 import com.mikedll.headshot.controller.Controller;
@@ -163,7 +163,7 @@ public class DatabaseConfiguration {
         }
 
         return repositoryClass.cast(this.repositories.get(repositoryClass));
-    }
+    }   
 
     public <T> T getRepository(Controller controller, Class<T> repositoryClass) {
         if(!controller.canAccessDb()) {

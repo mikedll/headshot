@@ -7,6 +7,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import javax.sql.DataSource;
 import java.util.function.Function;
+import java.sql.Timestamp;
+import java.time.Instant;
 
 import org.javatuples.Pair;
 
@@ -41,6 +43,23 @@ public class SimpleSql {
             throw new RuntimeException("getLong() failed", ex);
         }
     }
+
+    public Boolean getBoolean(String col) {
+        try {
+            return this.resultSet.getBoolean(col);
+        } catch (SQLException ex) {
+            throw new RuntimeException("getBoolean() failed", ex);
+        }
+    }
+    
+    public Timestamp getTimestamp(String col) {
+        try {
+            return this.resultSet.getTimestamp(col);
+        } catch (SQLException ex) {
+            throw new RuntimeException("getTimestamp() failed", ex);
+        }
+    }
+    
 
     /*
      * Returns T, error where where error is null on success.
@@ -96,4 +115,38 @@ public class SimpleSql {
 
         return null;
     }
+
+    /*
+     * Returns (T, error) where error is null on success, an error string on failure.
+     */
+    public static <T> Pair<T, String> executeQuery(DataSource dataSource, String sql, Function<SimpleSql,T> func,
+                                                   SqlArg... sqlArgs) {
+        try(Connection conn = dataSource.getConnection()) {
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                for(int i = 0; i < sqlArgs.length; i++) {
+                    Class<?> clazz = sqlArgs[i].getValue0();
+                    Object arg = sqlArgs[i].getValue1();
+                    switch(clazz) {
+                    case Integer.class:
+                        stmt.setInt(i+1, (Integer)sqlArgs[i]);
+                    case Long.class:
+                        stmt.setLong(i+1, (Long)sqlArgs[i]);
+                    case String.class:
+                        stmt.setString(i+1, (String)sqlArgs[i]);
+                    case Instant.class:
+                        stmt.setTimestamp(i+1, new Timestamp(((Instant)sqlArgs[i]).toEpochMilli()));
+                    default:
+                        return Pair.with(null, "Unhandled sql arg type: " + clazz);
+                    }
+                }
+                ResultSet resultSet = stmt.executeQuery();
+                return Pair.with(func.apply(new SimpleSql(resultSet)), null);
+            } catch(SQLException ex) {
+                return Pair.with(null, "Failed to execute SQL: " + ex.getMessage());
+            }
+        } catch(SQLException ex) {
+            return Pair.with(null, "SQL Connection exception: " + ex.getMessage());
+        }
+    }
+    
 }

@@ -12,40 +12,25 @@ import org.springframework.security.crypto.keygen.StringKeyGenerator;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
 
-import com.mikedll.headshot.UserRepository;
-import com.mikedll.headshot.User;
+import com.mikedll.headshot.model.UserRepository;
+import com.mikedll.headshot.model.User;
+import com.mikedll.headshot.model.GithubService;
 import com.mikedll.headshot.Env;
-import com.mikedll.headshot.RestErrorHandler;
 import com.mikedll.headshot.Application;
 
 public class LoginController extends Controller {
 
     private UserRepository userRepository;
     
-    private final String githubPrefix = "https://github.com/login/oauth";
-    private final String githubAuthPath = githubPrefix + "/authorize";    
-    private final String githubAccessTokenPath = githubPrefix + "/access_token";
+    private final String GITHUB_PREFIX = "https://github.com/login/oauth";
+    private final String GITHUB_AUTH_PATH = GITHUB_PREFIX + "/authorize";    
+    private final String GITHUB_ACCESS_TOKEN_PATH = GITHUB_PREFIX + "/access_token";
     private final String OAUTH2_STATE = "state";
     private final String OAUTH2_CODE = "code";
 
     // {"access_token":"blahblahblah","token_type":"bearer","scope":"user"}
     public record AccessTokenResponse(String access_token, String token_type, String scope) {}
-
-    public record UserResponse(Long id, String login, String name, String url, String html_url, String repos_url) {
-        public void copyFieldsTo(User user) {
-            user.setName(this.name);
-            user.setGithubId(this.id);
-            user.setGithubLogin(this.login);
-            user.setUrl(this.url);
-            user.setHtmlUrl(this.html_url);
-            user.setReposUrl(this.repos_url);
-        }
-    }
     
     private static final StringKeyGenerator DEFAULT_STATE_GENERATOR = new Base64StringKeyGenerator(
 			Base64.getUrlEncoder());
@@ -71,12 +56,12 @@ public class LoginController extends Controller {
         map.add("scope", "user repo");
         map.add("state", (String)this.session.get("oauth2state"));
         map.add("redirect_uri", redirectUri());
-        String redirectToGithubUrl = factory.uriString(githubAuthPath).queryParams(map).build().toString();
+        String redirectToGithubUrl = factory.uriString(GITHUB_AUTH_PATH).queryParams(map).build().toString();
 
         sendCookies();
         
         // System.out.println("Redirecting to URI: " + redirectToGithubUrl);
-        sendRedirect(redirectToGithubUrl);
+        sendRedirectWorld(redirectToGithubUrl);
     }
 
     @Request(path="/login/oauth2/code/github")
@@ -89,20 +74,21 @@ public class LoginController extends Controller {
         String authCode = req.getParameter(OAUTH2_CODE);
         // System.out.println("Code: " + authCode);
 
-        RestTemplate restTemplate = getRestTemplate();
+        RestTemplate restTemplate = GithubService.getRestTemplate();
         MultiValueMap<String,String> map = new LinkedMultiValueMap<String,String>();
         map.add("client_id", Env.githubConfig.clientId());
         map.add("client_secret", Env.githubConfig.clientSecret());
         map.add("code", authCode);
 
-        AccessTokenResponse restResponse = restTemplate.postForObject(githubAccessTokenPath, map, AccessTokenResponse.class);
+        AccessTokenResponse restResponse = restTemplate.postForObject(GITHUB_ACCESS_TOKEN_PATH, map, AccessTokenResponse.class);
         if(restResponse.access_token == null) {
             throw new RequestException("oauth2 access_token retrieval failed");
         }
         // System.out.println("Rest response: ");
         // System.out.println(restResponse);
 
-        User user = pullUserInfo(restResponse.access_token);
+        GithubService service = new GithubService(this, restResponse.access_token);
+        User user = service.pullUserInfo();
         if(user == null) {
             throw new RequestException("Failed to get user from github");
         }
@@ -115,42 +101,6 @@ public class LoginController extends Controller {
 
     private String redirectUri() {
         return localOrigin() + "/login/oauth2/code/github";
-    }
-    
-    private RestTemplate getRestTemplate() {
-        RestTemplate restTemplate = new RestTemplate();
-        restTemplate.setErrorHandler(new RestErrorHandler());
-        return restTemplate;
-    }
-
-    private UserResponse getUser(String accessToken) {
-        RestTemplate restTemplate = getRestTemplate();
-        HttpHeaders headers = new HttpHeaders();
-        headers.set(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken);
-        headers.set("X-GitHub-Api-Version", "2022-11-28");
-        HttpEntity<String> entity = new HttpEntity<String>(headers);
-        ResponseEntity<UserResponse> userResEnt = restTemplate.exchange("https://api.github.com/user", HttpMethod.GET, entity, UserResponse.class);
-        return userResEnt.getBody();        
-    }
-    
-    private User pullUserInfo(String accessToken) {
-        UserResponse userResp = getUser(accessToken);
-        if(userResp.id == null) return null;
-        
-        User user = userRepository.findByGithubId(userResp.id);
-        if(user == null) {
-            System.out.println("Found no user");
-            user = new User();
-            user.setAccessToken(accessToken);
-            userResp.copyFieldsTo(user);
-            userRepository.save(user);
-        } else {
-            System.out.println("Found existing user and given access token");
-            user.setAccessToken(accessToken);
-            userRepository.save(user);
-        }
-
-        return user;
     }
     
 }

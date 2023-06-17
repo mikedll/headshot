@@ -72,7 +72,11 @@ public class RequestHandler {
             try {
                 targetObject = ctorToUse.newInstance();
             } catch (Throwable ex) {
-                return "Exception when instantiating " + clazz + ": " + ex.getMessage();
+                if(ex.getCause() != null) {
+                    return ex.getCause().getClass().getName() + ": " + ex.getCause().getMessage();
+                } else {
+                    return "Exception when instantiating " + clazz + ": " + ex.getMessage();
+                }
             }
 
             Controller controller = (Controller)targetObject;

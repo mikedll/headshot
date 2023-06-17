@@ -1,4 +1,4 @@
-package com.mikedll.headshot;
+package com.mikedll.headshot.model;
 
 import java.io.IOException;
 import org.springframework.web.client.ResponseErrorHandler;

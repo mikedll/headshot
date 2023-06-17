@@ -10,18 +10,15 @@ import java.util.Optional;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Cookie;
-
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.templatemode.TemplateMode;
 import org.thymeleaf.templateresolver.FileTemplateResolver;
 import org.thymeleaf.context.Context;
-
 import nz.net.ultraq.thymeleaf.layoutdialect.LayoutDialect;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 
-import com.mikedll.headshot.UserRepository;
-import com.mikedll.headshot.User;
+import com.mikedll.headshot.model.UserRepository;
+import com.mikedll.headshot.model.User;
 import com.mikedll.headshot.CookieManager;
 import com.mikedll.headshot.Env;
 import com.mikedll.headshot.Application;
@@ -71,6 +68,14 @@ public class Controller {
 
     public void setDbConf(DatabaseConfiguration dbConf) {
         this.dbConf = dbConf;
+    }
+
+    public DatabaseConfiguration getDbConf() {
+        return this.dbConf;
+    }
+
+    public <T> T getRepository(Class<T> clazz) {
+        return this.dbConf.getRepository(this, clazz);
     }
 
     public void setAssetFingerprinter(AssetFingerprinter af) {
@@ -152,7 +157,7 @@ public class Controller {
             System.out.println("cookieFilters is resetting cookies redirecting to root");
             clearSession();
             sendCookies();
-            sendRedirect(localOrigin() + "/");
+            sendRedirect("/");
             return false;
         }
 
@@ -174,7 +179,7 @@ public class Controller {
         if(!this.authOkay) {
             clearSession();
             sendCookies();
-            sendRedirect(localOrigin() + "/");
+            sendRedirect("/");
         }
 
         return this.authOkay;
@@ -254,6 +259,10 @@ public class Controller {
     }
 
     public void sendRedirect(String path) {
+        sendRedirectWorld(localOrigin() + path);
+    }
+    
+    public void sendRedirectWorld(String path) {
         if(this.rendered) {
             throw new RequestException("response already sent");
         }

@@ -1,0 +1,28 @@
+<html layout:decorate="~{layout}">
+  <div layout:fragment="content">
+
+    <div class="repositories">
+      <div class="mb-2">
+        [[${existing.size}]] repo(s)
+        <a href="#" class="btn btn-priamary refresh-button">Refresh</a>
+      </div>
+
+      <table class="table table-bordered">
+        <thead>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Is Private</th>
+          <th>Created at</th>
+        </thead>
+        <tbody>
+          <tr th:each="prod : ${existing}">
+            <td>[[${prod.getId}]]</td>
+            <td>[[${prod.getName}]]</td>
+            <td>[[${prod.getIsPrivate}]]</td>
+            <td>[[${prod.prettyCreatedAt()]]</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</html>

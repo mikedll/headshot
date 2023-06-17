@@ -4,8 +4,10 @@ import java.lang.InterruptedException;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Optional;
-
 import java.lang.Runnable;
+
+import com.mikedll.headshot.model.UserRepository;
+import com.mikedll.headshot.model.User;
 
 public class Experiment {
 

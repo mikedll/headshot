@@ -12,6 +12,7 @@ import com.mikedll.headshot.db.Migrations;
 import com.mikedll.headshot.controller.Scanner;
 import com.mikedll.headshot.controller.Controller;
 import com.mikedll.headshot.controller.RequestHandler;
+import com.mikedll.headshot.model.UserRepository;
 
 public class Application {
 
