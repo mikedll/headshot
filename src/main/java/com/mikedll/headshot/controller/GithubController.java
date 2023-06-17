@@ -1,5 +1,6 @@
 package com.mikedll.headshot.controller;
 
+import java.util.List;
 import jakarta.servlet.http.HttpServletResponse;
 
 import org.thymeleaf.context.Context;
@@ -7,9 +8,9 @@ import org.javatuples.Pair;
 
 import com.mikedll.headshot.JsonMarshal;
 import com.mikedll.headshot.model.GithubService;
-import com.mikedll.headshot.model.GithubPathInfo;
 import com.mikedll.headshot.model.Repository;
 import com.mikedll.headshot.model.RepositoryService;
+import com.mikedll.headshot.model.GithubFile;
 
 public class GithubController extends Controller {
 
@@ -32,7 +33,7 @@ public class GithubController extends Controller {
         Repository repository = loadResult.getValue0();
         String path = req.getParameter("path");
         
-        Pair<GithubPathInfo, String> result = this.githubService.readPath(this.currentUser, repository, path);
+        Pair<List<GithubFile>, String> result = this.githubService.readPath(this.currentUser, repository, path);
 
         if(result.getValue1() != null) {
             sendInternalServerError(result.getValue1());

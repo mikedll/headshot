@@ -56,17 +56,11 @@ public class ReposController extends Controller {
 
         Context ctx = defaultCtx();
         String path = req.getRequestURI().toString();
-        Map<String,Object> locationInfo = new HashMap<>();
-        locationInfo.put("path", path.replaceAll("^/repo/", ""));
-        locationInfo.put("repositoryId", repository.getId());
-
-        Pair<String,String> marshalResult = JsonMarshal.marshal(locationInfo);
-        if(marshalResult.getValue1() != null) {
-            sendInternalServerError(marshalResult.getValue1());
-            return;
-        }
+        Map<String,Object> pathInfo = new HashMap<>();
+        pathInfo.put("path", path.replaceAll("^/repos/", ""));
+        pathInfo.put("repositoryId", repository.getId());
         
-        ctx.setVariable("directory", marshalResult.getValue0());
+        ctx.setVariable("pathInfo", pathInfo);
         render("repos/directory", ctx);
     }
 

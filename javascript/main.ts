@@ -36,7 +36,10 @@ const dirLocation = () => {
   const container = document.querySelector('.dir-location');
   if(container !== null) {
     const info = (container as HTMLElement);
-    const path = info.dataset.path;
+    let path = info.dataset.path;
+    if(path === undefined) {
+      path = "";
+    }
     const id = info.dataset.repositoryId;
     fetch(`/github/readDir?repositoryId=${id}&path=${path}`, {
       headers: {
@@ -58,13 +61,15 @@ const dirLocation = () => {
           } else {
             throw "Failed to get directory listing (and failed to parse JSON response)";
           }
+        })
+        .catch(e => {
+          throw "Failed to get directory listing (and failed to parse JSON response)";
         });
       }
     }).then((data: DirFile[]) => {
-      console.log("going to try to work with data lol");
       data.forEach((file) =>{
         const node = document.createElement("div");
-        node.textContent = file.filename;
+        node.textContent = file.name;
         container.appendChild(node);
       });
     }).catch(e => {

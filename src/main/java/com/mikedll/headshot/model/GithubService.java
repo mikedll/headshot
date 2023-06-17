@@ -12,6 +12,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.javatuples.Pair;
+import com.fasterxml.jackson.databind.JsonNode;
 
 import com.mikedll.headshot.controller.Controller;
 import com.mikedll.headshot.JsonMarshal;
@@ -46,8 +47,6 @@ public class GithubService {
     }
 
     public record PathReadFileResponse(String type, String name, String content) {}
-
-    public record PathReadDirResponse(PathReadFileResponse[] files) {}
 
     public GithubService(Controller controller, String accessToken) {
         if(!controller.canAccessDb()) {
@@ -96,31 +95,32 @@ public class GithubService {
         return response;
     }
 
-    public Pair<GithubPathInfo, String> readPath(User user, Repository repository, String path) {
+    public Pair<List<GithubFile>, String> readPath(User user, Repository repository, String path) {
         RestTemplate restTemplate = getRestTemplate();
         String url = String.format("https://api.github.com/repos/%s/%s/contents/%s", user.getGithubLogin(), repository.getName(), path);
         ResponseEntity<String> respEnt = restTemplate.exchange(url, HttpMethod.GET, buildGetEntity(), String.class);
         System.out.println(respEnt.getBody());
 
         String body = respEnt.getBody();
-        Pair<PathReadFileResponse, String> fileResult = JsonMarshal.unmarshal(body);
-        if(fileResult.getValue1() == null) {
+        Pair<JsonNode,String> node = JsonMarshal.getJsonNode(body);
+        if(node.getValue1() != null) {
+            return Pair.with(null, "unable to read path: " + node.getValue1());
+        }
+
+        if(node.getValue0().isArray()) {
+            Pair<List<PathReadFileResponse>, String> dirResult = JsonMarshal.convertToList(node.getValue0(), PathReadFileResponse.class);
+            
+            List<GithubFile> files = dirResult.getValue0().stream().map(readFileResponse -> {
+                    return new GithubFile("/some/path", readFileResponse.name(), null);
+                }).collect(Collectors.toList());
+            return Pair.with(files, null);
+        } else {
+            Pair<PathReadFileResponse, String> fileResult = JsonMarshal.convert(node.getValue0());
             List<GithubFile> files = new ArrayList<>();
             PathReadFileResponse fileResp = fileResult.getValue0();
             files.add(new GithubFile("/some/path", fileResp.name(), fileResp.content()));
-            return Pair.with(new GithubPathInfo(files), null);
+            return Pair.with(files, null);
         }
-
-        Pair<PathReadDirResponse, String> dirResult = JsonMarshal.unmarshal(body);
-        if(dirResult.getValue1() == null) {
-            List<GithubFile> files = new ArrayList<>();
-            Arrays.asList(dirResult.getValue0().files()).forEach(readFileResponse -> {
-                    files.add(new GithubFile("/some/path", readFileResponse.name(), null));
-                });
-            return Pair.with(new GithubPathInfo(files), null);
-        }
-        
-        return Pair.with(null, "Unable to read path");
     }
 
     private HttpEntity<String> buildGetEntity() {
