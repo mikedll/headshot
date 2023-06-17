@@ -53,12 +53,13 @@ public class RepositoryService {
     
     public String save(User user, List<Repository> input) {
         DataSource dataSource = dbConf.getDataSource();
-        String sql = "SELECT github_id FROM repositories WHERE user_id = ? AND github_id in (?)";
+        String githubIdPlaceholders = String.join(",", input.stream().map(i -> "?").collect(Collectors.toList()));
+        String sql = "SELECT github_id FROM repositories WHERE user_id = ? AND github_id in (" + githubIdPlaceholders + ")";
 
         List<SqlArg> params = new ArrayList<>(input.size() + 1);
         params.add(new SqlArg(Long.class, user.getId()));
         for(int i = 0; i < input.size(); i++) {
-            params.add(new SqlArg(String.class, input.get(i)));
+            params.add(new SqlArg(Long.class, input.get(i).getGithubId()));
         }
         
         Pair<Set<Long>, String> result = SimpleSql.executeQuery(dataSource, sql, (rs) -> {
@@ -73,11 +74,12 @@ public class RepositoryService {
             return result.getValue1();
         }
 
-        String insertSql = "INSERT INTO repositories (user_id, github_id, name, is_private, description, created_at) VALUES (?, ?, ?, ?, ?, ?);";
+        String insertSql = "INSERT INTO repositories (user_id, github_id, name, is_private, description, github_created_at)"
+            + " VALUES (?, ?, ?, ?, ?, ?);";
         for(Repository repository : input.stream().filter(i -> !result.getValue0().contains(i)).collect(Collectors.toList())) {
             List<SqlArg> insertParams = new ArrayList<>(6);
             insertParams.add(new SqlArg(Long.class, user.getId()));
-            insertParams.add(new SqlArg(Long.class, repository.getId()));
+            insertParams.add(new SqlArg(Long.class, repository.getGithubId()));
             insertParams.add(new SqlArg(String.class, repository.getName()));
             insertParams.add(new SqlArg(Boolean.class, repository.getIsPrivate()));
             insertParams.add(new SqlArg(String.class, repository.getDescription()));

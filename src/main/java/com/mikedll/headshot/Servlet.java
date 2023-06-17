@@ -20,17 +20,24 @@ public class Servlet extends HttpServlet {
     public boolean shouldLog() {
         return Env.shouldLog();
     }
+
+    @Override
+    protected final void doPut(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+        doService(req, res, HttpMethod.PUT);
+    }
     
     @Override
     protected final void doGet(HttpServletRequest req, HttpServletResponse res)
         throws ServletException, IOException {
+        doService(req, res, HttpMethod.GET);
+    }
 
+    private void doService(HttpServletRequest req, HttpServletResponse res, HttpMethod method) {
         String path = req.getRequestURI().toString();
         if(shouldLog()) {
             System.out.println("Path: " + path);
         }
 
-        HttpMethod method = HttpMethod.fromServletReq(req.getMethod());
         RequestHandler matchingHandler = Application.requestHandlers
             .stream()
             .filter(rh -> rh.path.equals(path) && rh.method.equals(method))
@@ -53,10 +60,11 @@ public class Servlet extends HttpServlet {
         String error = matchingHandler.func.apply(Pair.with(req, res));
         if(error != null) {
             try {
+                System.out.println("Error: " + error);
                 res.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, error);
             } catch (IOException ex) {
                 throw new RuntimeException("failed to send 500", ex);
             }
-        }
+        }        
     }
 }

@@ -46,8 +46,13 @@ public class Application {
         if(args.length == 1 && args[0].equals("migrate")) {
             loadDotEnv();
             Migrations migrations = new Migrations(dbConf.getDataSource());
-            migrations.readMigrations();
-            String error = migrations.migrateForward();
+            String error = migrations.readMigrations();
+            if(error != null) {
+                System.out.println("Error: " + error);
+                shutdown();
+                return true;
+            }
+            error = migrations.migrateForward();
             if(error != null) {
                 System.out.println("Error: " + error);
             }
@@ -56,8 +61,13 @@ public class Application {
         } else if(args.length == 2 && args[0].equals("migrate:reverse")) {
             loadDotEnv();
             Migrations migrations = new Migrations(dbConf.getDataSource());
-            migrations.readMigrations();
-            String error = migrations.reverse(args[1]);
+            String error = migrations.readMigrations();
+            if(error != null) {
+                System.out.println("Error: " + error);
+                shutdown();
+                return true;
+            }
+            error = migrations.reverse(args[1]);
             if(error != null) {
                 System.out.println("Error: " + error);
             }

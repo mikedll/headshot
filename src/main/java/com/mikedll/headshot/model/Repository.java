@@ -7,6 +7,10 @@ import com.mikedll.headshot.db.SimpleSql;
 public class Repository {
     
     private Long id;
+
+    private Long githubId;
+
+    private Long userId;
     
     private String name;
 
@@ -22,6 +26,22 @@ public class Repository {
 
     public Long getId() {
         return this.id;
+    }
+
+    public void setGithubId(Long id) {
+        this.githubId = id;
+    }
+
+    public Long getGithubId() {
+        return this.githubId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
+    }
+
+    public Long getUserId() {
+        return this.userId;
     }
     
     public String getName() {
@@ -62,9 +82,11 @@ public class Repository {
 
     public void copyFromRs(SimpleSql rs) {
         setId(rs.getLong("id"));
+        setUserId(rs.getLong("user_id"));
+        setGithubId(rs.getLong("github_id"));
         setName(rs.getString("name"));
         setIsPrivate(rs.getBoolean("is_private"));
         setDescription(rs.getString("description"));
-        setCreatedAt(Instant.ofEpochMilli(rs.getTimestamp("created_at").getTime()));
+        setCreatedAt(Instant.ofEpochMilli(rs.getTimestamp("github_created_at").getTime()));
     }
 }

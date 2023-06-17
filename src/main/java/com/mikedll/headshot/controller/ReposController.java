@@ -35,8 +35,6 @@ public class ReposController extends Controller {
     public void loadRepos() {
         GithubService service = new GithubService(this, this.currentUser.getAccessToken());
         List<Repository> repositories = service.getRepositories(this.currentUser.getGithubLogin());
-        System.out.println(repositories);
-        
         String error = this.repositoryService.save(this.currentUser, repositories);
         if(error != null) {
             sendInternalServerError(error);

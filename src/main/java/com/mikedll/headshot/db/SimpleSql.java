@@ -113,6 +113,8 @@ public class SimpleSql {
                         stmt.setString(i+1, (String)arg);
                     } else if(clazz == Instant.class) {
                         stmt.setTimestamp(i+1, new Timestamp(((Instant)arg).toEpochMilli()));
+                    } else if(clazz == Boolean.class) {
+                        stmt.setBoolean(i+1, (Boolean)arg);
                     } else {
                         return "Unhandled sql arg type: " + clazz;
                     }
@@ -146,6 +148,8 @@ public class SimpleSql {
                         stmt.setString(i+1, (String)arg);
                     } else if(clazz == Instant.class) {
                         stmt.setTimestamp(i+1, new Timestamp(((Instant)arg).toEpochMilli()));
+                    } else if(clazz == Boolean.class) {
+                        stmt.setBoolean(i+1, (Boolean)arg);
                     } else {
                         return Pair.with(null, "Unhandled sql arg type: " + clazz);
                     }

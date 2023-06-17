@@ -21,6 +21,77 @@ SET default_tablespace = '';
 SET default_table_access_method = heap;
 
 --
+-- Name: repositories; Type: TABLE; Schema: public; Owner: mrmike
+--
+
+CREATE TABLE public.repositories (
+    id bigint NOT NULL,
+    user_id bigint,
+    name character varying,
+    github_id bigint,
+    is_private boolean,
+    description character varying,
+    github_created_at timestamp(6) without time zone
+);
+
+
+ALTER TABLE public.repositories OWNER TO mrmike;
+
+--
+-- Name: repositories_id_seq; Type: SEQUENCE; Schema: public; Owner: mrmike
+--
+
+CREATE SEQUENCE public.repositories_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.repositories_id_seq OWNER TO mrmike;
+
+--
+-- Name: repositories_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: mrmike
+--
+
+ALTER SEQUENCE public.repositories_id_seq OWNED BY public.repositories.id;
+
+
+--
+-- Name: schema_migrations; Type: TABLE; Schema: public; Owner: mrmike
+--
+
+CREATE TABLE public.schema_migrations (
+    id bigint NOT NULL,
+    version character varying
+);
+
+
+ALTER TABLE public.schema_migrations OWNER TO mrmike;
+
+--
+-- Name: schema_migrations_id_seq; Type: SEQUENCE; Schema: public; Owner: mrmike
+--
+
+CREATE SEQUENCE public.schema_migrations_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.schema_migrations_id_seq OWNER TO mrmike;
+
+--
+-- Name: schema_migrations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: mrmike
+--
+
+ALTER SEQUENCE public.schema_migrations_id_seq OWNED BY public.schema_migrations.id;
+
+
+--
 -- Name: users; Type: TABLE; Schema: public; Owner: mrmike
 --
 
@@ -60,10 +131,40 @@ ALTER SEQUENCE public.users_id_seq OWNED BY public.users.id;
 
 
 --
+-- Name: repositories id; Type: DEFAULT; Schema: public; Owner: mrmike
+--
+
+ALTER TABLE ONLY public.repositories ALTER COLUMN id SET DEFAULT nextval('public.repositories_id_seq'::regclass);
+
+
+--
+-- Name: schema_migrations id; Type: DEFAULT; Schema: public; Owner: mrmike
+--
+
+ALTER TABLE ONLY public.schema_migrations ALTER COLUMN id SET DEFAULT nextval('public.schema_migrations_id_seq'::regclass);
+
+
+--
 -- Name: users id; Type: DEFAULT; Schema: public; Owner: mrmike
 --
 
 ALTER TABLE ONLY public.users ALTER COLUMN id SET DEFAULT nextval('public.users_id_seq'::regclass);
+
+
+--
+-- Name: repositories repositories_pkey; Type: CONSTRAINT; Schema: public; Owner: mrmike
+--
+
+ALTER TABLE ONLY public.repositories
+    ADD CONSTRAINT repositories_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: schema_migrations schema_migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: mrmike
+--
+
+ALTER TABLE ONLY public.schema_migrations
+    ADD CONSTRAINT schema_migrations_pkey PRIMARY KEY (id);
 
 
 --
@@ -75,10 +176,32 @@ ALTER TABLE ONLY public.users
 
 
 --
+-- Name: repositories_id_user_id; Type: INDEX; Schema: public; Owner: mrmike
+--
+
+CREATE UNIQUE INDEX repositories_id_user_id ON public.repositories USING btree (id, user_id);
+
+
+--
+-- Name: schema_migrations_version; Type: INDEX; Schema: public; Owner: mrmike
+--
+
+CREATE UNIQUE INDEX schema_migrations_version ON public.schema_migrations USING btree (version);
+
+
+--
 -- Name: users_github_id; Type: INDEX; Schema: public; Owner: mrmike
 --
 
 CREATE UNIQUE INDEX users_github_id ON public.users USING btree (github_id);
+
+
+--
+-- Name: repositories fk_repositories_users; Type: FK CONSTRAINT; Schema: public; Owner: mrmike
+--
+
+ALTER TABLE ONLY public.repositories
+    ADD CONSTRAINT fk_repositories_users FOREIGN KEY (user_id) REFERENCES public.users(id);
 
 
 --

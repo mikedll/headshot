@@ -22,7 +22,7 @@ public class GithubService {
     public record RepoResponse(Long id, String name, boolean isPrivate, String description, String created_at) {
         public Repository toRepository() {
             Repository ret = new Repository();
-            ret.setId(id);
+            ret.setGithubId(id);
             ret.setName(name);
             ret.setIsPrivate(isPrivate);
             ret.setDescription(description);
@@ -78,7 +78,7 @@ public class GithubService {
     
     public List<Repository> getRepositories(String githubLogin) {
         RestTemplate restTemplate = getRestTemplate();
-        String url = String.format(" https://api.github.com/users/%s/repos", githubLogin);
+        String url = String.format("https://api.github.com/users/%s/repos", githubLogin);
         ResponseEntity<RepoResponse[]> reposEnt = restTemplate.exchange(url, HttpMethod.GET, buildGetEntity(), RepoResponse[].class);
         List<Repository> response = Arrays.asList(reposEnt.getBody()).stream().map(RepoResponse::toRepository)
             .filter(r -> !r.getIsPrivate()).collect(Collectors.toList());
