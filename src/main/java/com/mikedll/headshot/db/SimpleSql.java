@@ -126,16 +126,15 @@ public class SimpleSql {
                 for(int i = 0; i < sqlArgs.length; i++) {
                     Class<?> clazz = sqlArgs[i].getValue0();
                     Object arg = sqlArgs[i].getValue1();
-                    switch(clazz) {
-                    case Integer.class:
-                        stmt.setInt(i+1, (Integer)sqlArgs[i]);
-                    case Long.class:
-                        stmt.setLong(i+1, (Long)sqlArgs[i]);
-                    case String.class:
-                        stmt.setString(i+1, (String)sqlArgs[i]);
-                    case Instant.class:
-                        stmt.setTimestamp(i+1, new Timestamp(((Instant)sqlArgs[i]).toEpochMilli()));
-                    default:
+                    if(clazz == Integer.class) {
+                        stmt.setInt(i+1, (Integer)arg);
+                    } else if(clazz == Long.class) {
+                        stmt.setLong(i+1, (Long)arg);
+                    } else if(clazz == String.class) {
+                        stmt.setString(i+1, (String)arg);
+                    } else if(clazz == Instant.class) {
+                        stmt.setTimestamp(i+1, new Timestamp(((Instant)arg).toEpochMilli()));
+                    } else {
                         return Pair.with(null, "Unhandled sql arg type: " + clazz);
                     }
                 }
