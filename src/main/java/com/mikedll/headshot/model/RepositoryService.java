@@ -42,7 +42,7 @@ public class RepositoryService {
                     ret.add(toAdd);
                 }
                 return ret;
-            }, (SqlArg[])params.toArray());
+            }, params.toArray(new SqlArg[0]));
 
         if(result.getValue1() != null) {
             return Pair.with(null, result.getValue1());
@@ -67,7 +67,7 @@ public class RepositoryService {
                     existing.add(rs.getLong("github_id"));
                 }
                 return existing;
-            }, (SqlArg[])params.toArray());
+            }, params.toArray(new SqlArg[0]));
 
         if(result.getValue1() != null) {
             return result.getValue1();
@@ -83,7 +83,7 @@ public class RepositoryService {
             insertParams.add(new SqlArg(String.class, repository.getDescription()));
             insertParams.add(new SqlArg(Instant.class, repository.getCreatedAt()));
 
-            String error = SimpleSql.executeUpdate(dataSource, insertSql, (SqlArg[])insertParams.toArray());
+            String error = SimpleSql.executeUpdate(dataSource, insertSql, insertParams.toArray(new SqlArg[0]));
             if(error != null) {
                 // Todo: rollback transaction
                 return error;

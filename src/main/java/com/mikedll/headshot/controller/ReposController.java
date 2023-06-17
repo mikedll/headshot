@@ -15,7 +15,7 @@ public class ReposController extends Controller {
     RepositoryService repositoryService;
     
     @Override
-    public void declareAuthRequirements() {
+    public void acquireDbAccess() {
         this.repositoryService = new RepositoryService(this, dbConf);
     }
     

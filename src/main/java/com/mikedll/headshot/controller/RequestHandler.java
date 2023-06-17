@@ -73,6 +73,8 @@ public class RequestHandler {
                 targetObject = ctorToUse.newInstance();
             } catch (Throwable ex) {
                 if(ex.getCause() != null) {
+                    System.out.println(ex.getCause().getMessage());
+                    ex.getCause().printStackTrace(System.out);
                     return ex.getCause().getClass().getName() + ": " + ex.getCause().getMessage();
                 } else {
                     return "Exception when instantiating " + clazz + ": " + ex.getMessage();
@@ -95,6 +97,8 @@ public class RequestHandler {
                 return "IllegalAccessException when running controller action: " + ex.getMessage();
             } catch (InvocationTargetException ex) {
                 if(ex.getCause() != null) {
+                    System.out.println(ex.getCause().getMessage());
+                    ex.getCause().printStackTrace(System.out);
                     return ex.getCause().getClass().getName() + ": " + ex.getCause().getMessage();
                 } else {
                     // have never tested this path.
