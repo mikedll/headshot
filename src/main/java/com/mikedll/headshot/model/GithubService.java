@@ -4,14 +4,17 @@ import java.util.stream.Collectors;
 import java.util.List;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.ArrayList;
 
 import org.springframework.web.client.RestTemplate;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.javatuples.Pair;
 
 import com.mikedll.headshot.controller.Controller;
+import com.mikedll.headshot.JsonMarshal;
 
 public class GithubService {
 
@@ -41,8 +44,16 @@ public class GithubService {
             user.setReposUrl(this.repos_url);
         }
     }
-    
+
+    public record PathReadFileResponse(String type, String name, String content) {}
+
+    public record PathReadDirResponse(PathReadFileResponse[] files) {}
+
     public GithubService(Controller controller, String accessToken) {
+        if(!controller.canAccessDb()) {
+            throw new RuntimeException("Controller canAccessDb() returned false in GithubService");
+        }
+        
         this.userRepository = controller.getRepository(UserRepository.class);
         this.accessToken = accessToken;
     }
@@ -83,6 +94,33 @@ public class GithubService {
         List<Repository> response = Arrays.asList(reposEnt.getBody()).stream().map(RepoResponse::toRepository)
             .filter(r -> !r.getIsPrivate()).collect(Collectors.toList());
         return response;
+    }
+
+    public Pair<GithubPathInfo, String> readPath(User user, Repository repository, String path) {
+        RestTemplate restTemplate = getRestTemplate();
+        String url = String.format("https://api.github.com/repos/%s/%s/contents/%s", user.getGithubLogin(), repository.getName(), path);
+        ResponseEntity<String> respEnt = restTemplate.exchange(url, HttpMethod.GET, buildGetEntity(), String.class);
+        System.out.println(respEnt.getBody());
+
+        String body = respEnt.getBody();
+        Pair<PathReadFileResponse, String> fileResult = JsonMarshal.unmarshal(body);
+        if(fileResult.getValue1() == null) {
+            List<GithubFile> files = new ArrayList<>();
+            PathReadFileResponse fileResp = fileResult.getValue0();
+            files.add(new GithubFile("/some/path", fileResp.name(), fileResp.content()));
+            return Pair.with(new GithubPathInfo(files), null);
+        }
+
+        Pair<PathReadDirResponse, String> dirResult = JsonMarshal.unmarshal(body);
+        if(dirResult.getValue1() == null) {
+            List<GithubFile> files = new ArrayList<>();
+            Arrays.asList(dirResult.getValue0().files()).forEach(readFileResponse -> {
+                    files.add(new GithubFile("/some/path", readFileResponse.name(), null));
+                });
+            return Pair.with(new GithubPathInfo(files), null);
+        }
+        
+        return Pair.with(null, "Unable to read path");
     }
 
     private HttpEntity<String> buildGetEntity() {

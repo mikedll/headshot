@@ -1,6 +1,8 @@
 package com.mikedll.headshot.controller;
 
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 import jakarta.servlet.http.HttpServletResponse;
 
 import org.thymeleaf.context.Context;
@@ -9,6 +11,7 @@ import org.javatuples.Pair;
 import com.mikedll.headshot.model.GithubService;
 import com.mikedll.headshot.model.RepositoryService;
 import com.mikedll.headshot.model.Repository;
+import com.mikedll.headshot.JsonMarshal;
 
 public class ReposController extends Controller {
 
@@ -42,4 +45,29 @@ public class ReposController extends Controller {
         }
         res.setStatus(HttpServletResponse.SC_OK);
     }
+
+    @Request(path="/repos/")
+    public void getRepo() {
+        Pair<Repository, Boolean> loadResult = ResourceLoader.loadRepository(this, this.repositoryService, this.currentUser, req.getParameter("id"));
+        if(!loadResult.getValue1()) {
+            return;
+        }
+        Repository repository = loadResult.getValue0();
+
+        Context ctx = defaultCtx();
+        String path = req.getRequestURI().toString();
+        Map<String,Object> locationInfo = new HashMap<>();
+        locationInfo.put("path", path.replaceAll("^/repo/", ""));
+        locationInfo.put("repositoryId", repository.getId());
+
+        Pair<String,String> marshalResult = JsonMarshal.marshal(locationInfo);
+        if(marshalResult.getValue1() != null) {
+            sendInternalServerError(marshalResult.getValue1());
+            return;
+        }
+        
+        ctx.setVariable("directory", marshalResult.getValue0());
+        render("repos/directory", ctx);
+    }
+
 }

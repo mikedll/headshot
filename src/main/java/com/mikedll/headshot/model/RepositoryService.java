@@ -8,6 +8,7 @@ import javax.sql.DataSource;
 import java.sql.Timestamp;
 import java.util.stream.Collectors;
 import java.time.Instant;
+import java.util.Optional;
 
 import org.javatuples.Pair;
 
@@ -25,7 +26,7 @@ public class RepositoryService {
     
     public RepositoryService(Controller controller, DatabaseConfiguration dbConf) {
         if(!controller.canAccessDb()) {
-            throw new RuntimeException("Controller canAccessDb() returned false in RepositoriesService");
+            throw new RuntimeException("Controller canAccessDb() returned false in RepositorysService");
         }
 
         this.dbConf = dbConf;
@@ -48,6 +49,28 @@ public class RepositoryService {
             return Pair.with(null, result.getValue1());
         }
         
+        return Pair.with(result.getValue0(), null);
+    }
+
+    public Pair<Optional<Repository>, String> forUserAndId(User user, Long id) {
+        List<SqlArg> params = new ArrayList<>();
+        params.add(new SqlArg(Long.class, user.getId()));
+        params.add(new SqlArg(Long.class, id));
+
+        String query = "SELECT * FROM repositories WHERE user_id = ? AND id = ? LIMIT 1";
+        Pair<Optional<Repository>, String> result = SimpleSql.executeQuery(dbConf.getDataSource(), query, (rs) -> {
+                Repository ret = null;
+                if(rs.next()) {
+                    ret = new Repository();
+                    ret.copyFromRs(rs);
+                }
+                return Optional.ofNullable(ret);
+            }, params.toArray(new SqlArg[0]));
+
+        if(result.getValue1() != null) {
+            return Pair.with(null, result.getValue1());
+        }
+
         return Pair.with(result.getValue0(), null);
     }
     

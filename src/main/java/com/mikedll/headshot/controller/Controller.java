@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Arrays;
 import java.io.UnsupportedEncodingException;
 import java.util.Optional;
+import java.io.PrintWriter;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -16,6 +17,7 @@ import org.thymeleaf.templateresolver.FileTemplateResolver;
 import org.thymeleaf.context.Context;
 import nz.net.ultraq.thymeleaf.layoutdialect.LayoutDialect;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import org.javatuples.Pair;
 
 import com.mikedll.headshot.model.UserRepository;
 import com.mikedll.headshot.model.User;
@@ -24,6 +26,7 @@ import com.mikedll.headshot.Env;
 import com.mikedll.headshot.Application;
 import com.mikedll.headshot.db.DatabaseConfiguration;
 import com.mikedll.headshot.AssetFingerprinter;
+import com.mikedll.headshot.JsonMarshal;
 
 public class Controller {
     private static FileTemplateResolver templateResolver = new FileTemplateResolver();
@@ -32,6 +35,10 @@ public class Controller {
 
     public static final String COOKIE_NAME = "HEADSHOT_SESSION";
 
+    public static final String CONTENT_TYPE = "Content-Type";
+    
+    public static final String CONTENT_TYPE_JSON = "application/json";
+    
     private UserRepository baseUserRepository;
 
     private boolean cookieFiltersOkay = false;
@@ -232,13 +239,34 @@ public class Controller {
         return scheme + fullHost;
     }
 
-    public void sendInternalServerError(String message) {
+    public void sendInternalServerError(String message) {        
+        sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, message);
+    }
+
+    public void sendError(int status, String message) {
         if(this.rendered) {
             throw new RequestException("response already sent");
         }
-        
+
         try {
-            res.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, message);
+            System.out.println("Accept: " + req.getHeader("Accept"));
+            if(req.getHeader("Accept").equals(CONTENT_TYPE_JSON)) {
+                System.out.println("entering because Accept was json");
+                Map<String,String> response = new HashMap<>();
+                response.put("errors", message);
+                Pair<String,String> marshalled = JsonMarshal.marshal(response);
+                if(marshalled.getValue1() != null) {
+                    System.out.println("error from marshal: " + marshalled.getValue1());
+                    res.sendError(status, message);
+                } else {
+                    System.out.println("send json error: " + marshalled.getValue0());
+                    sendJson(marshalled.getValue0(), HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                }
+            } else {
+                res.sendError(status, message);
+            }
+            System.out.println("Rendering error: " + status);
+            Arrays.asList(Thread.currentThread().getStackTrace()).forEach(e -> System.out.println(e));
         } catch (IOException ex) {
             throw new RuntimeException("failed to send 500", ex);
         }
@@ -260,6 +288,20 @@ public class Controller {
 
     public void sendRedirect(String path) {
         sendRedirectWorld(localOrigin() + path);
+    }
+
+    public void sendJson(String json, int status) {
+        res.setStatus(status);
+        res.setHeader(CONTENT_TYPE, CONTENT_TYPE_JSON);
+        try {
+            res.getWriter().write(json);
+        } catch (IOException ex) {
+            throw new RuntimeException("failed to write JSON", ex);
+        }
+    }
+    
+    public void sendJson(String json) {
+        sendJson(json, HttpServletResponse.SC_OK);
     }
     
     public void sendRedirectWorld(String path) {

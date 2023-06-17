@@ -62,9 +62,9 @@ public class CookieManager {
     public String cookieString(Map<String,Object> input)
         throws UnsupportedEncodingException, JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
-        String serialized = mapper.writeValueAsString(input);
-        String signature = sign(serialized);
-        return base64Encode(serialized.getBytes("UTF-8")) + "." + signature;
+        String marshalled = mapper.writeValueAsString(input);
+        String signature = sign(marshalled);
+        return base64Encode(marshalled.getBytes("UTF-8")) + "." + signature;
     }
 
     /*

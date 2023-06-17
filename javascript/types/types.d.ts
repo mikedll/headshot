@@ -1,0 +1,4 @@
+
+interface DirFile {
+  filename: string;
+}
