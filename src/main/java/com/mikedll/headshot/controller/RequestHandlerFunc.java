@@ -14,3 +14,4 @@ import org.javatuples.Pair;
  */
 public interface RequestHandlerFunc extends Function<Pair<HttpServletRequest,HttpServletResponse>,String> {
 }
+

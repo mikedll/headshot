@@ -99,11 +99,23 @@ public class SimpleSql {
      * 
      * Returns error on failure, null on success.
      */
-    public static String executeUpdate(DataSource dataSource, String sql, String... sqlArgs) {
+    public static String executeUpdate(DataSource dataSource, String sql, SqlArg... sqlArgs) {
         try(Connection conn = dataSource.getConnection()) {
             try (PreparedStatement stmt = conn.prepareStatement(sql)) {
                 for(int i = 0; i < sqlArgs.length; i++) {
-                    stmt.setString(i+1, sqlArgs[i]);
+                    Class<?> clazz = sqlArgs[i].clazz();
+                    Object arg = sqlArgs[i].val();
+                    if(clazz == Integer.class) {
+                        stmt.setInt(i+1, (Integer)arg);
+                    } else if(clazz == Long.class) {
+                        stmt.setLong(i+1, (Long)arg);
+                    } else if(clazz == String.class) {
+                        stmt.setString(i+1, (String)arg);
+                    } else if(clazz == Instant.class) {
+                        stmt.setTimestamp(i+1, new Timestamp(((Instant)arg).toEpochMilli()));
+                    } else {
+                        return "Unhandled sql arg type: " + clazz;
+                    }
                 }
                 stmt.executeUpdate();
             } catch(SQLException ex) {
@@ -124,8 +136,8 @@ public class SimpleSql {
         try(Connection conn = dataSource.getConnection()) {
             try (PreparedStatement stmt = conn.prepareStatement(sql)) {
                 for(int i = 0; i < sqlArgs.length; i++) {
-                    Class<?> clazz = sqlArgs[i].getValue0();
-                    Object arg = sqlArgs[i].getValue1();
+                    Class<?> clazz = sqlArgs[i].clazz();
+                    Object arg = sqlArgs[i].val();
                     if(clazz == Integer.class) {
                         stmt.setInt(i+1, (Integer)arg);
                     } else if(clazz == Long.class) {

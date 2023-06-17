@@ -7,6 +7,7 @@ import java.util.HashSet;
 import javax.sql.DataSource;
 import java.sql.Timestamp;
 import java.util.stream.Collectors;
+import java.time.Instant;
 
 import org.javatuples.Pair;
 
@@ -32,7 +33,7 @@ public class RepositoryService {
 
     public Pair<List<Repository>, String> forUser(User user) {
         List<SqlArg> params = new ArrayList<>();
-        params.add(Pair.with(Long.class, user.getId()));
+        params.add(new SqlArg(Long.class, user.getId()));
         Pair<List<Repository>, String> result = SimpleSql.executeQuery(dbConf.getDataSource(), "SELECT * FROM repositories WHERE user_id = ?", (rs) -> {
                 List<Repository> ret = new ArrayList<>();
                 while(rs.next()) {
@@ -55,9 +56,9 @@ public class RepositoryService {
         String sql = "SELECT github_id FROM repositories WHERE user_id = ? AND github_id in (?)";
 
         List<SqlArg> params = new ArrayList<>(input.size() + 1);
-        params.add(Pair.with(Long.class, user.getId()));
+        params.add(new SqlArg(Long.class, user.getId()));
         for(int i = 0; i < input.size(); i++) {
-            params.add(Pair.with(String.class, input.get(i)));
+            params.add(new SqlArg(String.class, input.get(i)));
         }
         
         Pair<Set<Long>, String> result = SimpleSql.executeQuery(dataSource, sql, (rs) -> {
@@ -73,16 +74,16 @@ public class RepositoryService {
         }
 
         String insertSql = "INSERT INTO repositories (user_id, github_id, name, is_private, description, created_at) VALUES (?, ?, ?, ?, ?, ?);";
-        for(Repository repository : input.stream().filter(i -> !result.getValue0().contains(i)).Collect(Collectors.toList())) {
-            Object[] insertParams = new Object[6];
-            insertParams[0] = user.getId();
-            insertParams[1] = repository.getId();
-            insertParams[2] = repository.getName();
-            insertParams[3] = repository.getIsPrivate();
-            insertParams[4] = repository.getDescription();
-            insertParams[5] = new Timestamp(repository.getCreatedAt().toEpochMilli());
+        for(Repository repository : input.stream().filter(i -> !result.getValue0().contains(i)).collect(Collectors.toList())) {
+            List<SqlArg> insertParams = new ArrayList<>(6);
+            insertParams.add(new SqlArg(Long.class, user.getId()));
+            insertParams.add(new SqlArg(Long.class, repository.getId()));
+            insertParams.add(new SqlArg(String.class, repository.getName()));
+            insertParams.add(new SqlArg(Boolean.class, repository.getIsPrivate()));
+            insertParams.add(new SqlArg(String.class, repository.getDescription()));
+            insertParams.add(new SqlArg(Instant.class, repository.getCreatedAt()));
 
-            String error = SimpleSql.executeUpdate(dataSource, insertSql, params);
+            String error = SimpleSql.executeUpdate(dataSource, insertSql, (SqlArg[])insertParams.toArray());
             if(error != null) {
                 // Todo: rollback transaction
                 return error;

@@ -174,7 +174,7 @@ public class Migrations {
             }
 
             String insertSql = "INSERT INTO " + SCHEMA_MIGRATIONS_TABLE + " (version) VALUES (?)";
-            String versionError = SimpleSql.executeUpdate(dataSource, insertSql, tsOf(forward));
+            String versionError = SimpleSql.executeUpdate(dataSource, insertSql, new SqlArg(String.class, tsOf(forward)));
             if(versionError != null) {
                 System.out.println("SQL Error: " + versionError);
                 return versionError;
@@ -213,7 +213,7 @@ public class Migrations {
         }
 
         String deleteSql = "DELETE FROM " + SCHEMA_MIGRATIONS_TABLE + " WHERE version = ?";
-        String deleteVersionError = SimpleSql.executeUpdate(dataSource, deleteSql, ts);
+        String deleteVersionError = SimpleSql.executeUpdate(dataSource, deleteSql, new SqlArg(String.class, ts));
         if(deleteVersionError != null) {
             System.out.println("SQL Error: " + deleteVersionError);
             return deleteVersionError;
