@@ -18,7 +18,7 @@ public record PathParamMatcher(Pattern pattern, List<String> paramNames) {
         if(matcher.find()) {
             matches = new HashMap<>();
             for(int i = 0; i < paramNames.size(); i++) {
-                matches.puth(paramNames[i], matcher.group(i+1));
+                matches.put(paramNames.get(i), matcher.group(i+1));
             }
         }
         return Optional.ofNullable(matches);
@@ -27,7 +27,6 @@ public record PathParamMatcher(Pattern pattern, List<String> paramNames) {
     public static final Pattern PATTERN = Pattern.compile("(^[^{}]*)\\{(\\w+)\\}([^{}]*)");
     
     public static Optional<PathParamMatcher> build(String path) {
-        System.out.println("***** new call to build");
         String buildRegexStr = null;
         String remaining = path;
         Matcher matcher = PATTERN.matcher(remaining);
@@ -42,7 +41,6 @@ public record PathParamMatcher(Pattern pattern, List<String> paramNames) {
             paramNames.add(paramName);
             String afterParam = matcher.group(3);
             remaining = remaining.substring(part.length(), remaining.length());
-            System.out.println("part: " + part + ", remaining: " + remaining);
             buildRegexStr = buildRegexStr + Pattern.quote(beforeParam) + "(\\w+)" + Pattern.quote(afterParam);
             matcher = PATTERN.matcher(remaining);
         }

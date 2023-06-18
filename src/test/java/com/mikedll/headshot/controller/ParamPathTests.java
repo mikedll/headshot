@@ -5,6 +5,7 @@ import java.util.Optional;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.HashMap;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 import jakarta.servlet.ServletException;
@@ -68,11 +69,31 @@ public class ParamPathTests {
         Assertions.assertEquals(expectedParamNames, result.get().paramNames(), "param names");
     }
 
-    @Test public void testMatching() {
+    @Test
+    public void testMatching() {
+        PathParamMatcher result = PathParamMatcher.build("{id}/gives/{food}/to/{name}").orElse(null);
+        Map<String,String> expected = new HashMap<>();
+        expected.put("id", "mike");
+        expected.put("food", "banana");
+        expected.put("name", "jane");
+        Map<String,String> params = result.match("mike/gives/banana/to/jane").orElse(null);
+        Assertions.assertEquals(expected, params, "basic test");
+
+        params = result.match("mike/doesnotgive/banana/to/jane").orElse(null);
+        Assertions.assertNull(params, "no match");
+
+        result = PathParamMatcher.build("/animals/{id}").orElse(null);
+        Assertions.assertNotNull(result, "simpler match");
+        params = result.match("/animals/35").orElse(null);
+        expected = new HashMap<>();
+        expected.put("id", "35");
+        Assertions.assertEquals(expected, params, "simple match params");
+
+        Assertions.assertNull(result.match("/animals/").orElse(null), "not exact match");
     }
     
     @Test
-    public void testPathParams() throws IOException, ServletException {
+    public void testHandler() throws IOException, ServletException {
         Servlet servlet = new Servlet();
         
         TestRequest request = ControllerUtils.get("/animals/giraffe");
