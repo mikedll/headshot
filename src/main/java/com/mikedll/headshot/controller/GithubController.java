@@ -1,6 +1,7 @@
 package com.mikedll.headshot.controller;
 
 import java.util.List;
+import java.util.regex.Pattern;
 import jakarta.servlet.http.HttpServletResponse;
 
 import org.thymeleaf.context.Context;
@@ -24,15 +25,14 @@ public class GithubController extends Controller {
         this.githubService = new GithubService(this, this.currentUser.getAccessToken());
     }
     
-    @Request(path="/github/readDir/")
+    @Request(path="/github/readDir/{id}")
     public void index() {
-        Pair<Repository, Boolean> loadResult = ResourceLoader.loadRepository(this, this.repositoryService, this.currentUser, req.getParameter("repositoryId"));
-        if(!loadResult.getValue1()) {
+        Repository repository = ResourceLoader.loadRepository(this, this.repositoryService, this.currentUser, this.getPathParam("id")).orElse(null);
+        if(repository == null) {
             return;
         }
-        Repository repository = loadResult.getValue0();
 
-        String path = req.getRequestURI().toString().replaceAll("^/github/readDir/", "");        
+        String path = req.getRequestURI().toString().replaceFirst("^" + Pattern.quote(this.pathMatch.matched()) + "/?", "");
         Pair<List<GithubFile>, String> result = this.githubService.readPath(this.currentUser, repository, path);
 
         if(result.getValue1() != null) {

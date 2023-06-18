@@ -17,7 +17,7 @@
         <tbody>
           <tr th:each="repo : ${existing}">
             <td>[[${repo.getId}]]</td>
-            <td><a th:attr="href='/repos/?id=' + ${repo.getId}">[[${repo.getName}]]</a></td>
+            <td><a th:attr="href='/repos/' + ${repo.getId}">[[${repo.getName}]]</a></td>
             <td>[[${repo.getIsPrivate}]]</td>
             <td>[[${repo.prettyCreatedAt}]]</td>
           </tr>

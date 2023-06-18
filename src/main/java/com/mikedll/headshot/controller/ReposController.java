@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.regex.Pattern;
 import jakarta.servlet.http.HttpServletResponse;
 
 import org.thymeleaf.context.Context;
@@ -49,17 +50,16 @@ public class ReposController extends Controller {
         res.setStatus(HttpServletResponse.SC_OK);
     }
 
-    @Request(path="/repos/")
+    @Request(path="/repos/{id}")
     public void getRepo() {
-        Pair<Repository, Boolean> loadResult = ResourceLoader.loadRepository(this, this.repositoryService, this.currentUser, req.getParameter("id"));
-        if(!loadResult.getValue1()) {
+        Repository repository = ResourceLoader.loadRepository(this, this.repositoryService, this.currentUser, this.getPathParam("id")).orElse(null);
+        if(repository == null) {
             return;
         }
-        Repository repository = loadResult.getValue0();
 
         Context ctx = defaultCtx();
         String path = req.getRequestURI().toString();
-        String repoPath = path.replaceAll("^/repos/", "");
+        String repoPath = path.replaceFirst("^" + Pattern.quote(this.pathMatch.matched()) + "/?", "");
 
         ctx.setVariable("ancestors", PathUtils.pathAncestors(repository.getName(), repoPath));
         Map<String,Object> pathInfo = new HashMap<>();

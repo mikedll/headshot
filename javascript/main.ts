@@ -36,16 +36,14 @@ const dirLocation = () => {
   const container = document.querySelector('.dir-location');
   if(container !== null) {
     const info = (container as HTMLElement);
-    let path = info.dataset.path;
-    if(path === undefined) {
+    let path: string;
+    if(info.dataset.path === undefined) {
       path = "";
-    }
-    let pathPrefix = "";
-    if(path != "") {
-      pathPrefix = `/${path}`
+    } else {
+      path = "/" + info.dataset.path;
     }
     const id = info.dataset.repositoryId;
-    fetch(`/github/readDir/${path}?repositoryId=${id}`, {
+    fetch(`/github/readDir/${id}${path}`, {
       headers: {
         "Accept": "application/json"
       }
@@ -77,7 +75,7 @@ const dirLocation = () => {
         const name = document.createElement('td');
         if(file.type === "dir") {
           const link = document.createElement('a');
-          link.href = `/repos${pathPrefix}/${file.name}?id=${id}`;
+          link.href = `/repos/${id}${path}/${file.name}`;
           link.textContent = file.name;
           name.appendChild(link);
         } else {

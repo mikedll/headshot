@@ -59,7 +59,7 @@ public class Controller {
 
     protected DatabaseConfiguration dbConf;
 
-    protected Map<String,String> extractedParams;
+    protected PathMatch pathMatch;
 
     public void setRequest(HttpServletRequest req) {
         this.req = req;
@@ -89,8 +89,12 @@ public class Controller {
         this.templateEngine = templateEngine;
     }
 
-    public void setExtractedParams(Map<String,String> extractedParams) {
-        this.extractedParams = extractedParams;
+    public void setPathMatch(PathMatch pathMatch) {
+        this.pathMatch = pathMatch;
+    }
+
+    public String getPathParam(String key) {
+        return this.pathMatch.extractedParams().get(key);
     }
     
     public Context defaultCtx() {

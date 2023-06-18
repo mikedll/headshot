@@ -91,7 +91,7 @@ public class RequestHandler {
             Controller controller = (Controller)targetObject;
             controller.setRequest(triplet.getValue0());
             controller.setResponse(triplet.getValue1());
-            controller.setExtractedParams(triplet.getValue2());
+            controller.setPathMatch(triplet.getValue2());
             controller.setDbConf(Application.dbConf);
             controller.setAssetFingerprinter(Application.assetFingerprinter);
             controller.setTemplateEngine(Application.templateEngine);

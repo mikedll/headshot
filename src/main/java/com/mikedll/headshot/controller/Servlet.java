@@ -74,7 +74,7 @@ public class Servlet extends HttpServlet {
 
         
         String error = handlerMatch.getValue0().handlerFunc
-            .apply(Triplet.with(req, res, handlerMatch.getValue1().extractedParams()));
+            .apply(Triplet.with(req, res, handlerMatch.getValue1()));
         if(error != null) {
             try {
                 System.out.println("Error: " + error);
