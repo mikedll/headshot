@@ -18,7 +18,7 @@ import org.javatuples.Pair;
 import com.mikedll.headshot.SimpleSuite;
 import com.mikedll.headshot.TestSuite;
 
-public class ParamPathTests {
+public class PathParamTests {
 
     @BeforeEach
     public void beforeEach() throws IOException {
@@ -71,23 +71,27 @@ public class ParamPathTests {
 
     @Test
     public void testMatching() {
-        PathParamMatcher result = PathParamMatcher.build("{id}/gives/{food}/to/{name}").orElse(null);
+        PathParamMatcher result = PathParamMatcher.build("/{id}/gives/{food}/to/{name}").orElse(null);
         Map<String,String> expected = new HashMap<>();
         expected.put("id", "mike");
         expected.put("food", "banana");
         expected.put("name", "jane");
-        Map<String,String> params = result.match("mike/gives/banana/to/jane").orElse(null);
-        Assertions.assertEquals(expected, params, "basic test");
+        PathMatch pathMatch = result.match("/mike/gives/banana/to/jane").orElse(null);
+        Assertions.assertEquals("/mike/gives/banana/to/jane", pathMatch.matched(), "basic test path");
+        Assertions.assertEquals(expected, pathMatch.extractedParams(), "basic test");
 
-        params = result.match("mike/doesnotgive/banana/to/jane").orElse(null);
-        Assertions.assertNull(params, "no match");
+        pathMatch = result.match("/mike/doesnotgive/banana/to/jane").orElse(null);
+        Assertions.assertNull(pathMatch, "no match");
 
         result = PathParamMatcher.build("/animals/{id}").orElse(null);
         Assertions.assertNotNull(result, "simpler match");
-        params = result.match("/animals/35").orElse(null);
+        pathMatch = result.match("/animals/35").orElse(null);
         expected = new HashMap<>();
         expected.put("id", "35");
-        Assertions.assertEquals(expected, params, "simple match params");
+        Assertions.assertEquals(expected, pathMatch.extractedParams(), "simple match params");
+        Assertions.assertEquals("/animals/35", pathMatch.matched(), "simple match path");
+
+        Assertions.assertNotNull(result.match("/animals/35/").orElse(null), "trailing slash match");
 
         Assertions.assertNull(result.match("/animals/").orElse(null), "not exact match");
     }
@@ -101,7 +105,7 @@ public class ParamPathTests {
         servlet.doGet(request.req(), request.res());
 
         request.printWriter().flush();
-        Assertions.assertTrue(request.stringWriter().toString().contains("Mike is here"), "found basic output");
+        Assertions.assertTrue(request.stringWriter().toString().contains("This animal's name is: giraffe"), "found basic output");
     }
 
 }

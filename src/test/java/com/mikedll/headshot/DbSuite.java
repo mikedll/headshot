@@ -18,7 +18,7 @@ import org.junit.platform.suite.api.ExcludeClassNamePatterns;
 
 @Suite
 @SelectPackages({"com.mikedll.headshot"})
-@ExcludeClassNamePatterns({".*MigrationsTests", ".*ParamPathTests"})
+@ExcludeClassNamePatterns({".*MigrationsTests", ".*PathParamTests"})
 public class DbSuite extends TestSuite {
 
     private Application app;

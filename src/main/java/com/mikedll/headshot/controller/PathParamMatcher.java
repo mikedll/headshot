@@ -12,7 +12,7 @@ import org.javatuples.Pair;
 
 public record PathParamMatcher(Pattern pattern, List<String> paramNames) {
 
-    public Optional<Map<String,String>> match(String path) {
+    public Optional<PathMatch> match(String path) {
         Map<String,String> matches = null;
         Matcher matcher = pattern.matcher(path);
         if(matcher.find()) {
@@ -20,8 +20,9 @@ public record PathParamMatcher(Pattern pattern, List<String> paramNames) {
             for(int i = 0; i < paramNames.size(); i++) {
                 matches.put(paramNames.get(i), matcher.group(i+1));
             }
+            return Optional.ofNullable(new PathMatch(matcher.group(0), matches));
         }
-        return Optional.ofNullable(matches);
+        return Optional.empty();
     }
     
     public static final Pattern PATTERN = Pattern.compile("(^[^{}]*)\\{(\\w+)\\}([^{}]*)");
@@ -52,6 +53,6 @@ public record PathParamMatcher(Pattern pattern, List<String> paramNames) {
             return Optional.ofNullable(new PathParamMatcher(Pattern.compile(buildRegexStr), paramNames));
         }
         
-        return Optional.ofNullable(null);
+        return Optional.empty();
     }
 }

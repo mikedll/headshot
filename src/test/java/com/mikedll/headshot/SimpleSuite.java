@@ -14,10 +14,10 @@ import org.apache.commons.io.FileUtils;
 import org.junit.platform.suite.api.Suite;
 import org.junit.platform.suite.api.SelectClasses;
 
-import com.mikedll.headshot.controller.ParamPathTests;
+import com.mikedll.headshot.controller.PathParamTests;
 
 @Suite
-@SelectClasses({ParamPathTests.class})
+@SelectClasses({PathParamTests.class})
 public class SimpleSuite extends TestSuite {
 
     private Application app;

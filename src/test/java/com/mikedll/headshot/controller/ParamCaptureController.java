@@ -17,7 +17,7 @@ public class ParamCaptureController extends Controller {
         try {
             res.setStatus(HttpServletResponse.SC_OK);
             // res.getWriter().write("Found name: " + this.pathParams.get("name"));
-            res.getWriter().write("Mike is here");
+            res.getWriter().write("This animal's name is: " + this.extractedParams.get("name"));
         } catch (IOException ex) {
             throw new RuntimeException("controller failed", ex);
         }

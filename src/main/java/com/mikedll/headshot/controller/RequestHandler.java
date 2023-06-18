@@ -135,12 +135,16 @@ public class RequestHandler {
                 if(annotationPath.equals(incomingRequest.getValue0()) && httpMethod.equals(incomingRequest.getValue1())) {
                     return Optional.ofNullable(new PathMatch(incomingRequest.getValue0(), new HashMap<>()));
                 } else {
-                    return Optional.ofNullable(null);
+                    return Optional.empty();
                 }
             };
         } else {
-            matchFunc = (path) -> {
-                return Optional.ofNullable(null);
+            matchFunc = (incomingRequest) -> {
+                if(!httpMethod.equals(incomingRequest.getValue1())) {
+                    return Optional.empty();
+                }
+
+                return withParams.match(incomingRequest.getValue0());
             };
         }
 

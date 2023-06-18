@@ -85,6 +85,9 @@ public class Servlet extends HttpServlet {
         }        
     }
 
+    /*
+     * Descending sort by path match. "/aaa/bbb" comes before "/ccc".
+     */ 
     class PathMatchComparator implements java.util.Comparator<Pair<RequestHandler,PathMatch>> {
         @Override
         public int compare(Pair<RequestHandler,PathMatch> a, Pair<RequestHandler,PathMatch> b) {
