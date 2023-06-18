@@ -24,15 +24,15 @@ public class GithubController extends Controller {
         this.githubService = new GithubService(this, this.currentUser.getAccessToken());
     }
     
-    @Request(path="/github/readDir")
+    @Request(path="/github/readDir/")
     public void index() {
         Pair<Repository, Boolean> loadResult = ResourceLoader.loadRepository(this, this.repositoryService, this.currentUser, req.getParameter("repositoryId"));
         if(!loadResult.getValue1()) {
             return;
         }
         Repository repository = loadResult.getValue0();
-        String path = req.getParameter("path");
-        
+
+        String path = req.getRequestURI().toString().replaceAll("^/github/readDir/", "");        
         Pair<List<GithubFile>, String> result = this.githubService.readPath(this.currentUser, repository, path);
 
         if(result.getValue1() != null) {

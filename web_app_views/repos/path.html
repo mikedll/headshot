@@ -1,0 +1,28 @@
+<html layout:decorate="~{layout}">
+  <div layout:fragment="content">
+
+    <div class="dir-location" th:data-path="${pathInfo.get('path')}" th:data-repository-id="${pathInfo.get('repositoryId')}">
+
+      <div class="mb-2" th:if="${ancestors}">
+        <div class="d-flex tree-nav">
+          <div class="d-flex" th:each="ancestor,iterStat : ${ancestors}">
+            <a th:href="'/repos/' + ${ancestor.path} + '?id=' + ${pathInfo.get('repositoryId')}">[[${ancestor.name}]]</a>
+            <div class="path-delimiter" th:if="${iterStat.index} < ${iterStat.size} - 1">
+              &gt;
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <table class="table table-bordered">
+        <thead>
+          <th>Name</th>
+          <th>Type</th>
+        </thead>
+        <tbody>
+        </tbody>        
+      </table>
+    </div>
+
+  </div>
+</html>

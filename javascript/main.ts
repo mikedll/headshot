@@ -40,8 +40,12 @@ const dirLocation = () => {
     if(path === undefined) {
       path = "";
     }
+    let pathPrefix = "";
+    if(path != "") {
+      pathPrefix = `/${path}`
+    }
     const id = info.dataset.repositoryId;
-    fetch(`/github/readDir?repositoryId=${id}&path=${path}`, {
+    fetch(`/github/readDir/${path}?repositoryId=${id}`, {
       headers: {
         "Accept": "application/json"
       }
@@ -67,10 +71,23 @@ const dirLocation = () => {
         });
       }
     }).then((data: DirFile[]) => {
+      const tbody = container.querySelector('table tbody')!;
       data.forEach((file) =>{
-        const node = document.createElement("div");
-        node.textContent = file.name;
-        container.appendChild(node);
+        const tr = document.createElement("tr");
+        const name = document.createElement('td');
+        if(file.type === "dir") {
+          const link = document.createElement('a');
+          link.href = `/repos${pathPrefix}/${file.name}?id=${id}`;
+          link.textContent = file.name;
+          name.appendChild(link);
+        } else {
+          name.textContent = file.name;
+        }
+        tr.appendChild(name);
+        const type = document.createElement('td');
+        type.textContent = file.type;
+        tr.appendChild(type);
+        tbody.appendChild(tr);
       });
     }).catch(e => {
       makeAlert(e);

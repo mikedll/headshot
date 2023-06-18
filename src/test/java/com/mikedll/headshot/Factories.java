@@ -1,5 +1,8 @@
 package com.mikedll.headshot;
 
+import com.mikedll.headshot.model.User;
+import com.mikedll.headshot.model.UserRepository;
+
 public class Factories {
 
     public static User makeUser() {

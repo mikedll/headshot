@@ -1,4 +1,7 @@
 
+type FileType = "file" | "dir";
+
 interface DirFile {
-  filename: string;
+  type: FileType;
+  name: string;
 }

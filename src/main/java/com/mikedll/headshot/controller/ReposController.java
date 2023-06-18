@@ -1,6 +1,7 @@
 package com.mikedll.headshot.controller;
 
 import java.util.List;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.HashMap;
 import jakarta.servlet.http.HttpServletResponse;
@@ -12,6 +13,8 @@ import com.mikedll.headshot.model.GithubService;
 import com.mikedll.headshot.model.RepositoryService;
 import com.mikedll.headshot.model.Repository;
 import com.mikedll.headshot.JsonMarshal;
+import com.mikedll.headshot.util.PathUtils;
+import com.mikedll.headshot.util.PathAncestor;
 
 public class ReposController extends Controller {
 
@@ -56,12 +59,14 @@ public class ReposController extends Controller {
 
         Context ctx = defaultCtx();
         String path = req.getRequestURI().toString();
+        String repoPath = path.replaceAll("^/repos/", "");
+
+        ctx.setVariable("ancestors", PathUtils.pathAncestors(repository.getName(), repoPath));
         Map<String,Object> pathInfo = new HashMap<>();
-        pathInfo.put("path", path.replaceAll("^/repos/", ""));
+        pathInfo.put("path", repoPath);
         pathInfo.put("repositoryId", repository.getId());
-        
         ctx.setVariable("pathInfo", pathInfo);
-        render("repos/directory", ctx);
+        render("repos/path", ctx);
     }
 
 }

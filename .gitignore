@@ -2,7 +2,7 @@
 target/
 tmp/
 .vscode/
-javascript/bundled/
+bundled/
 src/main/resources/*.yaml
 
   

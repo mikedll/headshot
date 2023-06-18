@@ -18,6 +18,7 @@ import org.junit.jupiter.api.BeforeEach;
 import static org.mockito.Mockito.*;
 
 import com.mikedll.headshot.controller.Controller;
+import com.mikedll.headshot.model.User;
 
 public class ControllerTests {
 
@@ -99,7 +100,7 @@ public class ControllerTests {
 
         servlet.doGet(request.req(), request.res());
 
-        verify(res).sendRedirectWorld("http://localhost/");
+        verify(res).sendRedirect("http://localhost/");
     }    
     
     @Test

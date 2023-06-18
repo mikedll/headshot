@@ -99,7 +99,6 @@ public class GithubService {
         RestTemplate restTemplate = getRestTemplate();
         String url = String.format("https://api.github.com/repos/%s/%s/contents/%s", user.getGithubLogin(), repository.getName(), path);
         ResponseEntity<String> respEnt = restTemplate.exchange(url, HttpMethod.GET, buildGetEntity(), String.class);
-        System.out.println(respEnt.getBody());
 
         String body = respEnt.getBody();
         Pair<JsonNode,String> node = JsonMarshal.getJsonNode(body);
@@ -110,15 +109,15 @@ public class GithubService {
         if(node.getValue0().isArray()) {
             Pair<List<PathReadFileResponse>, String> dirResult = JsonMarshal.convertToList(node.getValue0(), PathReadFileResponse.class);
             
-            List<GithubFile> files = dirResult.getValue0().stream().map(readFileResponse -> {
-                    return new GithubFile("/some/path", readFileResponse.name(), null);
+            List<GithubFile> files = dirResult.getValue0().stream().map(fileResp -> {
+                    return new GithubFile(fileResp.type(), "/some/path", fileResp.name(), null);
                 }).collect(Collectors.toList());
             return Pair.with(files, null);
         } else {
             Pair<PathReadFileResponse, String> fileResult = JsonMarshal.convert(node.getValue0());
             List<GithubFile> files = new ArrayList<>();
             PathReadFileResponse fileResp = fileResult.getValue0();
-            files.add(new GithubFile("/some/path", fileResp.name(), fileResp.content()));
+            files.add(new GithubFile(fileResp.type(), "/some/path", fileResp.name(), fileResp.content()));
             return Pair.with(files, null);
         }
     }

@@ -1,0 +1,14 @@
+
+.tree-nav {
+  > div {
+    margin: 0 0.50rem;
+  }
+
+  > div:nth-child(1) {
+    margin: 0;
+  }
+
+  .path-delimiter {
+    margin-left: 0.50rem;
+  }
+}

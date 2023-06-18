@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "tsc": "tsc -noEmit --watch",
-    "buildw": "esbuild ./javascript/main.ts --bundle --sourcemap --outfile=./javascript/bundled/main.js --watch"
+    "buildw": "esbuild ./javascript/main.ts --bundle --sourcemap --outfile=./bundled/main.js --watch",
+    "scssw": "sass ./scss/application.scss:./bundled/application.css --watch"
   },
   "repository": {
     "type": "git",
@@ -20,6 +21,7 @@
   "homepage": "https://github.com/mikedll/headshot#readme",
   "dependencies": {
     "esbuild": "^0.18.2",
+    "sass": "^1.63.4",
     "typescript": "^5.1.3"
   }
 }

@@ -28,7 +28,7 @@ public class AssetFingerprinter {
 
     private String outputPath = "web_assets";
 
-    private String inputPath = "javascript/bundled";
+    private String inputPath = "bundled";
     
     private Instant lastRefreshAt;
 
