@@ -1,11 +1,10 @@
 
-package com.mikedll.headshot;
+package com.mikedll.headshot.controller;
 
 import java.io.IOException;
 import java.util.stream.Collectors;
 import java.util.Collections;
 import java.util.List;
-
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -14,7 +13,8 @@ import jakarta.servlet.ServletContext;
 
 import org.javatuples.Pair;
 
-import com.mikedll.headshot.controller.*;
+import com.mikedll.headshot.Env;
+import com.mikedll.headshot.Application;
 
 public class Servlet extends HttpServlet {
 

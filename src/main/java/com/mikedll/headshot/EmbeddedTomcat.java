@@ -60,7 +60,7 @@ public class EmbeddedTomcat {
         // General content - use our servlet
         Wrapper defaultServlet = ctx.createWrapper();
         defaultServlet.setName("default");
-        defaultServlet.setServletClass("com.mikedll.headshot.Servlet");
+        defaultServlet.setServletClass("com.mikedll.headshot.controller.Servlet");
         defaultServlet.addInitParameter("debug", "0");
         defaultServlet.setLoadOnStartup(1);
         ctx.addChild(defaultServlet);

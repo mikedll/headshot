@@ -1,4 +1,4 @@
-package com.mikedll.headshot;
+package com.mikedll.headshot.controller;
 
 import java.util.Base64;
 import java.security.SecureRandom;

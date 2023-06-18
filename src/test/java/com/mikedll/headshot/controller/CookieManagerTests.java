@@ -1,11 +1,10 @@
-package com.mikedll.headshot;
+package com.mikedll.headshot.controller;
 
 import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
-
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.NoSuchPaddingException;
@@ -13,7 +12,6 @@ import java.io.UnsupportedEncodingException;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Assertions;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 
 public class CookieManagerTests {

@@ -4,8 +4,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import io.github.cdimascio.dotenv.Dotenv;
-
 import org.javatuples.Pair;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.templateresolver.FileTemplateResolver;
+import org.thymeleaf.templatemode.TemplateMode;
+import nz.net.ultraq.thymeleaf.layoutdialect.LayoutDialect;
 
 import com.mikedll.headshot.db.DatabaseConfiguration;
 import com.mikedll.headshot.db.Migrations;
@@ -23,6 +26,8 @@ public class Application {
     public static AssetFingerprinter assetFingerprinter = new AssetFingerprinter();
 
     private boolean loadedEnv;
+
+    public  static TemplateEngine templateEngine;
 
     public void run(String[] args) {
         if(argInterception(args)) {
@@ -95,18 +100,34 @@ public class Application {
         
         System.out.println("Making repositories...");
         dbConf.makeRepositories();
+
+        return postDbSetup();
+    }
+
+    /*
+     * Mostly here to help with tests that don't need the database.
+     */
+    public String postDbSetup() {
         System.out.println("Scanning for request handlers...");
+        String error = findRequestHandlers();
+        if(error != null) {
+            return error;
+        }
+        System.out.println("Creating thymeleaf template engine...");
+        setupTemplateEngine();
+        System.out.println("Refreshing assets...");
+        assetFingerprinter.refresh();
+        return null;
+    }
+
+    public String findRequestHandlers() {
         Pair<List<RequestHandler>, String> scanResult = (new Scanner()).scan();
         if(scanResult.getValue1() != null) {
             return "Error when scanning for handlers: " + scanResult.getValue1();
         }
         this.requestHandlers = scanResult.getValue0();
-        System.out.println("Creating thymeleaf template engine...");
-        Controller.setupTemplateEngine();
-        System.out.println("Refreshing assets...");
-        assetFingerprinter.refresh();
         return null;
-    }
+    }        
 
     public void shutdown() {
         System.out.println("Shutting down database...");
@@ -116,6 +137,20 @@ public class Application {
     public void markEnvLoaded() {
         this.loadedEnv = true;
     }
+
+    public void setupTemplateEngine() {
+        this.templateEngine = new TemplateEngine();
+        templateEngine.addDialect(new LayoutDialect());
+
+        FileTemplateResolver templateResolver = new FileTemplateResolver();
+        // HTML is the default mode, but we will set it anyway for better understanding of code
+        templateResolver.setTemplateMode(TemplateMode.HTML);
+        templateResolver.setPrefix("web_app_views/");
+        templateResolver.setSuffix(".html");
+        templateResolver.setCacheable(Env.env == "production");
+        
+        templateEngine.setTemplateResolver(templateResolver);
+    }        
 
     private void loadDotEnv() {
         if(loadedEnv) {

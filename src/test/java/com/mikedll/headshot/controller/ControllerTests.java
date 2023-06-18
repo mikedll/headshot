@@ -1,12 +1,11 @@
 
-package com.mikedll.headshot;
+package com.mikedll.headshot.controller;
 
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.PrintWriter;
 import java.util.Map;
 import java.util.LinkedHashMap;
-
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.ServletException;
@@ -19,6 +18,9 @@ import static org.mockito.Mockito.*;
 
 import com.mikedll.headshot.controller.Controller;
 import com.mikedll.headshot.model.User;
+import com.mikedll.headshot.DbSuite;
+import com.mikedll.headshot.TestSuite;
+import com.mikedll.headshot.Factories;
 
 public class ControllerTests {
 
@@ -31,42 +33,12 @@ public class ControllerTests {
             Assertions.fail("suite beforeTest");
         }
     }
-    
-    
-    public Request get(String path) throws IOException {
-        return get(path, null);
-    }
-    
-    public Request get(String path, Map<String,Object> session) throws IOException {
-        HttpServletRequest req = mock(HttpServletRequest.class);
-        HttpServletResponse res = mock(HttpServletResponse.class);
 
-        when(req.getRequestURI()).thenReturn(path);
-        when(req.getMethod()).thenReturn("GET");
-        StringWriter stringWriter = new StringWriter();
-        PrintWriter printWriter = new PrintWriter(stringWriter);
-        when(res.getWriter()).thenReturn(printWriter);
-
-        if(session != null) {
-            CookieManager cookieManager = new CookieManager(Env.cookieSigningKey);
-            String cookieString = cookieManager.cookieString(session);
-        
-            Cookie cookie = mock(Cookie.class);
-            when(cookie.getName()).thenReturn(Controller.COOKIE_NAME);
-            when(cookie.getValue()).thenReturn(cookieString);
-            when(req.getCookies()).thenReturn(new Cookie[] { cookie });
-        }
-        
-        return new Request(req, res, printWriter, stringWriter);
-    }
-
-    private record Request(HttpServletRequest req, HttpServletResponse res, PrintWriter printWriter, StringWriter stringWriter) {}
-    
     @Test
     public void testRoot() throws IOException, ServletException {
         Servlet servlet = new Servlet();
 
-        Request request = get("/");
+        TestRequest request = ControllerUtils.get("/");
         servlet.doGet(request.req(), request.res());
 
         request.printWriter().flush();
@@ -94,7 +66,7 @@ public class ControllerTests {
         when(cookie.getValue()).thenReturn(cookieString);
         when(req.getCookies()).thenReturn(new Cookie[] { cookie });
         
-        Request request = new Request(req, res, printWriter, stringWriter);
+        TestRequest request = new TestRequest(req, res, printWriter, stringWriter);
         
         Servlet servlet = new Servlet();
 
@@ -111,7 +83,7 @@ public class ControllerTests {
         Map<String, Object> session = new LinkedHashMap<String, Object>();
         session.put("user_id", user.getId());
 
-        Request request = get("/", session);
+        TestRequest request = ControllerUtils.get("/", session);
 
         servlet.doGet(request.req(), request.res());
 
@@ -128,12 +100,11 @@ public class ControllerTests {
         Map<String, Object> session = new LinkedHashMap<String, Object>();
         session.put("user_id", user.getId());
 
-        Request request = get("/profile", session);
+        TestRequest request = ControllerUtils.get("/profile", session);
 
         servlet.doGet(request.req(), request.res());
 
         request.printWriter().flush();
         Assertions.assertTrue(request.stringWriter().toString().contains(user.getHtmlUrl()));
     }
-    
 }

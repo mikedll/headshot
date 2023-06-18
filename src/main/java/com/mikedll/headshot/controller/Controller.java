@@ -12,16 +12,12 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Cookie;
 import org.thymeleaf.TemplateEngine;
-import org.thymeleaf.templatemode.TemplateMode;
-import org.thymeleaf.templateresolver.FileTemplateResolver;
 import org.thymeleaf.context.Context;
-import nz.net.ultraq.thymeleaf.layoutdialect.LayoutDialect;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.javatuples.Pair;
 
 import com.mikedll.headshot.model.UserRepository;
 import com.mikedll.headshot.model.User;
-import com.mikedll.headshot.CookieManager;
 import com.mikedll.headshot.Env;
 import com.mikedll.headshot.Application;
 import com.mikedll.headshot.db.DatabaseConfiguration;
@@ -29,9 +25,7 @@ import com.mikedll.headshot.AssetFingerprinter;
 import com.mikedll.headshot.JsonMarshal;
 
 public class Controller {
-    private static FileTemplateResolver templateResolver = new FileTemplateResolver();
-
-    private static TemplateEngine templateEngine = new TemplateEngine();
+    private TemplateEngine templateEngine;
 
     public static final String COOKIE_NAME = "HEADSHOT_SESSION";
 
@@ -87,6 +81,10 @@ public class Controller {
 
     public void setAssetFingerprinter(AssetFingerprinter af) {
         this.assetFingerprinter = af;
+    }
+
+    public void setTemplateEngine(TemplateEngine templateEngine) {
+        this.templateEngine = templateEngine;
     }
     
     public Context defaultCtx() {
@@ -314,14 +312,6 @@ public class Controller {
     }
 
     public static void setupTemplateEngine() {
-        // HTML is the default mode, but we will set it anyway for better understanding of code
-        templateResolver.setTemplateMode(TemplateMode.HTML);
-        templateResolver.setPrefix("web_app_views/");
-        templateResolver.setSuffix(".html");
-        templateResolver.setCacheable(Env.env == "production");
-
-        templateEngine.addDialect(new LayoutDialect());
-        templateEngine.setTemplateResolver(templateResolver);
     }        
     
 }
