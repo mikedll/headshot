@@ -6,6 +6,9 @@ import java.lang.reflect.Method;
 import java.lang.IllegalAccessException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
+import java.util.HashMap;
+import java.util.function.Function;
+import java.util.Optional;
 
 import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.core.type.MethodMetadata;
@@ -15,20 +18,15 @@ import com.mikedll.headshot.Application;
 
 public class RequestHandler {
 
-    public String path;
+    public PathMatchFunc tryMatch;
 
     public HttpMethod method;
 
-    public RequestHandlerFunc func;
-    
-    public RequestHandler(String path, HttpMethod method, RequestHandlerFunc func) {
-        this.path = path;
-        this.method = method;
-        this.func = func;
-    }
+    public RequestHandlerFunc handlerFunc;
 
-    public String toString() {
-        return method + " " + path;
+    public RequestHandler(PathMatchFunc tryMatch, RequestHandlerFunc handlerFunc) {
+        this.tryMatch = tryMatch;
+        this.handlerFunc = handlerFunc;
     }
 
     public static Pair<RequestHandler, String> build(Class<?> clazz, MethodMetadata methodMetadata) {
@@ -63,14 +61,23 @@ public class RequestHandler {
         if(annotatedMethod == null) {
             return new Pair<>(null, "no method by name " + methodMetadata.getMethodName() + " found");
         }
+        
+        RequestHandlerFunc requestHandlerFunc = buildHandlerFunc(clazz, annotatedMethod, qualifyingCtor);
+        PathMatchFunc tryMatchFunc = buildMatchFunc(methodMetadata);
+        RequestHandler created = new RequestHandler(tryMatchFunc, requestHandlerFunc);
 
-        // Build lambda Function that Servlet will call
-        final Method methodToUse = annotatedMethod;
-        final Constructor ctorToUse = qualifyingCtor;
-        RequestHandlerFunc toRun = (pair) -> {
+        // Done!
+        return Pair.with(created, null);        
+    }
+
+    /*
+     * Returns func for servlet to call to respond to request.
+     */ 
+    public static RequestHandlerFunc buildHandlerFunc(Class<?> clazz, Method method, Constructor<?> constructor) {
+        return (triplet) -> {
             Object targetObject = null;
             try {
-                targetObject = ctorToUse.newInstance();
+                targetObject = constructor.newInstance();
             } catch (Throwable ex) {
                 if(ex.getCause() != null) {
                     System.out.println(ex.getCause().getMessage());
@@ -82,8 +89,9 @@ public class RequestHandler {
             }
 
             Controller controller = (Controller)targetObject;
-            controller.setRequest(pair.getValue0());
-            controller.setResponse(pair.getValue1());
+            controller.setRequest(triplet.getValue0());
+            controller.setResponse(triplet.getValue1());
+            controller.setExtractedParams(triplet.getValue2());
             controller.setDbConf(Application.dbConf);
             controller.setAssetFingerprinter(Application.assetFingerprinter);
             controller.setTemplateEngine(Application.templateEngine);
@@ -93,7 +101,7 @@ public class RequestHandler {
             }
 
             try {
-                methodToUse.invoke(controller);
+                method.invoke(controller);
             } catch (IllegalAccessException ex) {
                 return "IllegalAccessException when running controller action: " + ex.getMessage();
             } catch (InvocationTargetException ex) {
@@ -108,14 +116,34 @@ public class RequestHandler {
             }
 
             return null;
-        };
+        };        
+    }
 
-        // Set path/Http method of this handler, e.g. "/profile", GET
+    /*
+     * Build path match func. Returns null on no match. Returns PathMatch on success.
+     *
+     * Func takes a (String path, HttpMethod method) pair as input.
+     */
+    public static PathMatchFunc buildMatchFunc(MethodMetadata methodMetadata) {
         Map<String, Object> attrs = methodMetadata.getAnnotationAttributes(Scanner.ANNOTATION);
         HttpMethod httpMethod = (HttpMethod)attrs.get("method");
-        RequestHandler created = new RequestHandler((String)attrs.get("path"), httpMethod, toRun);
+        String annotationPath = (String)attrs.get("path");
+        PathParamMatcher withParams = PathParamMatcher.build(annotationPath).orElse(null);
+        PathMatchFunc matchFunc = null;
+        if(withParams == null) {
+            matchFunc = (incomingRequest) -> {
+                if(annotationPath.equals(incomingRequest.getValue0()) && httpMethod.equals(incomingRequest.getValue1())) {
+                    return Optional.ofNullable(new PathMatch(incomingRequest.getValue0(), new HashMap<>()));
+                } else {
+                    return Optional.ofNullable(null);
+                }
+            };
+        } else {
+            matchFunc = (path) -> {
+                return Optional.ofNullable(null);
+            };
+        }
 
-        // Done!
-        return Pair.with(created, null);        
+        return matchFunc;            
     }
 }

@@ -59,6 +59,8 @@ public class Controller {
 
     protected DatabaseConfiguration dbConf;
 
+    protected Map<String,String> extractedParams;
+
     public void setRequest(HttpServletRequest req) {
         this.req = req;
     }
@@ -85,6 +87,10 @@ public class Controller {
 
     public void setTemplateEngine(TemplateEngine templateEngine) {
         this.templateEngine = templateEngine;
+    }
+
+    public void setExtractedParams(Map<String,String> extractedParams) {
+        this.extractedParams = extractedParams;
     }
     
     public Context defaultCtx() {

@@ -1,13 +1,10 @@
 
-package com.mikedll.headshot;
+package com.mikedll.headshot.controller;
 
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Assertions;
-
-import com.mikedll.headshot.controller.Scanner;
-import com.mikedll.headshot.controller.RequestHandler;
 
 import org.javatuples.Pair;
 
@@ -21,8 +18,10 @@ public class RequestAnnotationTests {
         List<RequestHandler> requestHandlers = result.getValue0();
         Assertions.assertTrue(requestHandlers.size() > 0);
 
-        RequestHandler found = requestHandlers.stream()
-            .filter(rh -> rh.path.equals("/")).findAny().orElse(null);
+        Pair<RequestHandler,PathMatch> found = requestHandlers.stream()
+            .map(rh -> Pair.with(rh, rh.tryMatch.apply(Pair.with("/", HttpMethod.GET)).orElse(null)))
+            .filter(match -> match.getValue1() != null)
+            .findAny().orElse(null);
         Assertions.assertNotNull(found);
     }
 

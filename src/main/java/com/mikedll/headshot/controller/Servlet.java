@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.stream.Collectors;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -12,14 +13,13 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.ServletContext;
 
 import org.javatuples.Pair;
+import org.javatuples.Triplet;
 
 import com.mikedll.headshot.Env;
 import com.mikedll.headshot.Application;
 
 public class Servlet extends HttpServlet {
 
-    record PathMatch(RequestHandler handler, String matchSubstring) {}
-    
     public boolean shouldLog() {
         return Env.shouldLog();
     }
@@ -35,29 +35,31 @@ public class Servlet extends HttpServlet {
         doService(req, res, HttpMethod.GET);
     }
 
+    private Optional<Pair<RequestHandler,PathMatch>> findHandlerMatch(Pair<String, HttpMethod> incomingRequest) {
+        List<Pair<RequestHandler,PathMatch>> matchPairs = Application.requestHandlers
+            .stream()
+            .map(rh -> Pair.with(rh, rh.tryMatch.apply(incomingRequest).orElse(null)))
+            .filter(pair -> pair.getValue1() != null)
+            .collect(Collectors.toList());
+        
+        Collections.sort(matchPairs, new PathMatchComparator());
+
+        Pair<RequestHandler,PathMatch> found = null;
+        if(matchPairs.size() > 0) {
+            found = matchPairs.get(0);
+        }
+
+        return Optional.ofNullable(found);
+    }
+    
     private void doService(HttpServletRequest req, HttpServletResponse res, HttpMethod method) {
         String path = req.getRequestURI().toString();
         if(shouldLog()) {
             System.out.println("Path: " + path);
         }
 
-        List<PathMatch> pathMatches = Application.requestHandlers
-            .stream()
-            .filter(rh -> path.startsWith(rh.path) && rh.method.equals(method))
-            .map(rh -> {
-                    // Can later enhance to hold paths that match with capture params
-                    return new PathMatch(rh, rh.path);
-                })
-            .collect(Collectors.toList());
-        
-        Collections.sort(pathMatches, new PathMatchComparator());
-
-        RequestHandler matchingHandler = null;
-        if(pathMatches.size() > 0) {
-            matchingHandler = pathMatches.get(0).handler();
-        }
-
-        if(matchingHandler == null) {
+        Pair<RequestHandler,PathMatch> handlerMatch = findHandlerMatch(Pair.with(path, method)).orElse(null);
+        if(handlerMatch == null) {
             try {
                 res.sendError(HttpServletResponse.SC_NOT_FOUND, "the requested resource was not found");
             } catch (IOException ex) {
@@ -69,8 +71,10 @@ public class Servlet extends HttpServlet {
         if(Env.env == "development") {
             Application.assetFingerprinter.refresh();
         }
+
         
-        String error = matchingHandler.func.apply(Pair.with(req, res));
+        String error = handlerMatch.getValue0().handlerFunc
+            .apply(Triplet.with(req, res, handlerMatch.getValue1().extractedParams()));
         if(error != null) {
             try {
                 System.out.println("Error: " + error);
@@ -81,10 +85,10 @@ public class Servlet extends HttpServlet {
         }        
     }
 
-    class PathMatchComparator implements java.util.Comparator<PathMatch> {
+    class PathMatchComparator implements java.util.Comparator<Pair<RequestHandler,PathMatch>> {
         @Override
-        public int compare(PathMatch a, PathMatch b) {
-            return b.matchSubstring().length() - a.matchSubstring().length();
+        public int compare(Pair<RequestHandler,PathMatch> a, Pair<RequestHandler,PathMatch> b) {
+            return b.getValue1().matched().length() - a.getValue1().matched().length();
         }
     }    
     
