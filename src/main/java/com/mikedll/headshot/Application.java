@@ -9,6 +9,7 @@ import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.templateresolver.FileTemplateResolver;
 import org.thymeleaf.templatemode.TemplateMode;
 import nz.net.ultraq.thymeleaf.layoutdialect.LayoutDialect;
+import org.apache.logging.log4j.core.config.ConfigurationFactory;
 
 import com.mikedll.headshot.db.DatabaseConfiguration;
 import com.mikedll.headshot.db.Migrations;
@@ -30,6 +31,8 @@ public class Application {
     public  static TemplateEngine templateEngine;
 
     public void run(String[] args) {
+        ConfigurationFactory.setConfigurationFactory(new LoggingConfigFactory());
+
         if(argInterception(args)) {
             return;
         }
