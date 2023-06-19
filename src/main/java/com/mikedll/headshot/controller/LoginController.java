@@ -1,21 +1,27 @@
 
 package com.mikedll.headshot.controller;
 
+import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.ArrayList;
 import java.util.Base64;
-
+import java.net.URI;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-import org.springframework.web.util.DefaultUriBuilderFactory;
 import org.springframework.security.crypto.keygen.Base64StringKeyGenerator;
 import org.springframework.security.crypto.keygen.StringKeyGenerator;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.util.MultiValueMap;
-import org.springframework.util.LinkedMultiValueMap;
+import org.apache.hc.core5.http.message.BasicNameValuePair;
+import org.apache.hc.core5.http.NameValuePair;
+import com.fasterxml.jackson.core.type.TypeReference;
+import org.javatuples.Pair;
 
 import com.mikedll.headshot.model.UserRepository;
 import com.mikedll.headshot.model.User;
 import com.mikedll.headshot.model.GithubService;
+import com.mikedll.headshot.util.MyUri;
+import com.mikedll.headshot.util.RestClient;
 import com.mikedll.headshot.Env;
 import com.mikedll.headshot.Application;
 
@@ -50,13 +56,12 @@ public class LoginController extends Controller {
         String state = DEFAULT_STATE_GENERATOR.generateKey();
         this.session.put("oauth2state", state);
 
-        DefaultUriBuilderFactory factory = new DefaultUriBuilderFactory();
-        MultiValueMap<String,String> map = new LinkedMultiValueMap<String,String>();        
-        map.add("client_id", Env.githubConfig.clientId());
-        map.add("scope", "user repo");
-        map.add("state", (String)this.session.get("oauth2state"));
-        map.add("redirect_uri", redirectUri());
-        String redirectToGithubUrl = factory.uriString(GITHUB_AUTH_PATH).queryParams(map).build().toString();
+        List<NameValuePair> params = new ArrayList<>();
+        params.add(new BasicNameValuePair("client_id", Env.githubConfig.clientId()));
+        params.add(new BasicNameValuePair("scope", "user repo"));
+        params.add(new BasicNameValuePair("state", (String)this.session.get("oauth2state")));
+        params.add(new BasicNameValuePair("redirect_uri", redirectUri()));
+        String redirectToGithubUrl = MyUri.from(GITHUB_AUTH_PATH, params).toString();
 
         sendCookies();
         
@@ -74,29 +79,34 @@ public class LoginController extends Controller {
         String authCode = req.getParameter(OAUTH2_CODE);
         // System.out.println("Code: " + authCode);
 
-        RestTemplate restTemplate = GithubService.getRestTemplate();
-        MultiValueMap<String,String> map = new LinkedMultiValueMap<String,String>();
-        map.add("client_id", Env.githubConfig.clientId());
-        map.add("client_secret", Env.githubConfig.clientSecret());
-        map.add("code", authCode);
+        List<NameValuePair> params = new ArrayList<>();
+        params.add(new BasicNameValuePair("client_id", Env.githubConfig.clientId()));
+        params.add(new BasicNameValuePair("client_secret", Env.githubConfig.clientSecret()));
+        params.add(new BasicNameValuePair("code", authCode));
 
-        AccessTokenResponse restResponse = restTemplate.postForObject(GITHUB_ACCESS_TOKEN_PATH, map, AccessTokenResponse.class);
-        if(restResponse.access_token == null) {
-            throw new RequestException("oauth2 access_token retrieval failed");
+        Map<String,String> headers = new HashMap<String,String>();        
+        Pair<List<NameValuePair>,String> restResult = RestClient.nvParamsPost(MyUri.from(GITHUB_ACCESS_TOKEN_PATH),
+                                                                              headers,
+                                                                              params);
+
+        if(restResult.getValue1() != null) {
+            sendInternalServerError(restResult.getValue1());
+            return;
         }
-        // System.out.println("Rest response: ");
-        // System.out.println(restResponse);
+        List<NameValuePair> data = restResult.getValue0();
+        NameValuePair accessToken = data.stream().filter(p -> p.getName().equals("access_token")).findAny().orElse(null);
 
-        GithubService service = new GithubService(this, restResponse.access_token);
-        User user = service.pullUserInfo();
-        if(user == null) {
-            throw new RequestException("Failed to get user from github");
+        GithubService service = new GithubService(this, accessToken.getValue());
+        Pair<User,String> userResult = service.pullUserInfo();
+        if(userResult.getValue1() != null) {
+            sendInternalServerError("Failed to get user from Github: " + userResult.getValue1());
+            return;
         }
         
-        this.session.put("user_id", user.getId());
+        this.session.put("user_id", userResult.getValue0().getId());
 
         sendCookies();
-        sendRedirect(localOrigin() + "/");
+        sendRedirect("/");
     }
 
     private String redirectUri() {

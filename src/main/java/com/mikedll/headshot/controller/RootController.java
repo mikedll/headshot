@@ -16,6 +16,6 @@ public class RootController extends Controller {
     public void logout() {
         clearSession();
         sendCookies();
-        sendRedirect(localOrigin() + "/");
+        sendRedirect("/");
     }    
 }

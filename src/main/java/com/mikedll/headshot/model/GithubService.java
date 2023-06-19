@@ -5,18 +5,17 @@ import java.util.List;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.HashMap;
 
-import org.springframework.web.client.RestTemplate;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
 import org.javatuples.Pair;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.core.type.TypeReference;
 
 import com.mikedll.headshot.controller.Controller;
 import com.mikedll.headshot.JsonMarshal;
+import com.mikedll.headshot.util.MyUri;
+import com.mikedll.headshot.util.RestClient;
 
 public class GithubService {
 
@@ -58,24 +57,32 @@ public class GithubService {
         this.accessToken = accessToken;
     }
 
-    private UserResponse getUser() {
-        RestTemplate restTemplate = getRestTemplate();
-        ResponseEntity<UserResponse> userResEnt = restTemplate.exchange("https://api.github.com/user",
-                                                                        HttpMethod.GET,
-                                                                        buildGetEntity(), UserResponse.class);
-        return userResEnt.getBody();
+    private Pair<UserResponse,String> getUser() {
+        Pair<UserResponse,String> restResult = RestClient.get(MyUri.from("https://api.github.com/user"),
+                                                              buildHeaders(),
+                                                              new TypeReference<UserResponse>() {});
+
+        if(restResult.getValue1() != null) {
+            return Pair.with(null, restResult.getValue1());
+        }
+        
+        return Pair.with(restResult.getValue0(), null);
     }
 
-    public User pullUserInfo() {
-        UserResponse userResp = getUser();
-        if(userResp.id == null) return null;
+    public Pair<User,String> pullUserInfo() {
+        Pair<UserResponse,String> getUserResult = getUser();
+        if(getUserResult.getValue1() != null) {
+            return Pair.with(null, getUserResult.getValue1());
+        }
+
+        UserResponse userResponse = getUserResult.getValue0();
         
-        User user = userRepository.findByGithubId(userResp.id);
+        User user = userRepository.findByGithubId(userResponse.id);
         if(user == null) {
             System.out.println("Found no user");
             user = new User();
             user.setAccessToken(accessToken);
-            userResp.copyFieldsTo(user);
+            userResponse.copyFieldsTo(user);
             userRepository.save(user);
         } else {
             System.out.println("Found existing user and given access token");
@@ -83,25 +90,32 @@ public class GithubService {
             userRepository.save(user);
         }
 
-        return user;
+        return Pair.with(user, null);
     }
     
     
-    public List<Repository> getRepositories(String githubLogin) {
-        RestTemplate restTemplate = getRestTemplate();
+    public Pair<List<Repository>,String> getRepositories(String githubLogin) {
         String url = String.format("https://api.github.com/users/%s/repos", githubLogin);
-        ResponseEntity<RepoResponse[]> reposEnt = restTemplate.exchange(url, HttpMethod.GET, buildGetEntity(), RepoResponse[].class);
-        List<Repository> response = Arrays.asList(reposEnt.getBody()).stream().map(RepoResponse::toRepository)
+        Pair<List<RepoResponse>,String> restResult = RestClient.get(MyUri.from(url),
+                                                                    buildHeaders(),
+                                                                    new TypeReference<List<RepoResponse>>() {});
+        if(restResult.getValue1() != null) {
+            return Pair.with(null, restResult.getValue1());
+        }
+
+        List<Repository> response = restResult.getValue0().stream().map(RepoResponse::toRepository)
             .filter(r -> !r.getIsPrivate()).collect(Collectors.toList());
-        return response;
+        return Pair.with(response, null);
     }
 
     public Pair<List<GithubFile>, String> readPath(User user, Repository repository, String path) {
-        RestTemplate restTemplate = getRestTemplate();
         String url = String.format("https://api.github.com/repos/%s/%s/contents/%s", user.getGithubLogin(), repository.getName(), path);
-        ResponseEntity<String> respEnt = restTemplate.exchange(url, HttpMethod.GET, buildGetEntity(), String.class);
+        Pair<String,String> restResult = RestClient.get(MyUri.from(url), buildHeaders());
+        if(restResult.getValue1() != null) {
+            return Pair.with(null, restResult.getValue1());
+        }
 
-        String body = respEnt.getBody();
+        String body = restResult.getValue0();
         Pair<JsonNode,String> node = JsonMarshal.getJsonNode(body);
         if(node.getValue1() != null) {
             return Pair.with(null, "unable to read path: " + node.getValue1());
@@ -124,16 +138,10 @@ public class GithubService {
         }
     }
 
-    private HttpEntity<String> buildGetEntity() {
-        HttpHeaders headers = new HttpHeaders();
-        headers.set(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken);
-        headers.set("X-GitHub-Api-Version", "2022-11-28");
-        return new HttpEntity<String>(headers);
+    private Map<String,String> buildHeaders() {
+        Map<String,String> headers = new HashMap<>();
+        headers.put("Authorization", "Bearer " + accessToken);
+        headers.put("X-GitHub-Api-Version", "2022-11-28");
+        return headers;
     }
-
-    public static RestTemplate getRestTemplate() {
-        RestTemplate restTemplate = new RestTemplate();
-        restTemplate.setErrorHandler(new RestErrorHandler());
-        return restTemplate;
-    }        
 }

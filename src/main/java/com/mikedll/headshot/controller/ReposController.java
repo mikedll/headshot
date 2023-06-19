@@ -41,7 +41,13 @@ public class ReposController extends Controller {
     @Request(path="/repos/load", method=HttpMethod.PUT)
     public void loadRepos() {
         GithubService service = new GithubService(this, this.currentUser.getAccessToken());
-        List<Repository> repositories = service.getRepositories(this.currentUser.getGithubLogin());
+        Pair<List<Repository>,String> repositoriesResult = service.getRepositories(this.currentUser.getGithubLogin());
+        if(repositoriesResult.getValue1() != null) {
+            sendInternalServerError(repositoriesResult.getValue1());
+            return;
+        }
+
+        List<Repository> repositories = repositoriesResult.getValue0();
         String error = this.repositoryService.save(this.currentUser, repositories);
         if(error != null) {
             sendInternalServerError(error);

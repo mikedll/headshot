@@ -25,6 +25,7 @@ public class JsonMarshal {
 
     public static <T> Pair<T, String> unmarshal(String input, TypeReference<T> typeRef) {
         ObjectMapper mapper = new ObjectMapper();
+        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         T unmarshalled = null;
         try {
             unmarshalled = mapper.readValue(input, typeRef);
