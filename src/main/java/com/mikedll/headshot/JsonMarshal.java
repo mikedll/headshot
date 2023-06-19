@@ -34,9 +34,6 @@ public class JsonMarshal {
         return Pair.with(unmarshalled, null);        
     }
 
-    /*
-     * Doesn't work.
-     */
     public static <T> Pair<T, String> convert(JsonNode node, TypeReference<T> typeRef) {
         ObjectMapper mapper = new ObjectMapper();
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
