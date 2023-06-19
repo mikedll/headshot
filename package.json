@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "tsc": "tsc -noEmit --watch",
     "buildw": "esbuild ./javascript/main.ts --bundle --sourcemap --outfile=./bundled/main.js --watch",
-    "scssw": "sass ./scss/application.scss:./bundled/application.css --watch"
+    "scssw": "sass --load-path=node_modules ./scss/application.scss:./bundled/application.css --watch"
   },
   "repository": {
     "type": "git",
@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/mikedll/headshot#readme",
   "dependencies": {
+    "@fortawesome/fontawesome-free": "^6.4.0",
     "esbuild": "^0.18.2",
     "sass": "^1.63.4",
     "typescript": "^5.1.3"

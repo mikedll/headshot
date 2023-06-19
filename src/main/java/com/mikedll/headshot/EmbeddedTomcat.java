@@ -3,8 +3,8 @@ package com.mikedll.headshot;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.stream.Collectors;
-
+import java.util.List;
+import java.util.ArrayList;
 import jakarta.servlet.ServletException;
 
 import org.apache.catalina.Container;
@@ -23,6 +23,7 @@ import org.apache.catalina.loader.WebappLoader;
 import org.apache.catalina.WebResourceRoot;
 import org.apache.catalina.webresources.DirResourceSet;
 import org.apache.catalina.webresources.StandardRoot;
+import org.javatuples.Pair;
 
 public class EmbeddedTomcat {
 
@@ -32,6 +33,8 @@ public class EmbeddedTomcat {
 
     public static final String PUBLIC_ROOT_DIR = "/static";
 
+    public static final String PUBLIC_FONT_DIR = "/webfonts";
+    
     public EmbeddedTomcat() {
         this.tomcat = new Tomcat();
     }
@@ -59,7 +62,7 @@ public class EmbeddedTomcat {
 
         // General content - use our servlet
         Wrapper defaultServlet = ctx.createWrapper();
-        defaultServlet.setName("default");
+        defaultServlet.setName("defaultServlet");
         defaultServlet.setServletClass("com.mikedll.headshot.controller.Servlet");
         defaultServlet.addInitParameter("debug", "0");
         defaultServlet.setLoadOnStartup(1);
@@ -68,22 +71,31 @@ public class EmbeddedTomcat {
 
         // Static content under /static - use default servlet
         Wrapper staticServlet = ctx.createWrapper();
-        staticServlet.setName("static");
+        staticServlet.setName("staticServlet");
         staticServlet.setServletClass("org.apache.catalina.servlets.DefaultServlet");
         staticServlet.addInitParameter("debug", "0");
         staticServlet.addInitParameter("listings", "false");
         staticServlet.setLoadOnStartup(1);
         ctx.addChild(staticServlet);
 
-        ctx.addServletMappingDecoded("/", "default");
-        ctx.addServletMappingDecoded(PUBLIC_ROOT_DIR + "/*", "static");
+        ctx.addServletMappingDecoded("/", "defaultServlet");
+        ctx.addServletMappingDecoded(PUBLIC_ROOT_DIR + "/*", "staticServlet");
+        ctx.addServletMappingDecoded(PUBLIC_FONT_DIR + "/*", "staticServlet");
 
         // Make context aware of our static resources
-        File localStaticRoot = new File("web_assets");
         WebResourceRoot resources = new StandardRoot(ctx);
-        DirResourceSet dirSet = new DirResourceSet(resources, PUBLIC_ROOT_DIR, localStaticRoot.getAbsolutePath(), "/");
-        dirSet.setReadOnly(true);
-        resources.addPreResources(dirSet);        
+
+        List<Pair<String,String>> staticDirs = new ArrayList<>(2);
+        staticDirs.add(Pair.with(PUBLIC_ROOT_DIR, "web_assets"));
+        staticDirs.add(Pair.with(PUBLIC_FONT_DIR, "node_modules/@fortawesome/fontawesome-free/webfonts"));
+
+        staticDirs.forEach(staticDir -> {
+                DirResourceSet dirSet = new DirResourceSet(resources, staticDir.getValue0(),
+                                                           new File(staticDir.getValue1()).getAbsolutePath(), "/");
+                dirSet.setReadOnly(true);
+                resources.addPreResources(dirSet);
+            });
+        
         ctx.setResources(resources);
 
         this.tomcat.getHost().addChild(ctx);

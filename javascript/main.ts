@@ -72,16 +72,32 @@ const dirLocation = () => {
       const tbody = container.querySelector('table tbody')!;
       data.forEach((file) =>{
         const tr = document.createElement("tr");
-        const name = document.createElement('td');
+        const cell = document.createElement('td');
+        const fileLink = `/repos/${id}${path}/${file.name}`;
         if(file.type === "dir") {
-          const link = document.createElement('a');
-          link.href = `/repos/${id}${path}/${file.name}`;
-          link.textContent = file.name;
-          name.appendChild(link);
+          const iconLink = document.createElement('a');
+          iconLink.href = fileLink;
+          const iTag = document.createElement('i');
+          iTag.classList.add('fa-regular');
+          iTag.classList.add('fa-folder');
+          iconLink.appendChild(iTag);
+          cell.appendChild(iconLink);
+
+          cell.appendChild(document.createTextNode(' '));
+
+          const textLink = document.createElement('a');
+          textLink.href = `/repos/${id}${path}/${file.name}`;
+          textLink.textContent = file.name;
+          cell.appendChild(textLink);
         } else {
-          name.textContent = file.name;
+          const iTag = document.createElement('i');
+          iTag.classList.add('fa-regular');
+          iTag.classList.add('fa-file');
+          cell.appendChild(iTag);
+          cell.appendChild(document.createTextNode(' '));
+          cell.appendChild(document.createTextNode(file.name));
         }
-        tr.appendChild(name);
+        tr.appendChild(cell);
         const type = document.createElement('td');
         type.textContent = file.type;
         tr.appendChild(type);
