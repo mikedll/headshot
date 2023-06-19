@@ -13,6 +13,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.javatuples.Pair;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.core.type.TypeReference;
 
 import com.mikedll.headshot.controller.Controller;
 import com.mikedll.headshot.JsonMarshal;
@@ -107,14 +108,15 @@ public class GithubService {
         }
 
         if(node.getValue0().isArray()) {
-            Pair<List<PathReadFileResponse>, String> dirResult = JsonMarshal.convertToList(node.getValue0(), PathReadFileResponse.class);
-            
+            Pair<List<PathReadFileResponse>, String> dirResult
+                = JsonMarshal.convert(node.getValue0(), new TypeReference<List<PathReadFileResponse>>() {});
             List<GithubFile> files = dirResult.getValue0().stream().map(fileResp -> {
                     return new GithubFile(fileResp.type(), "/some/path", fileResp.name(), null);
                 }).collect(Collectors.toList());
             return Pair.with(files, null);
         } else {
-            Pair<PathReadFileResponse, String> fileResult = JsonMarshal.convert(node.getValue0());
+            Pair<PathReadFileResponse, String> fileResult
+                = JsonMarshal.convert(node.getValue0(), new TypeReference<PathReadFileResponse>() {});
             List<GithubFile> files = new ArrayList<>();
             PathReadFileResponse fileResp = fileResult.getValue0();
             files.add(new GithubFile(fileResp.type(), "/some/path", fileResp.name(), fileResp.content()));

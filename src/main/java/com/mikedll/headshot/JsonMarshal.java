@@ -23,9 +23,8 @@ public class JsonMarshal {
         return Pair.with(marshalled, null);
     }
 
-    public static <T> Pair<T, String> unmarshal(String input) {
+    public static <T> Pair<T, String> unmarshal(String input, TypeReference<T> typeRef) {
         ObjectMapper mapper = new ObjectMapper();
-        TypeReference<T> typeRef = new TypeReference<T>() {};
         T unmarshalled = null;
         try {
             unmarshalled = mapper.readValue(input, typeRef);
@@ -38,40 +37,12 @@ public class JsonMarshal {
     /*
      * Doesn't work.
      */
-    public static <T> Pair<T, String> convert(JsonNode node) {
+    public static <T> Pair<T, String> convert(JsonNode node, TypeReference<T> typeRef) {
         ObjectMapper mapper = new ObjectMapper();
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        
-        TypeReference<T> typeRef = new TypeReference<T>() {};
-        System.out.println("typeRef: " + typeRef);
-        T unmarshalled = null;
-
-        unmarshalled = mapper.convertValue(node, typeRef);
-        return Pair.with(unmarshalled, null);        
+        return Pair.with(mapper.convertValue(node, typeRef), null);        
     }
 
-    public static <T> Pair<List<T>, String> convertToList(JsonNode node, Class<T> clazz) {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-
-        CollectionType javaType = mapper.getTypeFactory()
-            .constructCollectionType(List.class, clazz);
-
-        List<T> unmarshalled = null;
-        unmarshalled = mapper.convertValue(node, javaType);
-        return Pair.with(unmarshalled, null);
-    }
-    
-    
-    public static <T> Pair<T, String> convert(JsonNode node, CollectionType collectionType) {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        T unmarshalled = null;
-
-        unmarshalled = mapper.convertValue(node, collectionType);
-        return Pair.with(unmarshalled, null);        
-    }
-    
     public static Pair<JsonNode, String> getJsonNode(String input) {
         ObjectMapper mapper = new ObjectMapper();
         JsonNode ret = null;
