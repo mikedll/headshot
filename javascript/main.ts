@@ -98,9 +98,6 @@ const dirLocation = () => {
           cell.appendChild(document.createTextNode(file.name));
         }
         tr.appendChild(cell);
-        const type = document.createElement('td');
-        type.textContent = file.type;
-        tr.appendChild(type);
         tbody.appendChild(tr);
       });
     }).catch(e => {
