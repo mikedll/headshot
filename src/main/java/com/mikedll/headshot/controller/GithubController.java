@@ -9,7 +9,7 @@ import org.javatuples.Pair;
 
 import com.mikedll.headshot.JsonMarshal;
 import com.mikedll.headshot.apiclients.GithubClient;
-import com.mikedll.headshot.apiclients.GithubFile;
+import com.mikedll.headshot.apiclients.GithubPath;
 import com.mikedll.headshot.model.Repository;
 import com.mikedll.headshot.model.RepositoryRepository;
 
@@ -50,7 +50,7 @@ public class GithubController extends Controller {
         }
 
         String path = req.getRequestURI().toString().replaceFirst("^" + Pattern.quote(this.pathMatch.matched()) + "/?", "");
-        Pair<List<GithubFile>, String> result = this.githubClient.readPath(this.currentUser, repository, path);
+        Pair<GithubPath, String> result = this.githubClient.readPath(this.currentUser, repository, path);
 
         if(result.getValue1() != null) {
             sendInternalServerError(result.getValue1());

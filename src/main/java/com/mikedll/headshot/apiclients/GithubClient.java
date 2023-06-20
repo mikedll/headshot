@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.Base64;
 
 import org.javatuples.Pair;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -19,9 +20,12 @@ import com.mikedll.headshot.model.Repository;
 import com.mikedll.headshot.JsonMarshal;
 import com.mikedll.headshot.util.MyUri;
 import com.mikedll.headshot.util.RestClient;
+import com.mikedll.headshot.util.Decoding;
 
 public class GithubClient {
 
+    public static final String DIR_TYPE = "dir";
+    
     private UserRepository userRepository;
     
     private String accessToken;
@@ -107,7 +111,7 @@ public class GithubClient {
         return Pair.with(response, null);
     }
 
-    public Pair<List<GithubFile>, String> readPath(User user, Repository repository, String path) {
+    public Pair<GithubPath, String> readPath(User user, Repository repository, String path) {
         String url = String.format("https://api.github.com/repos/%s/%s/contents/%s", user.getGithubLogin(), repository.getName(), path);
         Pair<String,String> restResult = RestClient.get(MyUri.from(url), buildHeaders());
         if(restResult.getValue1() != null) {
@@ -121,19 +125,28 @@ public class GithubClient {
         }
 
         if(node.getValue0().isArray()) {
+            // Directory
             Pair<List<PathReadFileResponse>, String> dirResult
                 = JsonMarshal.convert(node.getValue0(), new TypeReference<List<PathReadFileResponse>>() {});
             List<GithubFile> files = dirResult.getValue0().stream().map(fileResp -> {
-                    return new GithubFile(fileResp.type(), "/some/path", fileResp.name(), null);
+                    return new GithubFile(fileResp.type(), fileResp.name(), null, false);
                 }).collect(Collectors.toList());
-            return Pair.with(files, null);
+            return Pair.with(new GithubPath(path, false, files), null);
         } else {
+            // File
             Pair<PathReadFileResponse, String> fileResult
                 = JsonMarshal.convert(node.getValue0(), new TypeReference<PathReadFileResponse>() {});
             List<GithubFile> files = new ArrayList<>();
             PathReadFileResponse fileResp = fileResult.getValue0();
-            files.add(new GithubFile(fileResp.type(), "/some/path", fileResp.name(), fileResp.content()));
-            return Pair.with(files, null);
+
+            byte[] fileBytes = Base64.getMimeDecoder().decode(fileResp.content());
+            Pair<String,String> toStringResult = Decoding.decode(fileBytes);
+            if(toStringResult.getValue1() != null) {
+                files.add(new GithubFile(fileResp.type(), fileResp.name(), fileResp.content(), false));
+            } else {
+                files.add(new GithubFile(fileResp.type(), fileResp.name(), toStringResult.getValue0(), true));
+            }
+            return Pair.with(new GithubPath(path, true, files), null);
         }
     }
 
