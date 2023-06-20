@@ -27,7 +27,6 @@ public class ProfileControllerTests {
     @Test
     public void testBadCookie() throws IOException {
         TestRequest request = ControllerUtils.builder().withCookieString("sillynonsense").build().get("/profile");
-        request.execute();
 
         verify(request.res()).sendRedirect("http://localhost/");
     }    
@@ -37,7 +36,6 @@ public class ProfileControllerTests {
         User user = Factories.createUser();
 
         TestRequest request = ControllerUtils.builder().withUser(user).build().get("/profile");
-        request.execute();
 
         Assertions.assertTrue(request.responseBody().contains(user.getHtmlUrl()));
     }

@@ -78,15 +78,23 @@ public class ControllerUtils {
     }
     
     public TestRequest get(String path) {
-        return makeRequest(path, "GET");
+        TestRequest request = makeRequest(path, "GET");
+        request.execute();
+        return request;
     }
 
     public TestRequest put(String path) {
-        return makeRequest(path, "PUT");
+        TestRequest request = makeRequest(path, "PUT");
+        request.execute();
+        return request;
     }
     
     public static Builder builder() {
         return new Builder();
+    }
+
+    public static <T> T getRepository(Class<T> clazz) {
+        return app.dbConf.getRepository(app, clazz);
     }
 
     public static class Builder {

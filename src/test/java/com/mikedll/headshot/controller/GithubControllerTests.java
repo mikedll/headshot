@@ -42,13 +42,12 @@ public class GithubControllerTests {
         when(ControllerUtils.app.apiClientManager.getGithubClient(any(Controller.class), anyString())).thenReturn(client);
 
         TestRequest request = ControllerUtils.builder().withUser(user).build().put("/github/loadRepos");
-        request.execute();
 
         // System.out.println(request.res().getStatus());
         verify(request.res()).setStatus(HttpServletResponse.SC_OK);
         // Assertions.assertTrue(request.responseBody().contains("Hello"));
 
-        RepositoryRepository repositoryRepository = ControllerUtils.app.dbConf.getRepository(ControllerUtils.app, RepositoryRepository.class);
+        RepositoryRepository repositoryRepository = ControllerUtils.getRepository(RepositoryRepository.class);
 
         Pair<List<Repository>,String> reposResult = repositoryRepository.forUser(user);
         List<Repository> createdRepos = reposResult.getValue0();

@@ -26,7 +26,6 @@ public class RootControllerTests {
     @Test
     public void testRoot() throws IOException {
         TestRequest request = new ControllerUtils().get("/");
-        request.execute();
         
         Assertions.assertTrue(request.responseBody().contains("This is the app"));
         Assertions.assertTrue(request.responseBody().contains("Login with Github"));
@@ -37,7 +36,6 @@ public class RootControllerTests {
         User user = Factories.createUser();
 
         TestRequest request = ControllerUtils.builder().withUser(user).build().get("/");
-        request.execute();
         
         Assertions.assertTrue(request.responseBody().contains("This is the app"));
         Assertions.assertTrue(request.responseBody().contains(user.getName()));

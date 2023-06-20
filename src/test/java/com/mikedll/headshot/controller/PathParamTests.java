@@ -96,7 +96,6 @@ public class PathParamTests {
     @Test
     public void testHandler() throws IOException, ServletException {
         TestRequest request = new ControllerUtils().get("/animals/giraffe");
-        request.execute();
         
         Assertions.assertTrue(request.responseBody().contains("This animal's name is: giraffe"), "found basic output");
     }

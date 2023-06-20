@@ -94,7 +94,7 @@ public class RepositoryRepository {
         }
 
         String insertSql = "INSERT INTO repositories (user_id, github_id, name, is_private, description, github_created_at)"
-            + " VALUES (?, ?, ?, ?, ?, ?);";
+            + " VALUES (?, ?, ?, ?, ?, ?) RETURNING id;";
         for(Repository repository : input.stream().filter(i -> !result.getValue0().contains(i.getGithubId())).collect(Collectors.toList())) {
             List<SqlArg> insertParams = new ArrayList<>(6);
             insertParams.add(new SqlArg(Long.class, user.getId()));
@@ -104,11 +104,15 @@ public class RepositoryRepository {
             insertParams.add(new SqlArg(String.class, repository.getDescription()));
             insertParams.add(new SqlArg(Instant.class, repository.getCreatedAt()));
 
-            String error = SimpleSql.executeUpdate(dataSource, insertSql, insertParams.toArray(new SqlArg[0]));
-            if(error != null) {
+            Pair<Long,String> insertResult = SimpleSql.executeQuery(dataSource, insertSql, (rs) -> {
+                    rs.next();
+                    return rs.getLong("id");
+                }, insertParams.toArray(new SqlArg[0]));
+            if(insertResult.getValue1() != null) {
                 // Todo: rollback transaction
-                return error;
+                return insertResult.getValue1();
             }
+            repository.setId(insertResult.getValue0());
         }
 
         return null;

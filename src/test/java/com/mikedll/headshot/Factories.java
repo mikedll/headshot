@@ -2,10 +2,13 @@ package com.mikedll.headshot;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.List;
+import java.util.ArrayList;
 
 import com.mikedll.headshot.model.User;
 import com.mikedll.headshot.model.Repository;
 import com.mikedll.headshot.model.UserRepository;
+import com.mikedll.headshot.model.RepositoryRepository;
 
 public class Factories {
 
@@ -35,6 +38,16 @@ public class Factories {
         repository.setIsPrivate(false);
         repository.setDescription("A ruby gem to provide a UI to a database");
         repository.setCreatedAt(Instant.now().minus(Duration.ofDays(30)));        
+        return repository;
+    }
+
+    public static Repository createRepository(User user) {
+        Repository repository = buildRepository();
+        Application app = TestSuite.getSuite(DbSuite.class).getApp();
+        RepositoryRepository repositoryRepository = app.dbConf.getRepository(app, RepositoryRepository.class);
+        List<Repository> repositories = new ArrayList<>();
+        repositories.add(repository);
+        repositoryRepository.save(user, repositories);
         return repository;
     }
 }
