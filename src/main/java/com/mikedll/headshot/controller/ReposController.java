@@ -57,7 +57,7 @@ public class ReposController extends Controller {
     }
 
     @Request(path="/repos/{id}")
-    public void getRepo() {
+    public void getRepoPath() {
         Repository repository = ResourceLoader.loadRepository(this, this.repositoryService, this.currentUser, this.getPathParam("id")).orElse(null);
         if(repository == null) {
             return;
@@ -65,7 +65,7 @@ public class ReposController extends Controller {
 
         Context ctx = defaultCtx();
         String path = req.getRequestURI().toString();
-        String repoPath = path.replaceFirst("^" + Pattern.quote(this.pathMatch.matched()) + "/?", "");
+        String repoPath = path.replaceFirst("^" + Pattern.quote(this.pathMatch.matched()) + "/?", "").replaceFirst("/$", "");
 
         ctx.setVariable("ancestors", PathUtils.pathAncestors(repository.getName(), repoPath));
         Map<String,Object> pathInfo = new HashMap<>();

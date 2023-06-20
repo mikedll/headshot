@@ -13,30 +13,18 @@ import com.mikedll.headshot.util.PathAncestor;
 public class PathUtilsTests {
 
     @Test
-    public void testTrailingRegex() {
-        Matcher matcher = PathUtils.PATH_TRAILING_PATTERN.matcher("bin");
-        Assertions.assertFalse(matcher.find(), "no slash");
-        
-        matcher = PathUtils.PATH_TRAILING_PATTERN.matcher("tests/bin");
-        Assertions.assertTrue(matcher.find(), "found trailing path component");
-        Assertions.assertEquals("/bin", matcher.group(0));
-
-        matcher = PathUtils.PATH_TRAILING_PATTERN.matcher("src/utils/scissors");
-        Assertions.assertTrue(matcher.find(), "found trailing path component");
-        Assertions.assertEquals("/scissors", matcher.group(0));
-    }
-
-    @Test
     public void testAncestors() {
         List<PathAncestor> found = PathUtils.pathAncestors("cknife", "bin");
         List<PathAncestor> expected = new ArrayList<>();
         expected.add(new PathAncestor("cknife", ""));
+        expected.add(new PathAncestor("bin", "bin"));
         Assertions.assertEquals(expected, found, "single component");
 
         found = PathUtils.pathAncestors("cknife", "bin/dangerous");
         expected = new ArrayList<>();
         expected.add(new PathAncestor("cknife", ""));
         expected.add(new PathAncestor("bin", "bin"));
+        expected.add(new PathAncestor("dangerous", "bin/dangerous"));
         Assertions.assertEquals(expected, found, "two components");
 
         found = PathUtils.pathAncestors("cknife", "src/util/scissors");
@@ -44,8 +32,13 @@ public class PathUtilsTests {
         expected.add(new PathAncestor("cknife", ""));
         expected.add(new PathAncestor("src", "src"));
         expected.add(new PathAncestor("util", "src/util"));
+        expected.add(new PathAncestor("scissors", "src/util/scissors"));
         Assertions.assertEquals(expected, found, "three components");
-        
+
+        found = PathUtils.pathAncestors("cknife", "");
+        expected = new ArrayList<>();
+        expected.add(new PathAncestor("cknife", ""));
+        Assertions.assertEquals(expected, found, "root");        
     }
     
 }

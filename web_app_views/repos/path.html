@@ -6,7 +6,10 @@
       <div class="mb-2" th:if="${ancestors}">
         <div class="d-flex tree-nav">
           <div class="d-flex" th:each="ancestor,iterStat : ${ancestors}">
-            <a th:href="'/repos/' + ${pathInfo.get('repositoryId')} + '/' + ${ancestor.path}">[[${ancestor.name}]]</a>
+            
+            <a th:if="${iterStat.index} < ${iterStat.size} - 1" th:href="'/repos/' + ${pathInfo.get('repositoryId')} + '/' + ${ancestor.path}">[[${ancestor.name}]]</a>
+            <div th:if="${iterStat.index} >= ${iterStat.size} - 1" >[[${ancestor.name}]]</div>
+              
             <div class="path-delimiter" th:if="${iterStat.index} < ${iterStat.size} - 1">
               &gt;
             </div>
