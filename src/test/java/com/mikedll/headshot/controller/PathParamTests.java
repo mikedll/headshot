@@ -22,10 +22,7 @@ public class PathParamTests {
 
     @BeforeEach
     public void beforeEach() throws IOException {
-        SimpleSuite suite = TestSuite.getSuite(SimpleSuite.class);
-        suite.setUp();
-
-        if(!suite.beforeEach()) {
+        if(!TestSuite.getSuite(SimpleSuite.class).beforeEach()) {
             Assertions.fail("suite beforeTest");
         }
     }

@@ -49,8 +49,12 @@ public abstract class TestSuite {
     }
 
     public boolean beforeEach() {
-        if(!setup) {
-            return false;
+        try {
+            if(!setUp()) {
+                return false;
+            }
+        } catch (IOException ex) {
+            throw new RuntimeException("IOException during setUp", ex);
         }
 
         return doBeforeEach();

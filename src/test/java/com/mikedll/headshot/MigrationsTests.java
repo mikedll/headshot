@@ -21,8 +21,6 @@ public class MigrationsTests {
     @BeforeEach
     public void beforeEach() throws IOException {
         this.suite = TestSuite.getSuite(MigrationsSuite.class);
-
-        suite.setUp();
         
         if(!suite.beforeEach()) {
             Assertions.fail("failed beforeEach");
