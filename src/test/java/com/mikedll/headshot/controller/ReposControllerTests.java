@@ -31,4 +31,14 @@ public class ReposControllerTests {
                 Assertions.assertTrue(request.responseBody().contains(r.getName()));
             });
     }
+
+    @Test
+    public void testShow() {
+        User user = Factories.createUser();
+        Repository repo1 = Factories.createRepository(user);
+        TestRequest request = ControllerUtils.builder().withUser(user).build().get("/repos/" + repo1.getId());
+
+        Assertions.assertTrue(request.responseBody().contains(repo1.getName()));
+    }
+    
 }
