@@ -17,21 +17,32 @@ import com.mikedll.headshot.controller.Scanner;
 import com.mikedll.headshot.controller.Controller;
 import com.mikedll.headshot.controller.RequestHandler;
 import com.mikedll.headshot.model.UserRepository;
+import com.mikedll.headshot.apiclients.ApiClientManager;
 
 public class Application {
 
-    public static DatabaseConfiguration dbConf = new DatabaseConfiguration();
+    public static Application current;
+    
+    public DatabaseConfiguration dbConf;
 
-    public static List<RequestHandler> requestHandlers;
+    public ApiClientManager apiClientManager;
 
-    public static AssetFingerprinter assetFingerprinter = new AssetFingerprinter();
+    public List<RequestHandler> requestHandlers;
 
-    private boolean loadedEnv;
+    public AssetFingerprinter assetFingerprinter = new AssetFingerprinter();
 
-    public  static TemplateEngine templateEngine;
+    public Config config;
 
+    public TemplateEngine templateEngine;
+
+    public void setConfig(Config config) {
+        this.config = config;
+    }
+    
     public void run(String[] args) {
         ConfigurationFactory.setConfigurationFactory(new LoggingConfigFactory());
+        loadConfig();
+        basicSetup();
 
         if(argInterception(args)) {
             return;
@@ -50,10 +61,14 @@ public class Application {
         shutdown();
     }
 
+    public void basicSetup() {
+        this.dbConf = new DatabaseConfiguration(this.config);
+        this.apiClientManager = new ApiClientManager();
+    }
+
     public boolean argInterception(String[] args) {
         if(args.length == 1 && args[0].equals("migrate")) {
-            loadDotEnv();
-            Migrations migrations = new Migrations(dbConf.getDataSource());
+            Migrations migrations = new Migrations(this.dbConf.getDataSource());
             String error = migrations.readMigrations();
             if(error != null) {
                 System.out.println("Error: " + error);
@@ -67,8 +82,7 @@ public class Application {
             shutdown();
             return true;
         } else if(args.length == 2 && args[0].equals("migrate:reverse")) {
-            loadDotEnv();
-            Migrations migrations = new Migrations(dbConf.getDataSource());
+            Migrations migrations = new Migrations(this.dbConf.getDataSource());
             String error = migrations.readMigrations();
             if(error != null) {
                 System.out.println("Error: " + error);
@@ -96,13 +110,12 @@ public class Application {
      * Return error on failure, null on success.
      */
     public String setUp() {
-        loadDotEnv();
-        if(Env.shouldLog()) {
-            System.out.println("Starting app in " + Env.env + " environment...");
+        if(this.config.shouldLog()) {
+            System.out.println("Starting app in " + this.config.env + " environment...");
         }
         
         System.out.println("Making repositories...");
-        dbConf.makeRepositories();
+        this.dbConf.makeRepositories();
 
         return postDbSetup();
     }
@@ -134,11 +147,7 @@ public class Application {
 
     public void shutdown() {
         System.out.println("Shutting down database...");
-        dbConf.shutdown();        
-    }
-
-    public void markEnvLoaded() {
-        this.loadedEnv = true;
+        this.dbConf.shutdown();
     }
 
     public void setupTemplateEngine() {
@@ -150,23 +159,25 @@ public class Application {
         templateResolver.setTemplateMode(TemplateMode.HTML);
         templateResolver.setPrefix("web_app_views/");
         templateResolver.setSuffix(".html");
-        templateResolver.setCacheable(Env.env == "production");
+        templateResolver.setCacheable(this.config.env == "production");
         
         templateEngine.setTemplateResolver(templateResolver);
     }        
 
-    private void loadDotEnv() {
-        if(loadedEnv) {
+    private void loadConfig() {
+        if(config != null) {
             return;
         }
+
+        this.config = new Config();
         
         Dotenv dotenv = Dotenv.load();
-        Env.githubConfig = new GithubConfig(dotenv.get("GITHUB_CLIENT_ID"), dotenv.get("GITHUB_CLIENT_SECRET"));
-        Env.cookieSigningKey = dotenv.get("COOKIE_SIGNING_KEY");
-        Env.dbUrl = dotenv.get("DB_URL");
-        Env.env = dotenv.get("APP_ENV");
-        if(Env.env == null) {
-            Env.env = "development";
+        this.config.githubConfig = new GithubConfig(dotenv.get("GITHUB_CLIENT_ID"), dotenv.get("GITHUB_CLIENT_SECRET"));
+        this.config.cookieSigningKey = dotenv.get("COOKIE_SIGNING_KEY");
+        this.config.dbUrl = dotenv.get("DB_URL");
+        this.config.env = dotenv.get("APP_ENV");
+        if(this.config.env == null) {
+            this.config.env = "development";
         }
         // db connection pool size?
     }
@@ -178,16 +189,17 @@ public class Application {
 
         System.out.println("Starting tomcat...");
         embeddedTomcat.start();
-    }        
+    }
 
     private void runExp1() {
-        UserRepository userRepository = dbConf.getRepository(this, UserRepository.class);
+        UserRepository userRepository = this.dbConf.getRepository(this, UserRepository.class);
         Experiment ex = new Experiment();
         ex.run(userRepository);
     }
 
     public static void main(String[] args) {
         Application app = new Application();
+        current = app;
         app.run(args);        
-    }    
+    }
 }

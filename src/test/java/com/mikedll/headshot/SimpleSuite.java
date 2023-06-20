@@ -9,12 +9,12 @@ import java.sql.ResultSet;
 import javax.sql.DataSource;
 
 import com.zaxxer.hikari.HikariDataSource;
-import io.github.cdimascio.dotenv.Dotenv;
 import org.apache.commons.io.FileUtils;
 import org.junit.platform.suite.api.Suite;
 import org.junit.platform.suite.api.SelectClasses;
 
 import com.mikedll.headshot.controller.PathParamTests;
+import com.mikedll.headshot.controller.ControllerUtils;
 
 @Suite
 @SelectClasses({PathParamTests.class})
@@ -26,10 +26,9 @@ public class SimpleSuite extends TestSuite {
      * Returns true on success, false on failure.
      */
     @Override
-    public boolean doSetUp() throws IOException {        
-        Dotenv dotenv = Dotenv.configure().filename(".env.test").load();
-
-        app = new Application();
+    public boolean doSetUp() throws IOException {
+        this.app = new Application();
+        this.app.setConfig(TestSuite.testConfig);
         String error = app.postDbSetup();
         if(error != null) {
             return false;
@@ -40,6 +39,9 @@ public class SimpleSuite extends TestSuite {
 
     @Override
     public boolean doBeforeEach() {
+        // See DbSuite comment on doBeforeEach
+        ControllerUtils.app = Application.current = this.app;
+
         return true;
     }
 

@@ -9,12 +9,12 @@ import java.sql.ResultSet;
 import javax.sql.DataSource;
 
 import com.zaxxer.hikari.HikariDataSource;
-import io.github.cdimascio.dotenv.Dotenv;
 import org.apache.commons.io.FileUtils;
-
 import org.junit.platform.suite.api.Suite;
 import org.junit.platform.suite.api.SelectPackages;
 import org.junit.platform.suite.api.ExcludeClassNamePatterns;
+
+import com.mikedll.headshot.controller.ControllerUtils;
 
 @Suite
 @SelectPackages({"com.mikedll.headshot"})
@@ -32,17 +32,16 @@ public class DbSuite extends TestSuite {
      */
     @Override
     public boolean doSetUp() throws IOException {
-        Dotenv dotenv = Dotenv.configure().filename(".env.test").load();
-        Env.dbUrl = dotenv.get("DB_URL");
-
-        app = new Application();
-
+        this.app = new Application();
+        app.setConfig(TestSuite.testConfig);
+        app.basicSetup();
+        
         // This is ridiculous. These changes aren't working unless I close and reopen
         // the data source.
         // Setup schema before Hibernate reads anything
         String schemaSql = FileUtils.readFileToString(new File("./db/schema.sql"), "UTF-8");
         // DataSource ds = app.dbConf.getDataSource();
-        HikariDataSource ds = app.dbConf.buildDataSource();
+        HikariDataSource ds = this.app.dbConf.buildDataSource();
         try(Connection conn = ds.getConnection()) {
             try (Statement stmt = conn.createStatement()) {
                 stmt.executeUpdate("DROP SCHEMA public CASCADE; CREATE SCHEMA public;");
@@ -63,8 +62,7 @@ public class DbSuite extends TestSuite {
         }
         ds.close();
 
-        app.markEnvLoaded();
-        app.setUp();
+        this.app.setUp();
         
         return true;
     }
@@ -79,6 +77,12 @@ public class DbSuite extends TestSuite {
      */
     @Override
     public boolean doBeforeEach() {
+        // Servlet depends on Application.current. If we can get tomcat to instantiate servlet with
+        // an Application of our choosing, we can just use ControllerUtils's static
+        // Application instance (it can give it to the TestRequest for use in
+        // TestRequest#execute).
+        ControllerUtils.app = Application.current = this.app;
+        
         return truncateDatabase();        
     }
 
@@ -86,7 +90,7 @@ public class DbSuite extends TestSuite {
      * Returns true on success, false on failure.
      */ 
     private boolean truncateDatabase() {
-        if(Env.env == "production") {
+        if(this.app.config.env == "production") {
             throw new RuntimeException("can't truncate database in production");
         }
 

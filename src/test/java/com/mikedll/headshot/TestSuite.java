@@ -5,7 +5,9 @@ import java.util.Map;
 import java.util.HashMap;
 import java.lang.NoSuchMethodException;
 import java.lang.InstantiationException;
-    
+
+import io.github.cdimascio.dotenv.Dotenv;
+
 public abstract class TestSuite {
 
     private static Map<Class<?>, Object> suiteInstances = new HashMap<>();
@@ -13,6 +15,8 @@ public abstract class TestSuite {
     private static boolean allSuitesSetup;
     
     private boolean setup;
+
+    public static Config testConfig;
     
     public static <T extends TestSuite> T getSuite(Class<T> suiteClass) {
         if(suiteInstances.get(suiteClass) == null) {
@@ -72,9 +76,12 @@ public abstract class TestSuite {
 
     private static void setUpAllSuites() {
         if(allSuitesSetup == false) {
-            
-            Env.cookieSigningKey = "eVKgwkis9APaD2o2/suPAv9sgs156+fMTBDDbM1vgwU=";
-            Env.env = "test";
+
+            Dotenv dotenv = Dotenv.configure().filename(".env.test").load();
+            testConfig = new Config();
+            testConfig.dbUrl = dotenv.get("DB_URL");
+            testConfig.cookieSigningKey = "eVKgwkis9APaD2o2/suPAv9sgs156+fMTBDDbM1vgwU=";
+            testConfig.env = "test";
             
             allSuitesSetup = true;
         }

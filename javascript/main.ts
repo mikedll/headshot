@@ -19,7 +19,7 @@ const repos = () => {
     const button = container.querySelector('.refresh-button')!;
     button.addEventListener('click', (e: Event) => {
       e.preventDefault();
-      fetch('/repos/load', {
+      fetch('/github/loadRepos', {
         method: "PUT"
       }).then(r => {
         if(r.ok) {

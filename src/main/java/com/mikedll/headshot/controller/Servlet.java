@@ -13,15 +13,16 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.ServletContext;
 
 import org.javatuples.Pair;
-import org.javatuples.Triplet;
+import org.javatuples.Quartet;
 
-import com.mikedll.headshot.Env;
 import com.mikedll.headshot.Application;
 
 public class Servlet extends HttpServlet {
 
+    private Application app;
+
     public boolean shouldLog() {
-        return Env.shouldLog();
+        return app.config.shouldLog();
     }
 
     @Override
@@ -36,7 +37,7 @@ public class Servlet extends HttpServlet {
     }
 
     private Optional<Pair<RequestHandler,PathMatch>> findHandlerMatch(Pair<String, HttpMethod> incomingRequest) {
-        List<Pair<RequestHandler,PathMatch>> matchPairs = Application.requestHandlers
+        List<Pair<RequestHandler,PathMatch>> matchPairs = this.app.requestHandlers
             .stream()
             .map(rh -> Pair.with(rh, rh.tryMatch.apply(incomingRequest).orElse(null)))
             .filter(pair -> pair.getValue1() != null)
@@ -53,6 +54,9 @@ public class Servlet extends HttpServlet {
     }
     
     private void doService(HttpServletRequest req, HttpServletResponse res, HttpMethod method) {
+        // would be nice if tomcat would set this.
+        this.app = Application.current;
+        
         String path = req.getRequestURI().toString();
         if(shouldLog()) {
             System.out.println("Path: " + path);
@@ -68,13 +72,12 @@ public class Servlet extends HttpServlet {
             return;
         }
 
-        if(Env.env == "development") {
-            Application.assetFingerprinter.refresh();
+        if(this.app.config.env == "development") {
+            this.app.assetFingerprinter.refresh();
         }
-
         
         String error = handlerMatch.getValue0().handlerFunc
-            .apply(Triplet.with(req, res, handlerMatch.getValue1()));
+            .apply(Quartet.with(this.app, req, res, handlerMatch.getValue1()));
         if(error != null) {
             try {
                 System.out.println("Error: " + error);

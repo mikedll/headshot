@@ -7,10 +7,10 @@ import org.javatuples.Pair;
 
 import com.mikedll.headshot.model.User;
 import com.mikedll.headshot.model.Repository;
-import com.mikedll.headshot.model.RepositoryService;
+import com.mikedll.headshot.model.RepositoryRepository;
 
 public class ResourceLoader {
-    public static Optional<Repository> loadRepository(Controller controller, RepositoryService service, User user, String stringId) {
+    public static Optional<Repository> loadRepository(Controller controller, RepositoryRepository repository, User user, String stringId) {
         Long id = null;
         try {
             id = Long.parseLong(stringId);
@@ -19,7 +19,7 @@ public class ResourceLoader {
             return Optional.empty();
         }
 
-        Pair<Optional<Repository>, String> repoResult = service.forUserAndId(user, id);
+        Pair<Optional<Repository>, String> repoResult = repository.forUserAndId(user, id);
         if(repoResult.getValue1() != null) {
             controller.sendInternalServerError(repoResult.getValue1());
             return Optional.empty();

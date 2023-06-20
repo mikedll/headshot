@@ -17,18 +17,14 @@ import com.mikedll.headshot.db.SimpleSql;
 import com.mikedll.headshot.db.SqlArg;
 import com.mikedll.headshot.controller.Controller;
 
-public class RepositoryService {
+public class RepositoryRepository {
 
     private DatabaseConfiguration dbConf;
 
-    private RepositoryService() {
+    private RepositoryRepository() {
     }
     
-    public RepositoryService(Controller controller, DatabaseConfiguration dbConf) {
-        if(!controller.canAccessDb()) {
-            throw new RuntimeException("Controller canAccessDb() returned false in RepositorysService");
-        }
-
+    public RepositoryRepository(DatabaseConfiguration dbConf) {
         this.dbConf = dbConf;
     }
 

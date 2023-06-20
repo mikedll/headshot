@@ -1,11 +1,17 @@
 package com.mikedll.headshot;
 
+import java.time.Duration;
+import java.time.Instant;
+
 import com.mikedll.headshot.model.User;
+import com.mikedll.headshot.model.Repository;
 import com.mikedll.headshot.model.UserRepository;
 
 public class Factories {
 
-    public static User makeUser() {
+    private static long repoI = 2000L;
+    
+    public static User createUser() {
         Application app = TestSuite.getSuite(DbSuite.class).getApp();
         UserRepository userRepository = app.dbConf.getRepository(app, UserRepository.class);
         User user = new User();
@@ -20,5 +26,15 @@ public class Factories {
         return user;
     }
 
-    
+    public static Repository buildRepository() {
+        repoI++;
+        
+        Repository repository = new Repository();
+        repository.setGithubId(repoI);
+        repository.setName("activeadmin " + repoI);
+        repository.setIsPrivate(false);
+        repository.setDescription("A ruby gem to provide a UI to a database");
+        repository.setCreatedAt(Instant.now().minus(Duration.ofDays(30)));        
+        return repository;
+    }
 }

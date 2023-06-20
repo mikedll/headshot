@@ -16,22 +16,25 @@ import org.thymeleaf.context.Context;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.javatuples.Pair;
 
+import com.mikedll.headshot.apiclients.GithubClient;
 import com.mikedll.headshot.model.UserRepository;
 import com.mikedll.headshot.model.User;
-import com.mikedll.headshot.Env;
 import com.mikedll.headshot.Application;
+import com.mikedll.headshot.Config;
 import com.mikedll.headshot.db.DatabaseConfiguration;
 import com.mikedll.headshot.AssetFingerprinter;
 import com.mikedll.headshot.JsonMarshal;
 
 public class Controller {
-    private TemplateEngine templateEngine;
-
     public static final String COOKIE_NAME = "HEADSHOT_SESSION";
 
     public static final String CONTENT_TYPE = "Content-Type";
     
     public static final String CONTENT_TYPE_JSON = "application/json";
+
+    private Application app;
+    
+    private TemplateEngine templateEngine;
     
     private UserRepository baseUserRepository;
 
@@ -51,13 +54,11 @@ public class Controller {
 
     protected boolean requireAuthentication = true;
 
-    protected CookieManager cookieManager = new CookieManager(Env.cookieSigningKey);
+    protected CookieManager cookieManager;
 
     protected User currentUser;
 
     protected Map<String,Object> session = null;
-
-    protected DatabaseConfiguration dbConf;
 
     protected PathMatch pathMatch;
 
@@ -69,24 +70,19 @@ public class Controller {
         this.res = res;
     }
 
-    public void setDbConf(DatabaseConfiguration dbConf) {
-        this.dbConf = dbConf;
-    }
-
-    public DatabaseConfiguration getDbConf() {
-        return this.dbConf;
+    public void setApplication(Application app) {
+        this.app = app;
+        this.cookieManager= new CookieManager(this.app.config.cookieSigningKey);
+        this.assetFingerprinter = this.app.assetFingerprinter;
+        this.templateEngine = app.templateEngine;
     }
 
     public <T> T getRepository(Class<T> clazz) {
-        return this.dbConf.getRepository(this, clazz);
+        return this.app.dbConf.getRepository(this, clazz);
     }
 
-    public void setAssetFingerprinter(AssetFingerprinter af) {
-        this.assetFingerprinter = af;
-    }
-
-    public void setTemplateEngine(TemplateEngine templateEngine) {
-        this.templateEngine = templateEngine;
+    public GithubClient getGithubClient(String accessToken) {
+        return this.app.apiClientManager.getGithubClient(this, accessToken);
     }
 
     public void setPathMatch(PathMatch pathMatch) {
@@ -95,6 +91,10 @@ public class Controller {
 
     public String getPathParam(String key) {
         return this.pathMatch.extractedParams().get(key);
+    }
+
+    public Config getConfig() {
+        return this.app.config;
     }
     
     public Context defaultCtx() {
@@ -126,7 +126,7 @@ public class Controller {
         this.session = new HashMap<String,Object>();
     }
 
-    public boolean canAccessDb() {
+    public boolean canAccessData() {
         return this.baseDbAccess || (this.authOkay && this.cookieFiltersOkay);
     }
     
@@ -183,7 +183,7 @@ public class Controller {
     public boolean authFilters() {
         if(this.session != null && session.get("user_id") != null) {
             this.baseDbAccess = true;
-            this.baseUserRepository = dbConf.getRepository(this, UserRepository.class);
+            this.baseUserRepository = getRepository(UserRepository.class);
             this.baseDbAccess = false;
             Optional<User> user = baseUserRepository.findById(((Integer)session.get("user_id")).longValue());
             this.currentUser = user.orElse(null);
@@ -206,7 +206,7 @@ public class Controller {
         declareAuthRequirements();
         if(!authFilters()) return false;
         
-        acquireDbAccess();
+        acquireDataAccess();
 
         return true;
     }
@@ -214,7 +214,7 @@ public class Controller {
     /*
      * For subclasses to override and request db access.
      */
-    public void acquireDbAccess() {
+    public void acquireDataAccess() {
     }
 
     /*

@@ -9,7 +9,6 @@ import java.sql.ResultSet;
 import javax.sql.DataSource;
 
 import com.zaxxer.hikari.HikariDataSource;
-import io.github.cdimascio.dotenv.Dotenv;
 import org.apache.commons.io.FileUtils;
 
 import org.junit.platform.suite.api.Suite;
@@ -27,11 +26,9 @@ public class MigrationsSuite extends TestSuite {
      * Returns true on success, false on failure.
      */
     @Override
-    public boolean doSetUp() throws IOException {        
-        Dotenv dotenv = Dotenv.configure().filename(".env.test").load();
-        
+    public boolean doSetUp() throws IOException {
         this.dataSource = new HikariDataSource();
-        dataSource.setJdbcUrl(dotenv.get("DB_URL"));
+        dataSource.setJdbcUrl(TestSuite.testConfig.dbUrl);
 				dataSource.setPoolName("default");
         dataSource.setMaximumPoolSize(1);
         

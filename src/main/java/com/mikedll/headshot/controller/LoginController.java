@@ -19,10 +19,9 @@ import org.javatuples.Pair;
 
 import com.mikedll.headshot.model.UserRepository;
 import com.mikedll.headshot.model.User;
-import com.mikedll.headshot.model.GithubService;
+import com.mikedll.headshot.apiclients.GithubClient;
 import com.mikedll.headshot.util.MyUri;
 import com.mikedll.headshot.util.RestClient;
-import com.mikedll.headshot.Env;
 import com.mikedll.headshot.Application;
 
 public class LoginController extends Controller {
@@ -47,8 +46,8 @@ public class LoginController extends Controller {
     }
 
     @Override
-    public void acquireDbAccess() {
-        this.userRepository = dbConf.getRepository(this, UserRepository.class);
+    public void acquireDataAccess() {
+        this.userRepository = getRepository(UserRepository.class);
     }
 
     @Request(path="/oauth2/authorization/github")
@@ -57,7 +56,7 @@ public class LoginController extends Controller {
         this.session.put("oauth2state", state);
 
         List<NameValuePair> params = new ArrayList<>();
-        params.add(new BasicNameValuePair("client_id", Env.githubConfig.clientId()));
+        params.add(new BasicNameValuePair("client_id", getConfig().githubConfig.clientId()));
         params.add(new BasicNameValuePair("scope", "user repo"));
         params.add(new BasicNameValuePair("state", (String)this.session.get("oauth2state")));
         params.add(new BasicNameValuePair("redirect_uri", redirectUri()));
@@ -80,8 +79,8 @@ public class LoginController extends Controller {
         // System.out.println("Code: " + authCode);
 
         List<NameValuePair> params = new ArrayList<>();
-        params.add(new BasicNameValuePair("client_id", Env.githubConfig.clientId()));
-        params.add(new BasicNameValuePair("client_secret", Env.githubConfig.clientSecret()));
+        params.add(new BasicNameValuePair("client_id", getConfig().githubConfig.clientId()));
+        params.add(new BasicNameValuePair("client_secret", getConfig().githubConfig.clientSecret()));
         params.add(new BasicNameValuePair("code", authCode));
 
         Map<String,String> headers = new HashMap<String,String>();        
@@ -96,8 +95,8 @@ public class LoginController extends Controller {
         List<NameValuePair> data = restResult.getValue0();
         NameValuePair accessToken = data.stream().filter(p -> p.getName().equals("access_token")).findAny().orElse(null);
 
-        GithubService service = new GithubService(this, accessToken.getValue());
-        Pair<User,String> userResult = service.pullUserInfo();
+        GithubClient githubClient = getGithubClient(accessToken.getValue());
+        Pair<User,String> userResult = githubClient.pullUserInfo();
         if(userResult.getValue1() != null) {
             sendInternalServerError("Failed to get user from Github: " + userResult.getValue1());
             return;

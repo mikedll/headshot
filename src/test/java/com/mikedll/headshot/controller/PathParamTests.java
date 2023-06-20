@@ -95,14 +95,10 @@ public class PathParamTests {
     
     @Test
     public void testHandler() throws IOException, ServletException {
-        Servlet servlet = new Servlet();
+        TestRequest request = new ControllerUtils().get("/animals/giraffe");
+        request.execute();
         
-        TestRequest request = ControllerUtils.get("/animals/giraffe");
-
-        servlet.doGet(request.req(), request.res());
-
-        request.printWriter().flush();
-        Assertions.assertTrue(request.stringWriter().toString().contains("This animal's name is: giraffe"), "found basic output");
+        Assertions.assertTrue(request.responseBody().contains("This animal's name is: giraffe"), "found basic output");
     }
 
 }

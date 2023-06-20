@@ -1,4 +1,4 @@
-package com.mikedll.headshot.model;
+package com.mikedll.headshot.apiclients;
 
 import java.util.stream.Collectors;
 import java.util.List;
@@ -13,11 +13,14 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.core.type.TypeReference;
 
 import com.mikedll.headshot.controller.Controller;
+import com.mikedll.headshot.model.UserRepository;
+import com.mikedll.headshot.model.User;
+import com.mikedll.headshot.model.Repository;
 import com.mikedll.headshot.JsonMarshal;
 import com.mikedll.headshot.util.MyUri;
 import com.mikedll.headshot.util.RestClient;
 
-public class GithubService {
+public class GithubClient {
 
     private UserRepository userRepository;
     
@@ -48,11 +51,7 @@ public class GithubService {
 
     public record PathReadFileResponse(String type, String name, String content) {}
 
-    public GithubService(Controller controller, String accessToken) {
-        if(!controller.canAccessDb()) {
-            throw new RuntimeException("Controller canAccessDb() returned false in GithubService");
-        }
-        
+    public GithubClient(Controller controller, String accessToken) {
         this.userRepository = controller.getRepository(UserRepository.class);
         this.accessToken = accessToken;
     }

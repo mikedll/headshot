@@ -74,7 +74,7 @@ public class RequestHandler {
      * Returns func for servlet to call to respond to request.
      */ 
     public static RequestHandlerFunc buildHandlerFunc(Class<?> clazz, Method method, Constructor<?> constructor) {
-        return (triplet) -> {
+        return (quartet) -> {
             Object targetObject = null;
             try {
                 targetObject = constructor.newInstance();
@@ -89,12 +89,10 @@ public class RequestHandler {
             }
 
             Controller controller = (Controller)targetObject;
-            controller.setRequest(triplet.getValue0());
-            controller.setResponse(triplet.getValue1());
-            controller.setPathMatch(triplet.getValue2());
-            controller.setDbConf(Application.dbConf);
-            controller.setAssetFingerprinter(Application.assetFingerprinter);
-            controller.setTemplateEngine(Application.templateEngine);
+            controller.setApplication(quartet.getValue0());
+            controller.setRequest(quartet.getValue1());
+            controller.setResponse(quartet.getValue2());
+            controller.setPathMatch(quartet.getValue3());
             if(!controller.prepare()) {
                 // this is normal execution, not an error.
                 return null;

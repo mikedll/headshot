@@ -33,13 +33,16 @@ import org.springframework.data.repository.core.support.RepositoryProxyPostProce
 import org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy;
 
 import com.mikedll.headshot.model.UserRepository;
-import com.mikedll.headshot.Env;
+import com.mikedll.headshot.model.RepositoryRepository;
+import com.mikedll.headshot.Config;
 import com.mikedll.headshot.Application;
 import com.mikedll.headshot.controller.Controller;
 
 public class DatabaseConfiguration {
 
     private static final String JTA_PLATFORM = "hibernate.transaction.jta.platform";
+
+    private Config config;
 
     private HikariDataSource dataSource;
 
@@ -55,7 +58,8 @@ public class DatabaseConfiguration {
 
     private Map<Class<?>, Object> repositories;
 
-    public DatabaseConfiguration() {
+    public DatabaseConfiguration(Config config) {
+        this.config = config;
         this.repositories = new HashMap<>();
     }
    
@@ -78,9 +82,9 @@ public class DatabaseConfiguration {
     public HikariDataSource buildDataSource() {
         HikariDataSource dataSource = new HikariDataSource();
 
-        dataSource.setJdbcUrl(Env.dbUrl);
+        dataSource.setJdbcUrl(this.config.dbUrl);
 				dataSource.setPoolName("default");
-        dataSource.setMaximumPoolSize(Env.poolSize);
+        dataSource.setMaximumPoolSize(this.config.poolSize);
         return dataSource;
     }
     
@@ -119,7 +123,7 @@ public class DatabaseConfiguration {
         this.entityManagerFactoryBean = new LocalContainerEntityManagerFactoryBean();
 
     		AbstractJpaVendorAdapter adapter = new HibernateJpaVendorAdapter();
-        adapter.setShowSql(Env.env != "test");
+        adapter.setShowSql(this.config.env != "test");
 
         this.entityManagerFactoryBean.setJpaVendorAdapter(adapter);
         this.entityManagerFactoryBean.setDataSource(getDataSource());
@@ -155,6 +159,8 @@ public class DatabaseConfiguration {
     public void makeRepositories() {
         this.repositories.put(UserRepository.class,
                               getJpaRepositoryFactory().getRepository(UserRepository.class, RepositoryFragments.empty()));
+
+        this.repositories.put(RepositoryRepository.class, new RepositoryRepository(this));
     }
     
     public <T> T getRepository(Application app, Class<T> repositoryClass) {
@@ -166,8 +172,8 @@ public class DatabaseConfiguration {
     }   
 
     public <T> T getRepository(Controller controller, Class<T> repositoryClass) {
-        if(!controller.canAccessDb()) {
-            throw new RuntimeException("Controller canAccessDb() returned false when getting repository");
+        if(!controller.canAccessData()) {
+            throw new RuntimeException("Controller canAccessData() returned false when getting repository");
         }
         
         if(this.repositories.get(repositoryClass) == null) {
