@@ -18,8 +18,6 @@ import org.junit.platform.suite.api.SelectClasses;
 @SelectClasses({MigrationsTests.class})
 public class MigrationsSuite extends TestSuite {
 
-    private static boolean setup;
-
     public HikariDataSource dataSource;
         
     /*
