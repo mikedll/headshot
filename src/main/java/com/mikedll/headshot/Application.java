@@ -2,6 +2,9 @@ package com.mikedll.headshot;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.time.Instant;
+import java.io.File;
+import java.io.IOException;
 
 import io.github.cdimascio.dotenv.Dotenv;
 import org.javatuples.Pair;
@@ -19,6 +22,7 @@ import com.mikedll.headshot.controller.RequestHandler;
 import com.mikedll.headshot.model.UserRepository;
 import com.mikedll.headshot.apiclients.ApiClientManager;
 import com.mikedll.headshot.experiments.Experiment;
+import com.mikedll.headshot.model.Formats;
 
 public class Application {
 
@@ -94,6 +98,23 @@ public class Application {
             if(error != null) {
                 System.out.println("Error: " + error);
             }
+            shutdown();
+            return true;
+        } else if(args.length == 2 && args[0].equals("gen_migration")) {
+            String filename = String.format("%s_%s.sql", Formats.LEXICAL_TIME_FORMATTER.format(Instant.now()), args[1]);
+            File forward = new File("db/" + Migrations.FORWARD + "/" + filename);
+            File reverse = new File("db/" + Migrations.REVERSE + "/" + filename);
+            if(forward.exists() || reverse.exists()) {
+                throw new RuntimeException("Forward or reverse file already exists");
+            }
+            try {
+                forward.createNewFile();
+                reverse.createNewFile();
+            } catch (IOException ex) {
+                throw new RuntimeException("IOException whne creating migration file", ex);
+            }
+            System.out.println("Created " + forward.getName());
+            System.out.println("Created " + reverse.getName());
             shutdown();
             return true;
         } else if(args.length > 0) {

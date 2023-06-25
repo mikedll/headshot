@@ -12,11 +12,11 @@ import org.apache.commons.io.FileUtils;
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Assertions;
-import static org.mockito.Mockito.*;
+import org.mockito.Mockito;
+import org.mockito.stubbing.OngoingStubbing;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-
 
 import com.mikedll.headshot.Factories;
 import com.mikedll.headshot.DbTest;
@@ -32,16 +32,19 @@ public class GithubClientTests extends DbTest {
 
     @Test
     public void testRestDir() throws IOException {
-        Controller controller = mock(Controller.class);
-        when(controller.getRepository(UserRepository.class)).thenReturn(ControllerUtils.getRepository(UserRepository.class));
+        Controller controller = Mockito.mock(Controller.class);
+        Mockito.when(controller.getRepository(UserRepository.class)).thenReturn(ControllerUtils.getRepository(UserRepository.class));
         
         User user = Factories.createUser();
         Repository repository = Factories.createRepository(user);
 
-        RestClient restClient = mock(RestClient.class);
+        RestClient restClient = Mockito.mock(RestClient.class);
         String responseBody = FileUtils.readFileToString(new File("src/test/files/rest_responses/someDir.json"), "UTF-8");
 
-        when(restClient.get(any(URI.class), any(Map.class))).thenReturn(Pair.with(responseBody, null));
+        // dunno how to specify more concrete Map.class
+        @SuppressWarnings("unchecked")
+            OngoingStubbing z = Mockito.when(restClient.get(Mockito.any(URI.class), Mockito.any(Map.class)))
+            .thenReturn(Pair.with(responseBody, null));
         
         GithubClient client = new GithubClient(restClient, controller, "myAccessToken");
         Pair<GithubPath, String> result = client.readPath(user, repository, "some/root");
@@ -56,16 +59,18 @@ public class GithubClientTests extends DbTest {
     // read file
     @Test
     public void testRestFile() throws IOException {
-        Controller controller = mock(Controller.class);
-        when(controller.getRepository(UserRepository.class)).thenReturn(ControllerUtils.getRepository(UserRepository.class));
+        Controller controller = Mockito.mock(Controller.class);
+        Mockito.when(controller.getRepository(UserRepository.class)).thenReturn(ControllerUtils.getRepository(UserRepository.class));
         
         User user = Factories.createUser();
         Repository repository = Factories.createRepository(user);
 
-        RestClient restClient = mock(RestClient.class);
+        RestClient restClient = Mockito.mock(RestClient.class);
         String responseBody = FileUtils.readFileToString(new File("src/test/files/rest_responses/myRubyFile.json"), "UTF-8");
-        String decodedContent = FileUtils.readFileToString(new File("src/test/files/rest_responses/aGemfile"), "UTF-8");        
-        when(restClient.get(any(URI.class), any(Map.class))).thenReturn(Pair.with(responseBody, null));
+        String decodedContent = FileUtils.readFileToString(new File("src/test/files/rest_responses/aGemfile"), "UTF-8");
+        @SuppressWarnings("unchecked")
+            OngoingStubbing z = Mockito.when(restClient.get(Mockito.any(URI.class), Mockito.any(Map.class)))
+            .thenReturn(Pair.with(responseBody, null));
         
         GithubClient client = new GithubClient(restClient, controller, "myAccessToken");
         Pair<GithubPath, String> result = client.readPath(user, repository, "some/file.rb");
@@ -78,20 +83,22 @@ public class GithubClientTests extends DbTest {
 
     @Test
     public void testNonUtf8File() throws IOException, JsonProcessingException {
-        Controller controller = mock(Controller.class);
-        when(controller.getRepository(UserRepository.class)).thenReturn(ControllerUtils.getRepository(UserRepository.class));
+        Controller controller = Mockito.mock(Controller.class);
+        Mockito.when(controller.getRepository(UserRepository.class)).thenReturn(ControllerUtils.getRepository(UserRepository.class));
         
         User user = Factories.createUser();
         Repository repository = Factories.createRepository(user);
 
-        RestClient restClient = mock(RestClient.class);
+        RestClient restClient = Mockito.mock(RestClient.class);
         String responseBody = FileUtils.readFileToString(new File("src/test/files/rest_responses/jungKook.json"), "UTF-8");
 
         ObjectMapper mapper = new ObjectMapper();
         JsonNode node = mapper.readTree(responseBody);
         String base64 = node.findValue("content").asText();
-
-        when(restClient.get(any(URI.class), any(Map.class))).thenReturn(Pair.with(responseBody, null));
+        
+        @SuppressWarnings("unchecked")
+            OngoingStubbing z = Mockito.when(restClient.get(Mockito.any(URI.class), Mockito.any(Map.class)))
+            .thenReturn(Pair.with(responseBody, null));
         
         GithubClient client = new GithubClient(restClient, controller, "myAccessToken");
         Pair<GithubPath, String> result = client.readPath(user, repository, "some/file.rb");

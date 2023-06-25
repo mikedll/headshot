@@ -6,9 +6,10 @@ import java.sql.Statement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import javax.sql.DataSource;
-import java.util.function.Function;
 import java.sql.Timestamp;
+import java.sql.ResultSetMetaData;
 import java.time.Instant;
+import java.util.function.Function;
 
 import org.javatuples.Pair;
 
@@ -28,6 +29,14 @@ public class SimpleSql {
         }
     }
 
+    public ResultSetMetaData getMetaData() {
+        try {
+            return this.resultSet.getMetaData();
+        } catch (SQLException ex) {
+            throw new RuntimeException("getMetaData() failed", ex);
+        }
+    }
+
     public String getString(String col) {
         try {
             return this.resultSet.getString(col);
@@ -44,6 +53,14 @@ public class SimpleSql {
         }
     }
 
+    public Long getLong(int col) {
+        try {
+            return this.resultSet.getLong(col);
+        } catch (SQLException ex) {
+            throw new RuntimeException("getLong() failed", ex);
+        }
+    }
+    
     public Boolean getBoolean(String col) {
         try {
             return this.resultSet.getBoolean(col);

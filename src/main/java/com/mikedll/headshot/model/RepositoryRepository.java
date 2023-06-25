@@ -4,11 +4,12 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Set;
 import java.util.HashSet;
-import javax.sql.DataSource;
-import java.sql.Timestamp;
 import java.util.stream.Collectors;
 import java.time.Instant;
 import java.util.Optional;
+import javax.sql.DataSource;
+import java.sql.Timestamp;
+import java.sql.ResultSetMetaData;
 
 import org.javatuples.Pair;
 
@@ -26,6 +27,20 @@ public class RepositoryRepository {
     
     public RepositoryRepository(DatabaseConfiguration dbConf) {
         this.dbConf = dbConf;
+    }
+
+    public Pair<Long,String> count() {
+        Pair<Long, String> result = SimpleSql.executeQuery(dbConf.getDataSource(), "SELECT COUNT(*) FROM repositories", (rs) -> {
+                if(!rs.next()) {
+                    return null;
+                }
+                return rs.getLong("count");
+            });
+
+        if(result.getValue1() != null) {
+            return Pair.with(null, "Failed to get count");
+        }
+        return Pair.with(result.getValue0(), null);
     }
 
     public Pair<List<Repository>, String> forUser(User user) {
@@ -69,7 +84,7 @@ public class RepositoryRepository {
 
         return Pair.with(result.getValue0(), null);
     }
-    
+
     public String save(User user, List<Repository> input) {
         DataSource dataSource = dbConf.getDataSource();
         String githubIdPlaceholders = String.join(",", input.stream().map(i -> "?").collect(Collectors.toList()));

@@ -16,12 +16,12 @@ SET default_table_access_method = heap;
 
 CREATE TABLE public.repositories (
     id bigint NOT NULL,
-    user_id bigint,
-    github_id bigint,
-    name character varying,
-    is_private boolean,
-    description character varying,
-    github_created_at timestamp(6) without time zone
+    user_id bigint NOT NULL,
+    github_id bigint NOT NULL,
+    name character varying NOT NULL,
+    is_private boolean NOT NULL,
+    description character varying NOT NULL,
+    github_created_at timestamp(6) without time zone NOT NULL
 );
 
 CREATE SEQUENCE public.repositories_id_seq
