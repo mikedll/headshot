@@ -85,6 +85,7 @@ public class DatabaseConfiguration {
         dataSource.setJdbcUrl(this.config.dbUrl);
 				dataSource.setPoolName("default");
         dataSource.setMaximumPoolSize(this.config.poolSize);
+        dataSource.setAutoCommit(false);
         return dataSource;
     }
     

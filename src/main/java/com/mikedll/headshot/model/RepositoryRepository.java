@@ -16,6 +16,7 @@ import org.javatuples.Pair;
 import com.mikedll.headshot.db.DatabaseConfiguration;
 import com.mikedll.headshot.db.SimpleSql;
 import com.mikedll.headshot.db.SqlArg;
+import com.mikedll.headshot.db.Transaction;
 import com.mikedll.headshot.controller.Controller;
 
 public class RepositoryRepository {
@@ -107,7 +108,7 @@ public class RepositoryRepository {
         if(result.getValue1() != null) {
             return result.getValue1();
         }
-
+        
         String insertSql = "INSERT INTO repositories (user_id, github_id, name, is_private, description, github_created_at)"
             + " VALUES (?, ?, ?, ?, ?, ?) RETURNING id;";
         for(Repository repository : input.stream().filter(i -> !result.getValue0().contains(i.getGithubId())).collect(Collectors.toList())) {

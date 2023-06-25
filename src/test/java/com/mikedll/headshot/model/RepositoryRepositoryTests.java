@@ -11,17 +11,11 @@ import org.javatuples.Pair;
 import com.mikedll.headshot.Factories;
 import com.mikedll.headshot.TestSuite;
 import com.mikedll.headshot.DbSuite;
+import com.mikedll.headshot.DbTest;
 import com.mikedll.headshot.controller.ControllerUtils;
 
-public class RepositoryRepositoryTests {
+public class RepositoryRepositoryTests extends DbTest {
     
-    @BeforeEach
-    public void beforeEach() {
-        if(!TestSuite.getSuite(DbSuite.class).beforeEach()) {
-            Assertions.fail("suite beforeTest");
-        }
-    }
-
     @Test
     public void testSave() {
         User user = Factories.createUser();
@@ -51,7 +45,7 @@ public class RepositoryRepositoryTests {
     }
 
     @Test
-    public void testNullInsert() {
+    public void testNullConstraint() {
         User user = Factories.createUser();
         List<Repository> repositories = new ArrayList<>();
         repositories.add(Factories.buildRepository());

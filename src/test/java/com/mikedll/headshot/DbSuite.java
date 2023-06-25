@@ -44,14 +44,14 @@ public class DbSuite extends TestSuite {
         HikariDataSource ds = this.app.dbConf.buildDataSource();
         try(Connection conn = ds.getConnection()) {
             try (Statement stmt = conn.createStatement()) {
-                stmt.executeUpdate("DROP SCHEMA public CASCADE; CREATE SCHEMA public;");
+                stmt.executeUpdate("DROP SCHEMA public CASCADE; CREATE SCHEMA public; COMMIT;");
             } catch(SQLException ex) {
                 System.out.println("SQLException when dropping schema: " + ex.getMessage());
                 return false;
             }
 
             try (Statement stmt = conn.createStatement()) {
-                stmt.execute(schemaSql);
+                stmt.execute(schemaSql + "; COMMIT;");
             } catch(SQLException ex) {
                 System.out.println("SQLException when loading schema: " + ex.getMessage());
                 return false;
@@ -97,7 +97,7 @@ public class DbSuite extends TestSuite {
         DataSource ds = app.dbConf.getDataSource();
         try(Connection conn = ds.getConnection()) {
             try (Statement stmt = conn.createStatement()) {
-                stmt.execute("TRUNCATE users RESTART IDENTITY CASCADE;");
+                stmt.execute("TRUNCATE users, repositories RESTART IDENTITY CASCADE; COMMIT;");
             } catch(SQLException ex) {
                 System.out.println("SQLException when truncating database: " + ex.getMessage());
                 return false;

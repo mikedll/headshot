@@ -76,23 +76,6 @@ public class SimpleSql {
             throw new RuntimeException("getTimestamp() failed", ex);
         }
     }
-    
-
-    /*
-     * Returns T, error where where error is null on success.
-     */
-    public static <T> Pair<T,String> executeQuery(DataSource dataSource, String sql, Function<SimpleSql,T> func) {
-        try(Connection conn = dataSource.getConnection()) {
-            try (Statement stmt = conn.createStatement()) {
-                ResultSet resultSet = stmt.executeQuery(sql);
-                return Pair.with(func.apply(new SimpleSql(resultSet)), null);
-            } catch(SQLException ex) {
-                return Pair.with(null, "Failed to execute SQL: " + ex.getMessage());
-            }
-        } catch(SQLException ex) {
-            return Pair.with(null, "SQL Connection exception: " + ex.getMessage());
-        }
-    }
 
     /*
      * Returns error on failure, null on success.
@@ -112,8 +95,6 @@ public class SimpleSql {
     }
 
     /*
-     * Only works with string args :/
-     * 
      * Returns error on failure, null on success.
      */
     public static String executeUpdate(DataSource dataSource, String sql, SqlArg... sqlArgs) {
@@ -182,5 +163,4 @@ public class SimpleSql {
             return Pair.with(null, "SQL Connection exception: " + ex.getMessage());
         }
     }
-    
 }
