@@ -1,6 +1,7 @@
 package com.mikedll.headshot.apiclients;
 
 import com.mikedll.headshot.controller.Controller;
+import com.mikedll.headshot.util.RestClient;
 
 public class ApiClientManager {
 
@@ -13,7 +14,7 @@ public class ApiClientManager {
             throw new RuntimeException("Controller canAccessData() returned false in Application");
         }
         
-        return new GithubClient(controller, accessToken);
+        return new GithubClient(new RestClient(), controller, accessToken);
     }
     
 }

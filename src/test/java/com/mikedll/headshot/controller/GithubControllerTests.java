@@ -14,20 +14,12 @@ import static org.mockito.Mockito.*;
 import com.mikedll.headshot.model.RepositoryRepository;
 import com.mikedll.headshot.model.Repository;
 import com.mikedll.headshot.model.User;
-import com.mikedll.headshot.DbSuite;
-import com.mikedll.headshot.TestSuite;
-import com.mikedll.headshot.Factories;
+import com.mikedll.headshot.controller.ControllerUtils;
 import com.mikedll.headshot.apiclients.ApiClientManager;
 import com.mikedll.headshot.apiclients.GithubClient;
+import com.mikedll.headshot.Factories;
 
-public class GithubControllerTests {
-
-    @BeforeEach
-    public void beforeEach() {
-        if(!TestSuite.getSuite(DbSuite.class).beforeEach()) {
-            Assertions.fail("beforeEach failed");
-        }
-    }
+public class GithubControllerTests extends ControllerTest {
 
     @Test
     public void testLoadRepos() throws IOException {

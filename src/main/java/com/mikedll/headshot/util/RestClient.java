@@ -26,12 +26,12 @@ import com.mikedll.headshot.JsonMarshal;
 
 public class RestClient {
 
-    public static Pair<String,String> get(URI uri) {
+    public Pair<String,String> get(URI uri) {
         Map<String,String> headers = new HashMap<>();
         return get(uri, headers);
     }
 
-    public static Pair<String,String> get(URI uri, Map<String,String> headers) {
+    public Pair<String,String> get(URI uri, Map<String,String> headers) {
         try (CloseableHttpClient httpclient = HttpClients.createDefault()) {
             HttpGet httpGet = new HttpGet(uri);
             headers.keySet().forEach(k -> {
@@ -41,13 +41,14 @@ public class RestClient {
             String result = httpclient.execute(httpGet, response -> {
                     return EntityUtils.toString(response.getEntity());
                 });
+            System.out.println(result);
             return Pair.with(result, null);
         } catch (IOException ex) {
             return Pair.with(null, "Error in REST call: " + ex.getMessage());
         }
     }
 
-    public static <T> Pair<T,String> get(URI uri, Map<String,String> headers, TypeReference<T> typeRef) {
+    public <T> Pair<T,String> get(URI uri, Map<String,String> headers, TypeReference<T> typeRef) {
         Pair<String,String> rawResult = get(uri, headers);
         if(rawResult.getValue1() != null) {
             return Pair.with(null, rawResult.getValue1());
@@ -61,7 +62,7 @@ public class RestClient {
         return Pair.with(unmarshalResult.getValue0(), null);
     }
 
-    public static Pair<String,String> post(URI uri, Map<String,String> headers, List<NameValuePair> params) {
+    public Pair<String,String> post(URI uri, Map<String,String> headers, List<NameValuePair> params) {
         try (CloseableHttpClient httpclient = HttpClients.createDefault()) {
             HttpPost httpPost = new HttpPost(uri);
 
@@ -76,7 +77,7 @@ public class RestClient {
         }
     }
 
-    public static Pair<List<NameValuePair>,String> nvParamsPost(URI uri, Map<String,String> headers, List<NameValuePair> params) {
+    public Pair<List<NameValuePair>,String> nvParamsPost(URI uri, Map<String,String> headers, List<NameValuePair> params) {
         Pair<String,String> bodyResult = post(uri, headers, params);
         if(bodyResult.getValue1() != null) {
             return Pair.with(null, bodyResult.getValue1());
@@ -86,7 +87,7 @@ public class RestClient {
         return Pair.with(result, null);
     }
     
-    public static <T> Pair<T,String> post(URI uri, Map<String,String> headers, List<NameValuePair> params, TypeReference<T> typeRef) {
+    public <T> Pair<T,String> post(URI uri, Map<String,String> headers, List<NameValuePair> params, TypeReference<T> typeRef) {
         Pair<String,String> rawResult = post(uri, headers, params);
         if(rawResult.getValue1() != null) {
             return Pair.with(null, rawResult.getValue1());

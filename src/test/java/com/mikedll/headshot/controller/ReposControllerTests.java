@@ -9,7 +9,9 @@ import static org.mockito.Mockito.*;
 
 import com.mikedll.headshot.model.User;
 import com.mikedll.headshot.model.Repository;
-import com.mikedll.headshot.*;
+import com.mikedll.headshot.DbSuite;
+import com.mikedll.headshot.Factories;
+import com.mikedll.headshot.TestSuite;
 
 public class ReposControllerTests {
 

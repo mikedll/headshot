@@ -34,7 +34,7 @@ public class Factories {
         
         Repository repository = new Repository();
         repository.setGithubId(repoI);
-        repository.setName("activeadmin " + repoI);
+        repository.setName("activeadmin" + repoI);
         repository.setIsPrivate(false);
         repository.setDescription("A ruby gem to provide a UI to a database");
         repository.setCreatedAt(Instant.now().minus(Duration.ofDays(30)));

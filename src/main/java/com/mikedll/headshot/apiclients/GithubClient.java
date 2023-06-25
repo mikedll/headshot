@@ -24,6 +24,8 @@ import com.mikedll.headshot.util.Decoding;
 
 public class GithubClient {
 
+    private RestClient restClient;
+    
     public static final String DIR_TYPE = "dir";
     
     private UserRepository userRepository;
@@ -55,16 +57,17 @@ public class GithubClient {
 
     public record PathReadFileResponse(String type, String name, String content) {}
 
-    public GithubClient(Controller controller, String accessToken) {
+    public GithubClient(RestClient restClient, Controller controller, String accessToken) {
+        this.restClient = restClient;
         this.userRepository = controller.getRepository(UserRepository.class);
         this.accessToken = accessToken;
     }
 
     private Pair<UserResponse,String> getUser() {
-        Pair<UserResponse,String> restResult = RestClient.get(MyUri.from("https://api.github.com/user"),
+        Pair<UserResponse,String> restResult = restClient.get(MyUri.from("https://api.github.com/user"),
                                                               buildHeaders(),
                                                               new TypeReference<UserResponse>() {});
-
+        
         if(restResult.getValue1() != null) {
             return Pair.with(null, restResult.getValue1());
         }
@@ -99,9 +102,9 @@ public class GithubClient {
     
     public Pair<List<Repository>,String> getRepositories(String githubLogin) {
         String url = String.format("https://api.github.com/users/%s/repos", githubLogin);
-        Pair<List<RepoResponse>,String> restResult = RestClient.get(MyUri.from(url),
-                                                                    buildHeaders(),
-                                                                    new TypeReference<List<RepoResponse>>() {});
+        Pair<List<RepoResponse>,String> restResult = this.restClient.get(MyUri.from(url),
+                                                                         buildHeaders(),
+                                                                         new TypeReference<List<RepoResponse>>() {});
         if(restResult.getValue1() != null) {
             return Pair.with(null, restResult.getValue1());
         }
@@ -113,7 +116,7 @@ public class GithubClient {
 
     public Pair<GithubPath, String> readPath(User user, Repository repository, String path) {
         String url = String.format("https://api.github.com/repos/%s/%s/contents/%s", user.getGithubLogin(), repository.getName(), path);
-        Pair<String,String> restResult = RestClient.get(MyUri.from(url), buildHeaders());
+        Pair<String,String> restResult = this.restClient.get(MyUri.from(url), buildHeaders());
         if(restResult.getValue1() != null) {
             return Pair.with(null, restResult.getValue1());
         }

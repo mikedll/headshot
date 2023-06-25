@@ -27,6 +27,8 @@ import com.mikedll.headshot.Application;
 public class LoginController extends Controller {
 
     private UserRepository userRepository;
+
+    private RestClient restClient;
     
     private final String GITHUB_PREFIX = "https://github.com/login/oauth";
     private final String GITHUB_AUTH_PATH = GITHUB_PREFIX + "/authorize";    
@@ -47,6 +49,7 @@ public class LoginController extends Controller {
 
     @Override
     public void acquireDataAccess() {
+        this.restClient = new RestClient();
         this.userRepository = getRepository(UserRepository.class);
     }
 
@@ -84,7 +87,7 @@ public class LoginController extends Controller {
         params.add(new BasicNameValuePair("code", authCode));
 
         Map<String,String> headers = new HashMap<String,String>();        
-        Pair<List<NameValuePair>,String> restResult = RestClient.nvParamsPost(MyUri.from(GITHUB_ACCESS_TOKEN_PATH),
+        Pair<List<NameValuePair>,String> restResult = this.restClient.nvParamsPost(MyUri.from(GITHUB_ACCESS_TOKEN_PATH),
                                                                               headers,
                                                                               params);
 

@@ -1,0 +1,10 @@
+[
+  {
+    "name":".gitignore",
+    "type":"file"
+  },
+  {
+    "name":".ruby-gemset",
+    "type":"file"
+  }
+]

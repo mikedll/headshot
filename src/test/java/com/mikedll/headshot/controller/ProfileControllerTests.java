@@ -11,9 +11,7 @@ import org.junit.jupiter.api.BeforeEach;
 import static org.mockito.Mockito.*;
 
 import com.mikedll.headshot.model.User;
-import com.mikedll.headshot.DbSuite;
-import com.mikedll.headshot.TestSuite;
-import com.mikedll.headshot.Factories;
+import com.mikedll.headshot.*;
 
 public class ProfileControllerTests {
     
