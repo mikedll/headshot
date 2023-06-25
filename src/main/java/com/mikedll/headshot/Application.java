@@ -18,6 +18,7 @@ import com.mikedll.headshot.controller.Controller;
 import com.mikedll.headshot.controller.RequestHandler;
 import com.mikedll.headshot.model.UserRepository;
 import com.mikedll.headshot.apiclients.ApiClientManager;
+import com.mikedll.headshot.experiments.Experiment;
 
 public class Application {
 

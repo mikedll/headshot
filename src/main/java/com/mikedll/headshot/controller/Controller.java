@@ -23,7 +23,7 @@ import com.mikedll.headshot.Application;
 import com.mikedll.headshot.Config;
 import com.mikedll.headshot.db.DatabaseConfiguration;
 import com.mikedll.headshot.AssetFingerprinter;
-import com.mikedll.headshot.JsonMarshal;
+import com.mikedll.headshot.util.JsonMarshal;
 
 public class Controller {
     public static final String COOKIE_NAME = "HEADSHOT_SESSION";

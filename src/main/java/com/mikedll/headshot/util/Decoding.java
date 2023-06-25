@@ -11,7 +11,7 @@ import org.javatuples.Pair;
 
 public class Decoding {
 
-    public static Pair<String,String> decode(byte[] bytes) {
+    public static Pair<String,DecodingError> decode(byte[] bytes) {
         CharBuffer result = null;
         try {
             result = StandardCharsets.UTF_8.newDecoder()
@@ -19,11 +19,11 @@ public class Decoding {
                 .onUnmappableCharacter(CodingErrorAction.REPORT)
                 .decode(ByteBuffer.wrap(bytes));
         } catch (MalformedInputException ex) {
-            return Pair.with(null, "MalformedInputException: " + ex.getMessage());
+            return Pair.with(null, DecodingError.MALFORMED_INPUT);
         } catch (UnmappableCharacterException ex) {
-            return Pair.with(null, "UnmappableCharacterException: " + ex.getMessage());
+            return Pair.with(null, DecodingError.UNMAPPABLE_CHARACTER);
         } catch (CharacterCodingException ex) {
-            throw new RuntimeException("CharacterCodingException while decoding byte array", ex);
+            return Pair.with(null, DecodingError.EXCEPTION);
         }
 
         return Pair.with(result.toString(), null);

@@ -17,10 +17,11 @@ import com.mikedll.headshot.controller.Controller;
 import com.mikedll.headshot.model.UserRepository;
 import com.mikedll.headshot.model.User;
 import com.mikedll.headshot.model.Repository;
-import com.mikedll.headshot.JsonMarshal;
+import com.mikedll.headshot.util.JsonMarshal;
 import com.mikedll.headshot.util.MyUri;
 import com.mikedll.headshot.util.RestClient;
 import com.mikedll.headshot.util.Decoding;
+import com.mikedll.headshot.util.DecodingError;
 
 public class GithubClient {
 
@@ -143,7 +144,7 @@ public class GithubClient {
             PathReadFileResponse fileResp = fileResult.getValue0();
 
             byte[] fileBytes = Base64.getMimeDecoder().decode(fileResp.content());
-            Pair<String,String> toStringResult = Decoding.decode(fileBytes);
+            Pair<String,DecodingError> toStringResult = Decoding.decode(fileBytes);
             if(toStringResult.getValue1() != null) {
                 files.add(new GithubFile(fileResp.type(), fileResp.name(), fileResp.content(), false));
             } else {

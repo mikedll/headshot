@@ -7,7 +7,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.thymeleaf.context.Context;
 import org.javatuples.Pair;
 
-import com.mikedll.headshot.JsonMarshal;
+import com.mikedll.headshot.util.JsonMarshal;
 import com.mikedll.headshot.apiclients.GithubClient;
 import com.mikedll.headshot.apiclients.GithubPath;
 import com.mikedll.headshot.model.Repository;

@@ -12,7 +12,6 @@ import org.javatuples.Pair;
 
 import com.mikedll.headshot.model.RepositoryRepository;
 import com.mikedll.headshot.model.Repository;
-import com.mikedll.headshot.JsonMarshal;
 import com.mikedll.headshot.util.PathUtils;
 import com.mikedll.headshot.util.PathAncestor;
 

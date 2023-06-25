@@ -22,7 +22,7 @@ import org.apache.hc.client5.http.entity.UrlEncodedFormEntity;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.net.WWWFormCodec;
 
-import com.mikedll.headshot.JsonMarshal;
+import com.mikedll.headshot.util.JsonMarshal;
 
 public class RestClient {
 
