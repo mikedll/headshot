@@ -17,6 +17,7 @@ import com.mikedll.headshot.db.DatabaseConfiguration;
 import com.mikedll.headshot.db.SimpleSql;
 import com.mikedll.headshot.db.SqlArg;
 import com.mikedll.headshot.db.Transaction;
+import com.mikedll.headshot.db.TransactionStatement;
 import com.mikedll.headshot.controller.Controller;
 
 public class RepositoryRepository {
@@ -111,7 +112,10 @@ public class RepositoryRepository {
         
         String insertSql = "INSERT INTO repositories (user_id, github_id, name, is_private, description, github_created_at)"
             + " VALUES (?, ?, ?, ?, ?, ?) RETURNING id;";
-        for(Repository repository : input.stream().filter(i -> !result.getValue0().contains(i.getGithubId())).collect(Collectors.toList())) {
+        Transaction tx = new Transaction(dataSource);
+
+        List<Repository> toInsert = input.stream().filter(i -> !result.getValue0().contains(i.getGithubId())).collect(Collectors.toList());
+        for(Repository repository : toInsert) {
             List<SqlArg> insertParams = new ArrayList<>(6);
             insertParams.add(new SqlArg(Long.class, user.getId()));
             insertParams.add(new SqlArg(Long.class, repository.getGithubId()));
@@ -120,15 +124,17 @@ public class RepositoryRepository {
             insertParams.add(new SqlArg(String.class, repository.getDescription()));
             insertParams.add(new SqlArg(Instant.class, repository.getCreatedAt()));
 
-            Pair<Long,String> insertResult = SimpleSql.executeQuery(dataSource, insertSql, (rs) -> {
-                    rs.next();
-                    return rs.getLong("id");
-                }, insertParams.toArray(new SqlArg[0]));
-            if(insertResult.getValue1() != null) {
-                // Todo: rollback transaction
-                return insertResult.getValue1();
-            }
-            repository.setId(insertResult.getValue0());
+            tx.add(TransactionStatement.build(insertSql, insertParams, (rs) -> {
+                        if(rs.next()) {
+                            repository.setId(rs.getLong("id"));
+                        }
+                    }));
+                
+        }
+
+        String error = tx.execute();
+        if(error != null) {
+            return error;
         }
 
         return null;

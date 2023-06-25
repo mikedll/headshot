@@ -6,76 +6,13 @@ import java.sql.Statement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import javax.sql.DataSource;
-import java.sql.Timestamp;
-import java.sql.ResultSetMetaData;
-import java.time.Instant;
 import java.util.function.Function;
+import java.sql.Timestamp;
+import java.time.Instant;
 
 import org.javatuples.Pair;
 
 public class SimpleSql {
-
-    private ResultSet resultSet;
-    
-    public SimpleSql(ResultSet resultSet) {
-        this.resultSet = resultSet;
-    }
-
-    public boolean next() {
-        try {
-            return this.resultSet.next();
-        } catch (SQLException ex) {
-            throw new RuntimeException("next() failed", ex);
-        }
-    }
-
-    public ResultSetMetaData getMetaData() {
-        try {
-            return this.resultSet.getMetaData();
-        } catch (SQLException ex) {
-            throw new RuntimeException("getMetaData() failed", ex);
-        }
-    }
-
-    public String getString(String col) {
-        try {
-            return this.resultSet.getString(col);
-        } catch (SQLException ex) {
-            throw new RuntimeException("getString() failed", ex);
-        }
-    }
-
-    public Long getLong(String col) {
-        try {
-            return this.resultSet.getLong(col);
-        } catch (SQLException ex) {
-            throw new RuntimeException("getLong() failed", ex);
-        }
-    }
-
-    public Long getLong(int col) {
-        try {
-            return this.resultSet.getLong(col);
-        } catch (SQLException ex) {
-            throw new RuntimeException("getLong() failed", ex);
-        }
-    }
-    
-    public Boolean getBoolean(String col) {
-        try {
-            return this.resultSet.getBoolean(col);
-        } catch (SQLException ex) {
-            throw new RuntimeException("getBoolean() failed", ex);
-        }
-    }
-    
-    public Timestamp getTimestamp(String col) {
-        try {
-            return this.resultSet.getTimestamp(col);
-        } catch (SQLException ex) {
-            throw new RuntimeException("getTimestamp() failed", ex);
-        }
-    }
 
     /*
      * Returns error on failure, null on success.
@@ -132,7 +69,7 @@ public class SimpleSql {
     /*
      * Returns (T, error) where error is null on success, an error string on failure.
      */
-    public static <T> Pair<T, String> executeQuery(DataSource dataSource, String sql, Function<SimpleSql,T> func,
+    public static <T> Pair<T, String> executeQuery(DataSource dataSource, String sql, Function<QuietResultSet,T> func,
                                                    SqlArg... sqlArgs) {
         try(Connection conn = dataSource.getConnection()) {
             try (PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -155,7 +92,7 @@ public class SimpleSql {
                 }
                 System.out.println(sql);
                 ResultSet resultSet = stmt.executeQuery();
-                return Pair.with(func.apply(new SimpleSql(resultSet)), null);
+                return Pair.with(func.apply(new QuietResultSet(resultSet)), null);
             } catch(SQLException ex) {
                 return Pair.with(null, "Failed to execute SQL: " + ex.getMessage());
             }

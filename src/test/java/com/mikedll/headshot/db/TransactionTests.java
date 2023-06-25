@@ -3,6 +3,7 @@ package com.mikedll.headshot.db;
 import java.util.List;
 import java.util.ArrayList;
 import javax.sql.DataSource;
+import java.util.function.Consumer;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -24,7 +25,7 @@ public class TransactionTests extends DbTest {
     }
     
     @Test
-    public void testTx() {
+    public void testTxUpdate() {
         Transaction tx = new Transaction(this.dataSource);
 
         String insertSql = "INSERT INTO users (name, github_id, github_login, url, html_url, repos_url, access_token) VALUES (?,?,?,?,?,?,?)";
@@ -37,7 +38,7 @@ public class TransactionTests extends DbTest {
         insertParams.add(new SqlArg(String.class, "http://html_url"));
         insertParams.add(new SqlArg(String.class, "http://repos_url"));
         insertParams.add(new SqlArg(String.class, "accessToken"));        
-        tx.add(TransactionStatement.build(insertSql, insertParams.toArray(new SqlArg[0])));
+        tx.add(TransactionStatement.build(insertSql, insertParams));
         
         insertParams = new ArrayList<>();
         insertParams.add(new SqlArg(String.class, "Sally"));
@@ -47,7 +48,7 @@ public class TransactionTests extends DbTest {
         insertParams.add(new SqlArg(String.class, "http://html_url"));
         insertParams.add(new SqlArg(String.class, "http://repos_url"));
         insertParams.add(new SqlArg(String.class, "accessToken"));        
-        tx.add(TransactionStatement.build(insertSql, insertParams.toArray(new SqlArg[0])));
+        tx.add(TransactionStatement.build(insertSql, insertParams));
         
         String error = tx.execute();
         Assertions.assertNull(error, "inserts");
@@ -64,6 +65,70 @@ public class TransactionTests extends DbTest {
     }
 
     @Test
+    public void testTxQuery() {
+        Transaction tx = new Transaction(this.dataSource);
+
+        String insertSql = "INSERT INTO users (name, github_id, github_login, url, html_url, repos_url, access_token)"
+            + " VALUES (?,?,?,?,?,?,?) RETURNING id";
+
+        List<Long> ids = new ArrayList<>();
+        Consumer<QuietResultSet> capture = (rs) -> {
+            if(rs.next()) {
+                ids.add(rs.getLong("id"));
+            }
+        };
+        
+        List<SqlArg> insertParams = new ArrayList<>();
+        insertParams.add(new SqlArg(String.class, "Mike"));
+        insertParams.add(new SqlArg(Long.class, 10L));
+        insertParams.add(new SqlArg(String.class, "stylishlogin"));
+        insertParams.add(new SqlArg(String.class, "http://url"));
+        insertParams.add(new SqlArg(String.class, "http://html_url"));
+        insertParams.add(new SqlArg(String.class, "http://repos_url"));
+        insertParams.add(new SqlArg(String.class, "accessToken"));        
+        tx.add(TransactionStatement.build(insertSql, insertParams, capture));
+
+        insertParams = new ArrayList<>();
+        insertParams.add(new SqlArg(String.class, "Sally"));
+        insertParams.add(new SqlArg(Long.class, 11L));
+        insertParams.add(new SqlArg(String.class, "stylishlogin2"));
+        insertParams.add(new SqlArg(String.class, "http://url"));
+        insertParams.add(new SqlArg(String.class, "http://html_url"));
+        insertParams.add(new SqlArg(String.class, "http://repos_url"));
+        insertParams.add(new SqlArg(String.class, "accessToken"));        
+        tx.add(TransactionStatement.build(insertSql, insertParams, capture));
+
+        String error = tx.execute();
+        Assertions.assertNull(error, "inserts");
+
+        Pair<Long,String> countResult = SimpleSql.executeQuery(this.dataSource, "SELECT COUNT(*) from users", (rs) -> {
+                if(!rs.next()) {
+                    return null;
+                }
+                return rs.getLong("count");
+            });
+
+        Assertions.assertNull(countResult.getValue1(), "count");
+        Assertions.assertEquals(2, countResult.getValue0(), "correct count");
+
+        Pair<String, String> found = SimpleSql.executeQuery(this.dataSource, "SELECT name FROM users WHERE id = ?", (rs) -> {
+                if(rs.next()) {
+                    return rs.getString("name");
+                }
+                return null;
+            }, new SqlArg(Long.class, ids.get(0)));
+        Assertions.assertEquals("Mike", found.getValue0());
+
+        found = SimpleSql.executeQuery(this.dataSource, "SELECT name FROM users WHERE id = ?", (rs) -> {
+                if(rs.next()) {
+                    return rs.getString("name");
+                }
+                return null;
+            }, new SqlArg(Long.class, ids.get(1)));
+        Assertions.assertEquals("Sally", found.getValue0());
+    }
+    
+    @Test
     public void testTxRollback() {
         Transaction tx = new Transaction(this.dataSource);
 
@@ -77,7 +142,7 @@ public class TransactionTests extends DbTest {
         insertParams.add(new SqlArg(String.class, "http://html_url"));
         insertParams.add(new SqlArg(String.class, "http://repos_url"));
         insertParams.add(new SqlArg(String.class, "accessToken"));        
-        tx.add(TransactionStatement.build(insertSql, insertParams.toArray(new SqlArg[0])));
+        tx.add(TransactionStatement.build(insertSql, insertParams));
         
         insertParams = new ArrayList<>();
         insertParams.add(new SqlArg(String.class, "Sally"));
@@ -87,7 +152,7 @@ public class TransactionTests extends DbTest {
         insertParams.add(new SqlArg(String.class, "http://html_url"));
         insertParams.add(new SqlArg(String.class, "http://repos_url"));
         insertParams.add(new SqlArg(String.class, "accessToken"));        
-        tx.add(TransactionStatement.build(insertSql, insertParams.toArray(new SqlArg[0])));
+        tx.add(TransactionStatement.build(insertSql, insertParams));
 
         String error = tx.execute();
         Assertions.assertTrue(error.contains("duplicate key value violates unique constraint \"users_github_id\""), "error on inserts");

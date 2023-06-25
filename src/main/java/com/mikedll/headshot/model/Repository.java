@@ -2,7 +2,7 @@ package com.mikedll.headshot.model;
 
 import java.time.Instant;
 
-import com.mikedll.headshot.db.SimpleSql;
+import com.mikedll.headshot.db.QuietResultSet;
 
 public class Repository {
     
@@ -80,7 +80,7 @@ public class Repository {
         return Formats.PRETTY_TIME_FORMATTER.format(this.createdAt);
     }
 
-    public void copyFromRs(SimpleSql rs) {
+    public void copyFromRs(QuietResultSet rs) {
         setId(rs.getLong("id"));
         setUserId(rs.getLong("user_id"));
         setGithubId(rs.getLong("github_id"));

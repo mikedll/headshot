@@ -1,5 +1,7 @@
 package com.mikedll.headshot.db;
 
+import java.util.List;
+import java.util.function.Consumer;
 import java.sql.SQLException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -7,14 +9,20 @@ import java.sql.Timestamp;
 import java.time.Instant;
 
 public class TransactionStatement {
+    
+    private StatementType type;
 
     private String sql;
 
-    private SqlArg[] args;
+    private List<SqlArg> args;
+
+    private Consumer<QuietResultSet> rsConsumer;
     
-    public TransactionStatement(String sql, SqlArg[] args) {
+    public TransactionStatement(StatementType type, String sql, List<SqlArg> args, Consumer<QuietResultSet> rsConsumer) {
+        this.type = type;
         this.sql = sql;
         this.args = args;
+        this.rsConsumer = rsConsumer;
     }
 
     /*
@@ -22,9 +30,9 @@ public class TransactionStatement {
      */
     public String execute(Connection conn) {
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            for(int i = 0; i < args.length; i++) {
-                Class<?> clazz = args[i].clazz();
-                Object arg = args[i].val();
+            for(int i = 0; i < args.size(); i++) {
+                Class<?> clazz = args.get(i).clazz();
+                Object arg = args.get(i).val();
                 if(clazz == Integer.class) {
                     stmt.setInt(i+1, (Integer)arg);
                 } else if(clazz == Long.class) {
@@ -40,7 +48,13 @@ public class TransactionStatement {
                 }
             }
             System.out.println(sql);
-            stmt.executeUpdate();
+            if(this.type == StatementType.UPDATE) {
+                stmt.executeUpdate();
+            } else if(this.type == StatementType.QUERY) {
+                this.rsConsumer.accept(new QuietResultSet(stmt.executeQuery()));
+            } else if(this.type == StatementType.EXECUTE) {
+                stmt.execute();
+            }
         } catch(SQLException ex) {
             return "Failed to execute SQL: " + ex.getMessage();
         }
@@ -48,7 +62,15 @@ public class TransactionStatement {
         return null;
     }
 
-    public static TransactionStatement build(String sql, SqlArg...args) {
-        return new TransactionStatement(sql, args);
+    public static TransactionStatement build(String sql, List<SqlArg> args) {
+        return new TransactionStatement(StatementType.UPDATE, sql, args, null);
+    }
+
+    public static <T> TransactionStatement build(String sql, List<SqlArg> args, Consumer<QuietResultSet> rsConsumer) {
+        return new TransactionStatement(StatementType.QUERY, sql, args, rsConsumer);
+    }
+
+    public static TransactionStatement buildExecute(String sql, List<SqlArg> args) {
+        return new TransactionStatement(StatementType.EXECUTE, sql, args, null);
     }
 }

@@ -12,13 +12,12 @@ import java.sql.Statement;
  */
 public class Transaction {
 
-    DataSource dataSource;
+    private DataSource dataSource;
 
-    List<TransactionStatement> statements;
-    
+    public List<TransactionStatement> statements = new ArrayList<>(10);
+
     public Transaction(DataSource dataSource) {
         this.dataSource = dataSource;
-        this.statements = new ArrayList<>(10);
     }
 
     public void add(TransactionStatement stmt) {
@@ -31,7 +30,9 @@ public class Transaction {
     public String execute() {
         try(Connection conn = dataSource.getConnection()) {
             try (Statement stmt = conn.createStatement()) {
-                stmt.execute("BEGIN;");
+                String begin = "BEGIN;";
+                System.out.println(begin);
+                stmt.execute(begin);
             } catch (SQLException ex) {
                 return "SQLException when starting transaction: " + ex.getMessage();
             }
@@ -45,7 +46,9 @@ public class Transaction {
             }
             if(error != null) {
                 try (Statement stmt = conn.createStatement()) {
-                    stmt.execute("ROLLBACK;");
+                    String rollback = "ROLLBACK;";
+                    System.out.println(rollback);
+                    stmt.execute(rollback);
                 } catch (SQLException ex) {
                     return "SQLException when rolling back transaction: " + ex.getMessage();
                 }
@@ -53,7 +56,9 @@ public class Transaction {
             }
 
             try (Statement stmt = conn.createStatement()) {
-                stmt.execute("COMMIT;");
+                String commit = "COMMIT;";
+                System.out.println(commit);
+                stmt.execute(commit);
             } catch (SQLException ex) {
                 return "SQLException when commiting transaction: " + ex.getMessage();
             }
