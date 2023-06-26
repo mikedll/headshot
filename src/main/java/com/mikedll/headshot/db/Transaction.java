@@ -14,13 +14,13 @@ public class Transaction {
 
     private DataSource dataSource;
 
-    public List<TransactionStatement> statements = new ArrayList<>(10);
+    public List<TransactionStatement<?>> statements = new ArrayList<>(10);
 
     public Transaction(DataSource dataSource) {
         this.dataSource = dataSource;
     }
 
-    public void add(TransactionStatement stmt) {
+    public void add(TransactionStatement<?> stmt) {
         this.statements.add(stmt);
     }
 

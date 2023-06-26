@@ -3,7 +3,7 @@ package com.mikedll.headshot.db;
 import java.util.List;
 import java.util.ArrayList;
 import javax.sql.DataSource;
-import java.util.function.Consumer;
+import java.util.function.Function;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -71,11 +71,13 @@ public class TransactionTests extends DbTest {
         String insertSql = "INSERT INTO users (name, github_id, github_login, url, html_url, repos_url, access_token)"
             + " VALUES (?,?,?,?,?,?,?) RETURNING id";
 
+        List<TransactionStatement<Long>> inserts = new ArrayList<>();
         List<Long> ids = new ArrayList<>();
-        Consumer<QuietResultSet> capture = (rs) -> {
+        Function<QuietResultSet,Long> rsToResult = (rs) -> {
             if(rs.next()) {
-                ids.add(rs.getLong("id"));
+                return rs.getLong("id");
             }
+            return null;
         };
         
         List<SqlArg> insertParams = new ArrayList<>();
@@ -86,7 +88,7 @@ public class TransactionTests extends DbTest {
         insertParams.add(new SqlArg(String.class, "http://html_url"));
         insertParams.add(new SqlArg(String.class, "http://repos_url"));
         insertParams.add(new SqlArg(String.class, "accessToken"));        
-        tx.add(TransactionStatement.build(insertSql, insertParams, capture));
+        inserts.add(TransactionStatement.build(insertSql, insertParams, rsToResult));
 
         insertParams = new ArrayList<>();
         insertParams.add(new SqlArg(String.class, "Sally"));
@@ -96,10 +98,12 @@ public class TransactionTests extends DbTest {
         insertParams.add(new SqlArg(String.class, "http://html_url"));
         insertParams.add(new SqlArg(String.class, "http://repos_url"));
         insertParams.add(new SqlArg(String.class, "accessToken"));        
-        tx.add(TransactionStatement.build(insertSql, insertParams, capture));
+        inserts.add(TransactionStatement.build(insertSql, insertParams, rsToResult));
 
+        inserts.forEach(s -> tx.add(s));
         String error = tx.execute();
         Assertions.assertNull(error, "inserts");
+        inserts.forEach(s -> ids.add(s.getResult()));
 
         Pair<Long,String> countResult = SimpleSql.executeQuery(this.dataSource, "SELECT COUNT(*) from users", (rs) -> {
                 if(!rs.next()) {
@@ -132,8 +136,20 @@ public class TransactionTests extends DbTest {
     public void testTxRollback() {
         Transaction tx = new Transaction(this.dataSource);
 
-        String insertSql = "INSERT INTO users (name, github_id, github_login, url, html_url, repos_url, access_token) VALUES (?,?,?,?,?,?,?)";
+        String insertSql = "INSERT INTO users (name, github_id, github_login, url, html_url, repos_url, access_token) VALUES (?,?,?,?,?,?,?) " +
+            "RETURNING (id)";
 
+        // This is kind of just to give lip service to the fact that you'd need
+        // to track your inserts apart from the transaction object, so that you
+        // can get the IDs out later.
+        List<TransactionStatement<Long>> inserts = new ArrayList<>();
+        Function<QuietResultSet,Long> toResult = (rs) -> {
+            if(rs.next()) {
+                return rs.getLong("id");
+            }
+            return null;
+        };
+        
         List<SqlArg> insertParams = new ArrayList<>();
         insertParams.add(new SqlArg(String.class, "Mike"));
         insertParams.add(new SqlArg(Long.class, 10L));
@@ -142,7 +158,7 @@ public class TransactionTests extends DbTest {
         insertParams.add(new SqlArg(String.class, "http://html_url"));
         insertParams.add(new SqlArg(String.class, "http://repos_url"));
         insertParams.add(new SqlArg(String.class, "accessToken"));        
-        tx.add(TransactionStatement.build(insertSql, insertParams));
+        inserts.add(TransactionStatement.build(insertSql, insertParams, toResult));
         
         insertParams = new ArrayList<>();
         insertParams.add(new SqlArg(String.class, "Sally"));
@@ -152,8 +168,9 @@ public class TransactionTests extends DbTest {
         insertParams.add(new SqlArg(String.class, "http://html_url"));
         insertParams.add(new SqlArg(String.class, "http://repos_url"));
         insertParams.add(new SqlArg(String.class, "accessToken"));        
-        tx.add(TransactionStatement.build(insertSql, insertParams));
+        inserts.add(TransactionStatement.build(insertSql, insertParams, toResult));
 
+        inserts.forEach(s -> tx.add(s));
         String error = tx.execute();
         Assertions.assertTrue(error.contains("duplicate key value violates unique constraint \"users_github_id\""), "error on inserts");
 

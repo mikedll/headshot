@@ -37,11 +37,17 @@ public class RepositoryRepositoryTests extends DbTest {
         repositories.add(original);
         Repository dup = Factories.buildRepository();
         dup.setGithubId(original.getGithubId());
+        repositories.add(dup);
 
         RepositoryRepository repositoryRepository = ControllerUtils.getRepository(RepositoryRepository.class);
 
         String error = repositoryRepository.save(user, repositories);
-        Assertions.assertEquals("some error", error, "expected dup error");
+        Assertions.assertTrue(error.contains("duplicate key value violates unique constraint \"repositories_user_id_github_id\""), "dup error");
+        Assertions.assertNull(original.getId(), "not inserted");
+        Assertions.assertNull(dup.getId(), "not inserted");
+
+        Pair<Long,String> countResult = repositoryRepository.count();
+        Assertions.assertEquals(0L, countResult.getValue0(), "nothing inserted");
     }
 
     @Test
@@ -59,7 +65,6 @@ public class RepositoryRepositoryTests extends DbTest {
         Assertions.assertTrue(error.contains("null value in column \"description\""), "null description check");
 
         Pair<Long,String> countResult = repositoryRepository.count();
-        Assertions.assertNull(countResult.getValue1(), "count");
         Assertions.assertEquals(0L, countResult.getValue0(), "nothing inserted");
     }
     

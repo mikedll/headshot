@@ -10,6 +10,7 @@ import java.util.Optional;
 import javax.sql.DataSource;
 import java.sql.Timestamp;
 import java.sql.ResultSetMetaData;
+import java.util.stream.IntStream;
 
 import org.javatuples.Pair;
 
@@ -114,6 +115,7 @@ public class RepositoryRepository {
             + " VALUES (?, ?, ?, ?, ?, ?) RETURNING id;";
         Transaction tx = new Transaction(dataSource);
 
+        List<TransactionStatement<Long>> inserts = new ArrayList<>();
         List<Repository> toInsert = input.stream().filter(i -> !result.getValue0().contains(i.getGithubId())).collect(Collectors.toList());
         for(Repository repository : toInsert) {
             List<SqlArg> insertParams = new ArrayList<>(6);
@@ -124,18 +126,24 @@ public class RepositoryRepository {
             insertParams.add(new SqlArg(String.class, repository.getDescription()));
             insertParams.add(new SqlArg(Instant.class, repository.getCreatedAt()));
 
-            tx.add(TransactionStatement.build(insertSql, insertParams, (rs) -> {
+            inserts.add(TransactionStatement.build(insertSql, insertParams, (rs) -> {
                         if(rs.next()) {
-                            repository.setId(rs.getLong("id"));
+                            return rs.getLong("id");
                         }
+                        return null;
                     }));
                 
         }
 
+        inserts.forEach(s -> tx.add(s));
         String error = tx.execute();
         if(error != null) {
             return error;
         }
+
+        IntStream.range(0, inserts.size()).forEach(idx -> {
+                toInsert.get(0).setId(inserts.get(idx).getResult());
+            });
 
         return null;
     }

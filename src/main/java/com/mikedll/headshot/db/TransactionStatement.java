@@ -1,14 +1,14 @@
 package com.mikedll.headshot.db;
 
 import java.util.List;
-import java.util.function.Consumer;
+import java.util.function.Function;
 import java.sql.SQLException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.Timestamp;
 import java.time.Instant;
 
-public class TransactionStatement {
+public class TransactionStatement<T> {
     
     private StatementType type;
 
@@ -16,13 +16,15 @@ public class TransactionStatement {
 
     private List<SqlArg> args;
 
-    private Consumer<QuietResultSet> rsConsumer;
+    private Function<QuietResultSet,T> rsToResult;
+
+    private T result;
     
-    public TransactionStatement(StatementType type, String sql, List<SqlArg> args, Consumer<QuietResultSet> rsConsumer) {
+    public TransactionStatement(StatementType type, String sql, List<SqlArg> args, Function<QuietResultSet,T> rsToResult) {
         this.type = type;
         this.sql = sql;
         this.args = args;
-        this.rsConsumer = rsConsumer;
+        this.rsToResult = rsToResult;
     }
 
     /*
@@ -51,7 +53,7 @@ public class TransactionStatement {
             if(this.type == StatementType.UPDATE) {
                 stmt.executeUpdate();
             } else if(this.type == StatementType.QUERY) {
-                this.rsConsumer.accept(new QuietResultSet(stmt.executeQuery()));
+                this.result = this.rsToResult.apply(new QuietResultSet(stmt.executeQuery()));
             } else if(this.type == StatementType.EXECUTE) {
                 stmt.execute();
             }
@@ -62,12 +64,16 @@ public class TransactionStatement {
         return null;
     }
 
+    public T getResult() {
+        return this.result;
+    }
+
     public static TransactionStatement build(String sql, List<SqlArg> args) {
         return new TransactionStatement(StatementType.UPDATE, sql, args, null);
     }
 
-    public static <T> TransactionStatement build(String sql, List<SqlArg> args, Consumer<QuietResultSet> rsConsumer) {
-        return new TransactionStatement(StatementType.QUERY, sql, args, rsConsumer);
+    public static <T> TransactionStatement<T> build(String sql, List<SqlArg> args, Function<QuietResultSet,T> rsToResult) {
+        return new TransactionStatement(StatementType.QUERY, sql, args, rsToResult);
     }
 
     public static TransactionStatement buildExecute(String sql, List<SqlArg> args) {
