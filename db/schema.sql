@@ -20,7 +20,7 @@ CREATE TABLE public.repositories (
     github_id bigint NOT NULL,
     name character varying NOT NULL,
     is_private boolean NOT NULL,
-    description character varying NOT NULL,
+    description character varying,
     github_created_at timestamp(6) without time zone NOT NULL
 );
 

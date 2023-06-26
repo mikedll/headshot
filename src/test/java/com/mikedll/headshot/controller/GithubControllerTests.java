@@ -9,7 +9,7 @@ import org.javatuples.Pair;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
-import static org.mockito.Mockito.*;
+import org.mockito.Mockito;
 
 import com.mikedll.headshot.model.RepositoryRepository;
 import com.mikedll.headshot.model.Repository;
@@ -24,20 +24,20 @@ public class GithubControllerTests extends ControllerTest {
     @Test
     public void testLoadRepos() throws IOException {
         User user = Factories.createUser();
-        ControllerUtils.app.apiClientManager = mock(ApiClientManager.class);
 
-        GithubClient client = mock(GithubClient.class);
+        GithubClient client = Mockito.mock(GithubClient.class);
         List<Repository> repos = new ArrayList<Repository>();
         repos.add(Factories.buildRepository());
         repos.add(Factories.buildRepository());
-        when(client.getRepositories(anyString())).thenReturn(Pair.with(repos, null));
-        when(ControllerUtils.app.apiClientManager.getGithubClient(any(Controller.class), anyString())).thenReturn(client);
+        Mockito.when(client.getRepositories(Mockito.anyString())).thenReturn(Pair.with(repos, null));
+        
+        ApiClientManager apiClientManager = Mockito.mock(ApiClientManager.class);
+        Mockito.when(apiClientManager.getGithubClient(Mockito.any(Controller.class), Mockito.anyString())).thenReturn(client);
+        ControllerUtils.app.apiClientManager = apiClientManager;
 
         TestRequest request = ControllerUtils.builder().withUser(user).build().put("/github/loadRepos");
 
-        // System.out.println(request.res().getStatus());
-        verify(request.res()).setStatus(HttpServletResponse.SC_OK);
-        // Assertions.assertTrue(request.responseBody().contains("Hello"));
+        Mockito.verify(request.res()).setStatus(HttpServletResponse.SC_OK);
 
         RepositoryRepository repositoryRepository = ControllerUtils.getRepository(RepositoryRepository.class);
 

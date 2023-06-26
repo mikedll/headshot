@@ -163,6 +163,7 @@ public class Migrations {
             } catch (IOException ex) {
                 return "Unable to read " + forward + ": " + ex.getMessage();
             }
+            sql += " COMMIT;";
             if(!this.silent) {
                 System.out.println("Executing " + forward);
                 System.out.println(sql);
@@ -173,7 +174,7 @@ public class Migrations {
                 return migrationError;
             }
 
-            String insertSql = "INSERT INTO " + SCHEMA_MIGRATIONS_TABLE + " (version) VALUES (?)";
+            String insertSql = "INSERT INTO " + SCHEMA_MIGRATIONS_TABLE + " (version) VALUES (?); COMMIT;";
             String versionError = SimpleSql.executeUpdate(dataSource, insertSql, new SqlArg(String.class, tsOf(forward)));
             if(versionError != null) {
                 System.out.println("SQL Error: " + versionError);
@@ -201,6 +202,7 @@ public class Migrations {
         } catch (IOException ex) {
             return "Unable to read " + reverse + ": " + ex.getMessage();
         }
+        sql += " COMMIT;";
 
         if(!this.silent) {
             System.out.println("Executing " + reverse);
@@ -212,7 +214,7 @@ public class Migrations {
             return migrationError;
         }
 
-        String deleteSql = "DELETE FROM " + SCHEMA_MIGRATIONS_TABLE + " WHERE version = ?";
+        String deleteSql = "DELETE FROM " + SCHEMA_MIGRATIONS_TABLE + " WHERE version = ?; COMMIT;";
         String deleteVersionError = SimpleSql.executeUpdate(dataSource, deleteSql, new SqlArg(String.class, ts));
         if(deleteVersionError != null) {
             System.out.println("SQL Error: " + deleteVersionError);

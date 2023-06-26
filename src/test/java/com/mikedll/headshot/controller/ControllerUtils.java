@@ -10,7 +10,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Cookie;
 
-import static org.mockito.Mockito.*;
+import org.mockito.Mockito;
 
 import com.mikedll.headshot.model.User;
 import com.mikedll.headshot.Factories;
@@ -33,17 +33,19 @@ public class ControllerUtils {
     }
 
     public TestRequest makeRequest(String path, String method) {
-        HttpServletRequest req = mock(HttpServletRequest.class);
-        HttpServletResponse res = mock(HttpServletResponse.class);
+        HttpServletRequest req = Mockito.mock(HttpServletRequest.class);
+        HttpServletResponse res = Mockito.mock(HttpServletResponse.class);
 
-        when(req.getServerName()).thenReturn("localhost");
-        when(req.getServerPort()).thenReturn(80);
-        when(req.getRequestURI()).thenReturn(path);
-        when(req.getMethod()).thenReturn(method);
+        String defaultAccept = "text/html, application/xhtml+xml, application/xml;q=0.9, */*;q=0.8";
+        Mockito.when(req.getHeader("Accept")).thenReturn(defaultAccept); 
+        Mockito.when(req.getServerName()).thenReturn("localhost");
+        Mockito.when(req.getServerPort()).thenReturn(80);
+        Mockito.when(req.getRequestURI()).thenReturn(path);
+        Mockito.when(req.getMethod()).thenReturn(method);
         StringWriter stringWriter = new StringWriter();
         PrintWriter printWriter = new PrintWriter(stringWriter);
         try {
-            when(res.getWriter()).thenReturn(printWriter);
+            Mockito.when(res.getWriter()).thenReturn(printWriter);
         } catch (IOException ex) {
             throw new RuntimeException("IOException when mocking response getWriter()", ex);
         }
@@ -61,15 +63,15 @@ public class ControllerUtils {
                 throw new RuntimeException("Exception in cookieString(...)", ex);
             }
 
-            Cookie cookie = mock(Cookie.class);
-            when(cookie.getName()).thenReturn(Controller.COOKIE_NAME);
-            when(cookie.getValue()).thenReturn(cookieString);
-            when(req.getCookies()).thenReturn(new Cookie[] { cookie });
+            Cookie cookie = Mockito.mock(Cookie.class);
+            Mockito.when(cookie.getName()).thenReturn(Controller.COOKIE_NAME);
+            Mockito.when(cookie.getValue()).thenReturn(cookieString);
+            Mockito.when(req.getCookies()).thenReturn(new Cookie[] { cookie });
         } else if(cookieString != null) {
-            Cookie cookie = mock(Cookie.class);
-            when(cookie.getName()).thenReturn(Controller.COOKIE_NAME);
-            when(cookie.getValue()).thenReturn(cookieString);
-            when(req.getCookies()).thenReturn(new Cookie[] { cookie });
+            Cookie cookie = Mockito.mock(Cookie.class);
+            Mockito.when(cookie.getName()).thenReturn(Controller.COOKIE_NAME);
+            Mockito.when(cookie.getValue()).thenReturn(cookieString);
+            Mockito.when(req.getCookies()).thenReturn(new Cookie[] { cookie });
             
         }
 

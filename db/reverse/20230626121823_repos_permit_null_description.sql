@@ -1,0 +1,1 @@
+ALTER TABLE repositories ALTER COLUMN description SET NOT NULL;
