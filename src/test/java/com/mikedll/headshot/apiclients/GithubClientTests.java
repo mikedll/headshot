@@ -6,6 +6,7 @@ import java.net.URI;
 import java.util.Map;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.javatuples.Pair;
 import org.apache.commons.io.FileUtils;
@@ -109,5 +110,51 @@ public class GithubClientTests extends DbTest {
         Assertions.assertEquals(expected, result.getValue0());        
     }
 
-    // handle legitimate error different from malformed encoding or unmappable symbol error
+    @Test
+    public void testPullNewUser() {
+        Controller controller = Mockito.mock(Controller.class);
+        Mockito.when(controller.getRepository(UserRepository.class)).thenReturn(ControllerUtils.getRepository(UserRepository.class));
+        
+        RestClient restClient = Mockito.mock(RestClient.class);
+        GithubUserResponse userResp = new GithubUserResponse(10L, "mikelogin", "Mike", "http://mike",
+                                                             "http://mike/html", "http://mike/repos");
+     
+        @SuppressWarnings("unchecked")
+            OngoingStubbing z = Mockito.when(restClient.get(Mockito.any(URI.class), Mockito.any(Map.class), Mockito.any(TypeReference.class)))
+            .thenReturn(Pair.with(userResp, null));
+        
+        GithubClient client = new GithubClient(restClient, controller, "myAccessToken");
+        Pair<User,String> pullResult = client.pullUserInfo();
+        Assertions.assertNull(pullResult.getValue1(), "pulluser success");
+        User user = pullResult.getValue0();
+        Assertions.assertEquals(10L, user.getGithubId());        
+        Assertions.assertEquals("mikelogin", user.getGithubLogin());
+        Assertions.assertEquals("Mike", user.getName());
+        Assertions.assertEquals("http://mike", user.getUrl());
+        Assertions.assertEquals("http://mike/html", user.getHtmlUrl());
+        Assertions.assertEquals("http://mike/repos", user.getReposUrl());
+        Assertions.assertEquals("myAccessToken", user.getAccessToken());
+    }
+
+    @Test
+    public void pullExistingUser() {
+        User user = Factories.createUser();
+        Controller controller = Mockito.mock(Controller.class);
+        Mockito.when(controller.getRepository(UserRepository.class)).thenReturn(ControllerUtils.getRepository(UserRepository.class));
+        
+        RestClient restClient = Mockito.mock(RestClient.class);
+        GithubUserResponse userResp = new GithubUserResponse(user.getGithubId(), "mikelogin", "Mike", "http://mike",
+                                                             "http://mike/html", "http://mike/repos");
+     
+        @SuppressWarnings("unchecked")
+            OngoingStubbing z = Mockito.when(restClient.get(Mockito.any(URI.class), Mockito.any(Map.class), Mockito.any(TypeReference.class)))
+            .thenReturn(Pair.with(userResp, null));
+        
+        GithubClient client = new GithubClient(restClient, controller, "myAccessToken");
+        Pair<User,String> pullResult = client.pullUserInfo();
+        Assertions.assertNull(pullResult.getValue1(), "pulluser success");
+
+        UserRepository userRepository = ControllerUtils.getRepository(UserRepository.class);
+        Assertions.assertEquals(1L, userRepository.count().getValue0(), "only 1 user");
+    }
 }

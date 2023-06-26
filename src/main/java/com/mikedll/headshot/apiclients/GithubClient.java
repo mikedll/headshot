@@ -46,17 +46,6 @@ public class GithubClient {
         }
     }
 
-    public record UserResponse(Long id, String login, String name, String url, String html_url, String repos_url) {
-        public void copyFieldsTo(User user) {
-            user.setName(this.name);
-            user.setGithubId(this.id);
-            user.setGithubLogin(this.login);
-            user.setUrl(this.url);
-            user.setHtmlUrl(this.html_url);
-            user.setReposUrl(this.repos_url);
-        }
-    }
-
     public record PathReadFileResponse(String type, String name, String content) {}
 
     public GithubClient(RestClient restClient, Controller controller, String accessToken) {
@@ -65,10 +54,10 @@ public class GithubClient {
         this.accessToken = accessToken;
     }
 
-    private Pair<UserResponse,String> getUser() {
-        Pair<UserResponse,String> restResult = restClient.get(MyUri.from("https://api.github.com/user"),
-                                                              buildHeaders(),
-                                                              new TypeReference<UserResponse>() {});
+    private Pair<GithubUserResponse,String> getUser() {
+        Pair<GithubUserResponse,String> restResult = restClient.get(MyUri.from("https://api.github.com/user"),
+                                                                    buildHeaders(),
+                                                                    new TypeReference<GithubUserResponse>() {});
         
         if(restResult.getValue1() != null) {
             return Pair.with(null, restResult.getValue1());
@@ -78,14 +67,14 @@ public class GithubClient {
     }
 
     public Pair<User,String> pullUserInfo() {
-        Pair<UserResponse,String> getUserResult = getUser();
+        Pair<GithubUserResponse,String> getUserResult = getUser();
         if(getUserResult.getValue1() != null) {
             return Pair.with(null, getUserResult.getValue1());
         }
 
-        UserResponse userResponse = getUserResult.getValue0();
+        GithubUserResponse userResponse = getUserResult.getValue0();
         
-        Pair<Optional<User>, String> userResult = userRepository.findByGithubId(userResponse.id);
+        Pair<Optional<User>, String> userResult = userRepository.findByGithubId(userResponse.id());
         if(userResult.getValue1() != null) {
             return Pair.with(null, userResult.getValue1());
         }
@@ -94,10 +83,10 @@ public class GithubClient {
         if(user == null) {
             System.out.println("Found no user");
             user = new User();
-            userResponse.copyFieldsTo(user);
         } else {
             System.out.println("Found existing user");
         }
+        userResponse.copyFieldsTo(user);
         user.setAccessToken(accessToken);
         userRepository.save(user);
 
