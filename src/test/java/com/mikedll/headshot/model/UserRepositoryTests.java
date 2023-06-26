@@ -1,7 +1,6 @@
 package com.mikedll.headshot.model;
 
 import java.util.Optional;
-import java.lang.InterruptedException;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,7 +14,7 @@ import com.mikedll.headshot.controller.ControllerUtils;
 public class UserRepositoryTests extends DbTest {
 
     @Test
-    public void testInsert() throws InterruptedException {
+    public void testInsert() {
         User user = Factories.buildUser();
         UserRepository userRepository = ControllerUtils.getRepository(UserRepository.class);
         String error = userRepository.save(user);
@@ -25,6 +24,10 @@ public class UserRepositoryTests extends DbTest {
         Pair<Optional<User>,String> fetchUser = userRepository.findById(user.getId());
         Assertions.assertNull(fetchUser.getValue1());
         Assertions.assertNotNull(fetchUser.getValue0().orElse(null), "user is in db");
+
+        Pair<Optional<User>,String> fetchUser2 = userRepository.findByGithubId(user.getGithubId());
+        Assertions.assertNull(fetchUser2.getValue1());
+        Assertions.assertNotNull(fetchUser2.getValue0().orElse(null), "user is in db");
     }
 
     @Test
