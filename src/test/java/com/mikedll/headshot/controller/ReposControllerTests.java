@@ -5,7 +5,6 @@ import java.util.Arrays;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
-import static org.mockito.Mockito.*;
 
 import com.mikedll.headshot.model.User;
 import com.mikedll.headshot.model.Repository;
@@ -41,6 +40,15 @@ public class ReposControllerTests {
         TestRequest request = ControllerUtils.builder().withUser(user).build().get("/repos/" + repo1.getId());
 
         Assertions.assertTrue(request.responseBody().contains(repo1.getName()));
+    }
+
+    @Test
+    public void testShowWithPath() {
+        User user = Factories.createUser();
+        Repository repo1 = Factories.createRepository(user);
+        TestRequest request = ControllerUtils.builder().withUser(user).build().get("/repos/" + repo1.getId() + "/lib/cknife");
+
+        Assertions.assertTrue(request.select(".tree-nav").text().contains("lib > cknife"), "breadcrumbs");
     }
     
 }
