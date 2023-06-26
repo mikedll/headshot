@@ -13,3 +13,8 @@ interface GithubPath {
   isFile: boolean;
   files: GithubFile[];
 }
+
+interface NestedMikeAttrs {
+  name: string;
+  age: number; 
+}

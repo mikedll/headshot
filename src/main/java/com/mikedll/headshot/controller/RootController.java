@@ -12,6 +12,11 @@ public class RootController extends Controller {
         render("index", defaultCtx());        
     }
 
+    @Request(path="/lit")
+    public void lit() {
+        render("lit", defaultCtx());        
+    }
+    
     @Request(path="/logout")
     public void logout() {
         clearSession();

@@ -5,6 +5,6 @@
     "noImplicitAny": true,
     "strict": true,
     "moduleResolution": "node",
-    "experimentalDecorators": true,
+    "experimentalDecorators": true
   }
 }
