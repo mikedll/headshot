@@ -13,10 +13,8 @@
         <maven.compiler.target>17</maven.compiler.target>
         <java.version>17</java.version>
         <tomcat.version>10.1.9</tomcat.version>
-        <spring-boot.version>3.1.0</spring-boot.version>
         <spring.version>6.0.9</spring.version>
         <spring-security.version>6.0.3</spring-security.version>
-        <spring-data.version>3.1.0</spring-data.version>
         <junit-platform.version>1.9.3</junit-platform.version>
         <log4j2.version>2.20.0</log4j2.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -43,18 +41,6 @@
         </dependency>
 
         <dependency>
-            <groupId>org.springframework.data</groupId>
-            <artifactId>spring-data-jpa</artifactId>
-            <version>${spring-data.version}</version>
-
-            <exclusions>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-api</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
             <groupId>com.zaxxer</groupId>
             <artifactId>HikariCP</artifactId>
             <version>5.0.1</version>
@@ -64,11 +50,6 @@
                     <artifactId>slf4j-api</artifactId>
                 </exclusion>
             </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.hibernate.orm</groupId>
-            <artifactId>hibernate-core</artifactId>
-            <version>6.2.0.Final</version>
         </dependency>
 
         <dependency>
@@ -115,12 +96,6 @@
             <version>2.14.3</version>
         </dependency>
         
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot</artifactId>
-            <version>${spring-boot.version}</version>
-        </dependency>
-
         <dependency>
             <groupId>org.apache.httpcomponents.client5</groupId>
             <artifactId>httpclient5</artifactId>
