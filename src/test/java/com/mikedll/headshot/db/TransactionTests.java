@@ -38,7 +38,7 @@ public class TransactionTests extends DbTest {
         insertParams.add(new SqlArg(String.class, "http://html_url"));
         insertParams.add(new SqlArg(String.class, "http://repos_url"));
         insertParams.add(new SqlArg(String.class, "accessToken"));        
-        tx.add(TransactionStatement.build(insertSql, insertParams));
+        tx.add(TransactionStatement.buildUpdate(insertSql, insertParams, 1));
         
         insertParams = new ArrayList<>();
         insertParams.add(new SqlArg(String.class, "Sally"));
@@ -48,7 +48,7 @@ public class TransactionTests extends DbTest {
         insertParams.add(new SqlArg(String.class, "http://html_url"));
         insertParams.add(new SqlArg(String.class, "http://repos_url"));
         insertParams.add(new SqlArg(String.class, "accessToken"));        
-        tx.add(TransactionStatement.build(insertSql, insertParams));
+        tx.add(TransactionStatement.buildUpdate(insertSql, insertParams, 1));
         
         String error = tx.execute();
         Assertions.assertNull(error, "inserts");

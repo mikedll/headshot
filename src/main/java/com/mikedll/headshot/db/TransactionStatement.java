@@ -18,13 +18,19 @@ public class TransactionStatement<T> {
 
     private Function<QuietResultSet,T> rsToResult;
 
+    private Integer expectedRows;
+
     private T result;
     
-    public TransactionStatement(StatementType type, String sql, List<SqlArg> args, Function<QuietResultSet,T> rsToResult) {
+    public TransactionStatement(StatementType type, String sql, List<SqlArg> args, Function<QuietResultSet,T> rsToResult, Integer expectedRows) {
         this.type = type;
         this.sql = sql;
         this.args = args;
         this.rsToResult = rsToResult;
+        if(expectedRows != null && type != StatementType.UPDATE) {
+            throw new RuntimeException("Given expectedRows with non Update statement type");
+        }
+        this.expectedRows = expectedRows;
     }
 
     /*
@@ -51,7 +57,10 @@ public class TransactionStatement<T> {
             }
             System.out.println(sql);
             if(this.type == StatementType.UPDATE) {
-                stmt.executeUpdate();
+                int rows = stmt.executeUpdate();
+                if(rows != this.expectedRows) {
+                    return "Expected " + this.expectedRows + " updated row(s) but updated " + rows;
+                }
             } else if(this.type == StatementType.QUERY) {
                 this.result = this.rsToResult.apply(new QuietResultSet(stmt.executeQuery()));
             } else if(this.type == StatementType.EXECUTE) {
@@ -68,15 +77,19 @@ public class TransactionStatement<T> {
         return this.result;
     }
 
-    public static TransactionStatement build(String sql, List<SqlArg> args) {
-        return new TransactionStatement(StatementType.UPDATE, sql, args, null);
+    public static TransactionStatement buildUpdate(String sql, List<SqlArg> args, Integer expectedRows) {
+        return new TransactionStatement<String>(StatementType.UPDATE, sql, args, null, expectedRows);
     }
 
+    public static TransactionStatement build(String sql, List<SqlArg> args) {
+        return new TransactionStatement<String>(StatementType.UPDATE, sql, args, null, null);
+    }
+    
     public static <T> TransactionStatement<T> build(String sql, List<SqlArg> args, Function<QuietResultSet,T> rsToResult) {
-        return new TransactionStatement(StatementType.QUERY, sql, args, rsToResult);
+        return new TransactionStatement<T>(StatementType.QUERY, sql, args, rsToResult, null);
     }
 
     public static TransactionStatement buildExecute(String sql, List<SqlArg> args) {
-        return new TransactionStatement(StatementType.EXECUTE, sql, args, null);
+        return new TransactionStatement<String>(StatementType.EXECUTE, sql, args, null, null);
     }
 }
