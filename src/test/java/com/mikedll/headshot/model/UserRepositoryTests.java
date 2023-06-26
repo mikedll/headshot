@@ -25,6 +25,7 @@ public class UserRepositoryTests extends DbTest {
         Assertions.assertNull(fetchUser.getValue1());
         User foundUser = fetchUser.getValue0().orElse(null);
         Assertions.assertNotNull(foundUser, "user is in db");
+        Assertions.assertEquals(user.getId(), foundUser.getId());
         Assertions.assertEquals(user.getName(), foundUser.getName());
         Assertions.assertEquals(user.getGithubId(), foundUser.getGithubId());
         Assertions.assertEquals(user.getGithubLogin(), foundUser.getGithubLogin());
