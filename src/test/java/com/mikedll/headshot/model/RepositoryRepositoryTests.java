@@ -30,6 +30,21 @@ public class RepositoryRepositoryTests extends DbTest {
     }
 
     @Test
+    public void testSaveWhenExists() {
+        User user = Factories.createUser();
+        List<Repository> repositories = new ArrayList<>();
+        Repository repo = Factories.buildRepository();
+        repo.setId(10L);
+        repositories.add(repo);
+        repositories.add(Factories.buildRepository());
+        
+        RepositoryRepository repositoryRepository = ControllerUtils.getRepository(RepositoryRepository.class);
+        String error = repositoryRepository.save(user, repositories);
+        Assertions.assertEquals("can't save Repository that has id (found id 10)", error);
+        Assertions.assertEquals(0, repositoryRepository.count().getValue0(), "nothing inserted");
+    }
+
+    @Test
     public void testSaveDup() {
         User user = Factories.createUser();
         List<Repository> repositories = new ArrayList<>();
@@ -56,13 +71,13 @@ public class RepositoryRepositoryTests extends DbTest {
         List<Repository> repositories = new ArrayList<>();
         repositories.add(Factories.buildRepository());
         Repository badRepo = Factories.buildRepository();
-        badRepo.setDescription(null);
+        badRepo.setName(null);
         repositories.add(badRepo);
 
         RepositoryRepository repositoryRepository = ControllerUtils.getRepository(RepositoryRepository.class);
 
         String error = repositoryRepository.save(user, repositories);
-        Assertions.assertTrue(error.contains("null value in column \"description\""), "null description check");
+        Assertions.assertTrue(error.contains("null value in column \"name\""), "null name check");
 
         Pair<Long,String> countResult = repositoryRepository.count();
         Assertions.assertEquals(0L, countResult.getValue0(), "nothing inserted");

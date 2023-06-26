@@ -90,6 +90,11 @@ public class RepositoryRepository {
     }
 
     public String save(User user, List<Repository> input) {
+        Repository alreadyExists = input.stream().filter(r -> r.getId() != null).findAny().orElse(null);
+        if(alreadyExists != null) {
+            return "can't save Repository that has id (found id " + alreadyExists.getId() + ")";
+        }        
+        
         DataSource dataSource = dbConf.getDataSource();
         String githubIdPlaceholders = String.join(",", input.stream().map(i -> "?").collect(Collectors.toList()));
         String sql = "SELECT github_id FROM repositories WHERE user_id = ? AND github_id in (" + githubIdPlaceholders + ")";
