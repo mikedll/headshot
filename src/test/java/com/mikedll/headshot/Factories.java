@@ -14,6 +14,8 @@ public class Factories {
 
     private static long repoI = 2000L;
 
+    private static long accessTokenI = 50L;
+    
     public static User buildUser() {
         User user = new User();
         user.setName("Randal Johnson");
@@ -22,7 +24,7 @@ public class Factories {
         user.setUrl("http://api.github.com/randal.johnson");
         user.setHtmlUrl("http://www.github.com/randal.johnson");
         user.setReposUrl("http://api.github.com/randal.johnson/repos");
-        user.setAccessToken("asdf");
+        user.setAccessToken("asdf" + accessTokenI);
         return user;
     }
     
