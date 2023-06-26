@@ -1,14 +1,22 @@
 import { makeAlert } from './utils';
 
 const reposIndex = () => {
-  const container = document.querySelector('.repositories');
+  const container = document.querySelector('.repositories .top-area');
   if(container !== null) {
     const button = container.querySelector('.refresh-button')!;
+    let busy = false;
     button.addEventListener('click', (e: Event) => {
+      if(busy) return;
+
+      busy = true;
+      const busyIndicator = container.querySelector('.busy')!;
+      busyIndicator.classList.remove('d-none');
       e.preventDefault();
       fetch('/github/loadRepos', {
         method: "PUT"
       }).then(r => {
+        busy = false;
+        busyIndicator.classList.add('d-none');
         if(r.ok) {
           location.reload();
         } else {
@@ -19,7 +27,7 @@ const reposIndex = () => {
   }
 };
 
-const renderFiles = (id: string, path: string, tbody: Element, dirFiles: DirFile[]) => {
+const renderFiles = (id: string, path: string, tbody: Element, dirFiles: GithubFile[]) => {
   dirFiles.forEach((file) =>{
     const tr = document.createElement("tr");
     const cell = document.createElement('td');
@@ -52,7 +60,7 @@ const renderFiles = (id: string, path: string, tbody: Element, dirFiles: DirFile
   });
 };
 
-const renderFile = (container: Element, file: DirFile) => {
+const renderFile = (container: Element, file: GithubFile) => {
   if(file.isText) {
     const node = document.createElement("div");
     node.classList.add('wrapper');

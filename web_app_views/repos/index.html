@@ -2,9 +2,12 @@
   <div layout:fragment="content">
 
     <div class="repositories">
-      <div class="mb-2">
+      <div class="mb-2 d-flex align-items-center top-area">
         [[${existing.size}]] repo(s)
-        <a href="#" class="btn btn-primary refresh-button">Refresh</a>
+        <a href="#" class="ms-2 btn btn-primary refresh-button">Refresh</a>
+        <div class="ms-2 busy d-none">
+          <i class="fa-solid fa-rotate fa-spin"></i>
+        </div>
       </div>
 
       <table class="table table-bordered">
