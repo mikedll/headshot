@@ -31,7 +31,7 @@ public class UserRepositoryTests extends DbTest {
     public void testUpdate() {
         User user = Factories.createUser();
         UserRepository userRepository = ControllerUtils.getRepository(UserRepository.class);
-        user.setName("Eddie");
+        user.setName("Eddie Burback");
         String error = userRepository.save(user);
         Assertions.assertNull(error, "save success");
         Assertions.assertNotNull(user.getId(), "id present");
@@ -39,6 +39,6 @@ public class UserRepositoryTests extends DbTest {
         Pair<Optional<User>,String> user2Fetch = userRepository.findById(user.getId());
         Assertions.assertNull(user2Fetch.getValue1(), "findById");
         User user2 = user2Fetch.getValue0().orElse(null);
-        Assertions.assertEquals("Eddie", user2.getName(), "name updated");
+        Assertions.assertEquals("Eddie Burback", user2.getName(), "name updated");
     }    
 }
