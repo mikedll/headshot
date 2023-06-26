@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.Optional;
 import java.lang.Runnable;
 
+import org.javatuples.Pair;
+
 import com.mikedll.headshot.model.UserRepository;
 import com.mikedll.headshot.model.User;
 
@@ -33,10 +35,11 @@ public class Experiment {
                         if(iCopy == 0) {
                             // sleeper.run();
                         }
-                        System.out.println("We have " + userRepository.count() + " users");
-                        Optional<User> user = userRepository.findById(1L);
-                        if(user.isPresent()) {
-                            System.out.println("User name: " + user.get().getName());
+                        System.out.println("We have " + userRepository.count().getValue0() + " users");
+                        Pair<Optional<User>,String> userFetch = userRepository.findById(1L);
+                        User user = userFetch.getValue0().orElse(null);
+                        if(user != null) {
+                            System.out.println("User name: " + user.getName());
                         }
                     }
                 };

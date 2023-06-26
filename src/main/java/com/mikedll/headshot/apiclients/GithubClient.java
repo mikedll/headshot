@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Base64;
+import java.util.Optional;
 
 import org.javatuples.Pair;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -84,18 +85,21 @@ public class GithubClient {
 
         UserResponse userResponse = getUserResult.getValue0();
         
-        User user = userRepository.findByGithubId(userResponse.id);
+        Pair<Optional<User>, String> userResult = userRepository.findByGithubId(userResponse.id);
+        if(userResult.getValue1() != null) {
+            return Pair.with(null, userResult.getValue1());
+        }
+        User user = userResult.getValue0().orElse(null);
+
         if(user == null) {
             System.out.println("Found no user");
             user = new User();
-            user.setAccessToken(accessToken);
             userResponse.copyFieldsTo(user);
-            userRepository.save(user);
         } else {
-            System.out.println("Found existing user and given access token");
-            user.setAccessToken(accessToken);
-            userRepository.save(user);
+            System.out.println("Found existing user");
         }
+        user.setAccessToken(accessToken);
+        userRepository.save(user);
 
         return Pair.with(user, null);
     }

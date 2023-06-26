@@ -180,13 +180,20 @@ public class Controller {
         return this.cookieFiltersOkay;
     }
 
+    /*
+     * Returns false if request service should be aborted.
+     */ 
     public boolean authFilters() {
         if(this.session != null && session.get("user_id") != null) {
             this.baseDbAccess = true;
             this.baseUserRepository = getRepository(UserRepository.class);
             this.baseDbAccess = false;
-            Optional<User> user = baseUserRepository.findById(((Integer)session.get("user_id")).longValue());
-            this.currentUser = user.orElse(null);
+            Pair<Optional<User>, String> userFetch = baseUserRepository.findById(((Integer)session.get("user_id")).longValue());
+            if(userFetch.getValue1() != null) {
+                sendInternalServerError(userFetch.getValue1());
+                return false;
+            }
+            this.currentUser = userFetch.getValue0().orElse(null);
         }
 
         this.authOkay = (!this.requireAuthentication || this.currentUser != null);

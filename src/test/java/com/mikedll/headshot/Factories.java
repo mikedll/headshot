@@ -13,10 +13,8 @@ import com.mikedll.headshot.model.RepositoryRepository;
 public class Factories {
 
     private static long repoI = 2000L;
-    
-    public static User createUser() {
-        Application app = TestSuite.getSuite(DbSuite.class).getApp();
-        UserRepository userRepository = app.dbConf.getRepository(app, UserRepository.class);
+
+    public static User buildUser() {
         User user = new User();
         user.setName("Randal Johnson");
         user.setGithubId(2000L);
@@ -25,6 +23,13 @@ public class Factories {
         user.setHtmlUrl("http://www.github.com/randal.johnson");
         user.setReposUrl("http://api.github.com/randal.johnson/repos");
         user.setAccessToken("asdf");
+        return user;
+    }
+    
+    public static User createUser() {
+        Application app = TestSuite.getSuite(DbSuite.class).getApp();
+        UserRepository userRepository = app.dbConf.getRepository(app, UserRepository.class);
+        User user = buildUser();
         userRepository.save(user);
         return user;
     }
