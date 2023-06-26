@@ -2,6 +2,7 @@ package com.mikedll.headshot.model;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.stream.Collectors;
@@ -116,23 +117,18 @@ public class RepositoryRepository {
         Transaction tx = new Transaction(dataSource);
 
         List<TransactionStatement<Long>> inserts = new ArrayList<>();
+        List<Class<?>> argTypes = Arrays.asList(new Class<?>[] { Long.class, Long.class, String.class, Boolean.class, String.class, Instant.class });
         List<Repository> toInsert = input.stream().filter(i -> !result.getValue0().contains(i.getGithubId())).collect(Collectors.toList());
         for(Repository repository : toInsert) {
-            List<SqlArg> insertParams = new ArrayList<>(6);
-            insertParams.add(new SqlArg(Long.class, user.getId()));
-            insertParams.add(new SqlArg(Long.class, repository.getGithubId()));
-            insertParams.add(new SqlArg(String.class, repository.getName()));
-            insertParams.add(new SqlArg(Boolean.class, repository.getIsPrivate()));
-            insertParams.add(new SqlArg(String.class, repository.getDescription()));
-            insertParams.add(new SqlArg(Instant.class, repository.getCreatedAt()));
+            List<Object> args = Arrays.asList(new Object[] { user.getId(), repository.getGithubId(), repository.getName(),
+                                                            repository.getIsPrivate(), repository.getDescription(), repository.getCreatedAt() });
 
-            inserts.add(TransactionStatement.build(insertSql, insertParams, (rs) -> {
+            inserts.add(TransactionStatement.buildWithArgs(insertSql, argTypes, args, (rs) -> {
                         if(rs.next()) {
                             return rs.getLong("id");
                         }
                         return null;
                     }));
-                
         }
 
         inserts.forEach(s -> tx.add(s));

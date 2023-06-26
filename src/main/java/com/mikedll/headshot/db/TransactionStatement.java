@@ -1,6 +1,7 @@
 package com.mikedll.headshot.db;
 
 import java.util.List;
+import java.util.ArrayList;
 import java.util.function.Function;
 import java.sql.SQLException;
 import java.sql.Connection;
@@ -14,22 +15,33 @@ public class TransactionStatement<T> {
 
     private String sql;
 
-    private List<SqlArg> args;
+    private List<Class<?>> argTypes;
 
+    private List<List<Object>> argsList;
+    
     private Function<QuietResultSet,T> rsToResult;
 
     private Integer expectedRows;
 
     private T result;
     
-    public TransactionStatement(StatementType type, String sql, List<SqlArg> args, Function<QuietResultSet,T> rsToResult, Integer expectedRows) {
+    public TransactionStatement(StatementType type, String sql, List<Class<?>> argTypes, List<List<Object>> argsList, Function<QuietResultSet,T> rsToResult, Integer expectedRows) {
+        if(argsList.size() == 0) {
+            throw new IllegalArgumentException("can't provide args of size 0");
+        }
+        argsList.forEach(args -> {
+                if(args.size() != argTypes.size()) {
+                    throw new IllegalArgumentException("can't give an args of size " + args.size() + " with arg types of size + " + argTypes.size());
+                }
+            });
+        if(expectedRows != null && type != StatementType.UPDATE) {
+            throw new IllegalArgumentException("Given expectedRows with non Update statement type");
+        }
         this.type = type;
         this.sql = sql;
-        this.args = args;
+        this.argTypes = argTypes;
+        this.argsList = argsList;
         this.rsToResult = rsToResult;
-        if(expectedRows != null && type != StatementType.UPDATE) {
-            throw new RuntimeException("Given expectedRows with non Update statement type");
-        }
         this.expectedRows = expectedRows;
     }
 
@@ -38,21 +50,24 @@ public class TransactionStatement<T> {
      */
     public String execute(Connection conn) {
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            for(int i = 0; i < args.size(); i++) {
-                Class<?> clazz = args.get(i).clazz();
-                Object arg = args.get(i).val();
-                if(clazz == Integer.class) {
-                    stmt.setInt(i+1, (Integer)arg);
-                } else if(clazz == Long.class) {
-                    stmt.setLong(i+1, (Long)arg);
-                } else if(clazz == String.class) {
-                    stmt.setString(i+1, (String)arg);
-                } else if(clazz == Instant.class) {
-                    stmt.setTimestamp(i+1, new Timestamp(((Instant)arg).toEpochMilli()));
-                } else if(clazz == Boolean.class) {
-                    stmt.setBoolean(i+1, (Boolean)arg);
-                } else {
-                    return "Unhandled sql arg type: " + clazz;
+            for(int i = 0; i < argsList.size(); i++) {
+                int offset = i * argTypes.size();
+                for(int j = 0; j < argTypes.size(); j++) {
+                    Class<?> clazz = argTypes.get(j);
+                    Object arg = argsList.get(i).get(j);
+                    if(clazz == Integer.class) {
+                        stmt.setInt(offset+j+1, (Integer)arg);
+                    } else if(clazz == Long.class) {
+                        stmt.setLong(offset+j+1, (Long)arg);
+                    } else if(clazz == String.class) {
+                        stmt.setString(offset+j+1, (String)arg);
+                    } else if(clazz == Instant.class) {
+                        stmt.setTimestamp(offset+j+1, new Timestamp(((Instant)arg).toEpochMilli()));
+                    } else if(clazz == Boolean.class) {
+                        stmt.setBoolean(offset+j+1, (Boolean)arg);
+                    } else {
+                        return "Unhandled sql arg type: " + clazz;
+                    }
                 }
             }
             System.out.println(sql);
@@ -77,19 +92,31 @@ public class TransactionStatement<T> {
         return this.result;
     }
 
-    public static TransactionStatement buildUpdate(String sql, List<SqlArg> args, Integer expectedRows) {
-        return new TransactionStatement<String>(StatementType.UPDATE, sql, args, null, expectedRows);
+    public static TransactionStatement buildUpdate(String sql, List<Class<?>> argTypes, List<List<Object>> argsList, Integer expectedRows) {
+        return new TransactionStatement<String>(StatementType.UPDATE, sql, argTypes, argsList, null, expectedRows);
     }
 
-    public static TransactionStatement build(String sql, List<SqlArg> args) {
-        return new TransactionStatement<String>(StatementType.UPDATE, sql, args, null, null);
+    public static TransactionStatement buildUpdateWithArgs(String sql, List<Class<?>> argTypes, List<Object> args, Integer expectedRows) {
+        List<List<Object>> argsList = new ArrayList<>(1);
+        argsList.add(args);
+        return new TransactionStatement<String>(StatementType.UPDATE, sql, argTypes, argsList, null, expectedRows);
     }
     
-    public static <T> TransactionStatement<T> build(String sql, List<SqlArg> args, Function<QuietResultSet,T> rsToResult) {
-        return new TransactionStatement<T>(StatementType.QUERY, sql, args, rsToResult, null);
+    public static TransactionStatement build(String sql, List<Class<?>> argTypes, List<List<Object>> argsList) {
+        return new TransactionStatement<String>(StatementType.UPDATE, sql, argTypes, argsList, null, null);
+    }
+    
+    public static <T> TransactionStatement<T> build(String sql, List<Class<?>> argTypes, List<List<Object>> argsList, Function<QuietResultSet,T> rsToResult) {
+        return new TransactionStatement<T>(StatementType.QUERY, sql, argTypes, argsList, rsToResult, null);
     }
 
-    public static TransactionStatement buildExecute(String sql, List<SqlArg> args) {
-        return new TransactionStatement<String>(StatementType.EXECUTE, sql, args, null, null);
+    public static <T> TransactionStatement<T> buildWithArgs(String sql, List<Class<?>> argTypes, List<Object> args, Function<QuietResultSet,T> rsToResult) {
+        List<List<Object>> argsList = new ArrayList<>(1);
+        argsList.add(args);
+        return new TransactionStatement<T>(StatementType.QUERY, sql, argTypes, argsList, rsToResult, null);
+    }
+    
+    public static TransactionStatement buildExecute(String sql, List<Class<?>> argTypes, List<List<Object>> argsList) {
+        return new TransactionStatement<String>(StatementType.EXECUTE, sql, argTypes, argsList, null, null);
     }
 }
