@@ -39,11 +39,11 @@ public class SimpleSql {
     /*
      * Returns error on failure, null on success.
      */
-    public static String execute(DataSource dataSource, String sql) {
-        try(Connection conn = dataSource.getConnection()) {
+    public static String execute(DatabaseConfiguration dbConf, String sql) {
+        try(Connection conn = dbConf.getDataSource().getConnection()) {
             try (Statement stmt = conn.createStatement()) {
                 String sqlWithCommit = sql + "; COMMIT;";
-                System.out.println(sqlWithCommit);
+                dbConf.logger.debug(sqlWithCommit);
                 stmt.execute(sqlWithCommit);
             } catch(SQLException ex) {
                 return "Failed to execute SQL: " + ex.getMessage();
@@ -58,8 +58,8 @@ public class SimpleSql {
     /*
      * Returns error on failure, null on success.
      */
-    public static String executeUpdate(DataSource dataSource, String sql, SqlArg... sqlArgs) {
-        try(Connection conn = dataSource.getConnection()) {
+    public static String executeUpdate(DatabaseConfiguration dbConf, String sql, SqlArg... sqlArgs) {
+        try(Connection conn = dbConf.getDataSource().getConnection()) {
             String sqlWithCommit = sql + "; COMMIT;";
             try (PreparedStatement stmt = conn.prepareStatement(sqlWithCommit)) {
                 for(int i = 0; i < sqlArgs.length; i++) {
@@ -83,11 +83,11 @@ public class SimpleSql {
     }
     
 
-    public static String executeUpdate(DataSource dataSource, String sql, List<Class<?>> argTypes, List<Object> args, int expected) {
+    public static String executeUpdate(DatabaseConfiguration dbConf, String sql, List<Class<?>> argTypes, List<Object> args, int expected) {
         if(argTypes.size() != args.size()) {
             return "argTypes size (" + argTypes.size() + ") does not match args size (" + args.size() + ")";
         }
-        try(Connection conn = dataSource.getConnection()) {
+        try(Connection conn = dbConf.getDataSource().getConnection()) {
             try (PreparedStatement stmt = conn.prepareStatement(sql)) {
                 for(int i = 0; i < argTypes.size(); i++) {
                     Class<?> clazz = argTypes.get(i);
@@ -124,9 +124,9 @@ public class SimpleSql {
      * 
      * Returns (T, error) where error is null on success, an error string on failure.
      */
-    public static <T> Pair<T, String> executeQuery(DataSource dataSource, String sql, Function<QuietResultSet,T> func,
+    public static <T> Pair<T, String> executeQuery(DatabaseConfiguration dbConf, String sql, Function<QuietResultSet,T> func,
                                                    SqlArg... sqlArgs) {
-        try(Connection conn = dataSource.getConnection()) {
+        try(Connection conn = dbConf.getDataSource().getConnection()) {
             String sqlWithCommit = sql + "; COMMIT;";
             try (PreparedStatement stmt = conn.prepareStatement(sqlWithCommit)) {
                 for(int i = 0; i < sqlArgs.length; i++) {
@@ -157,12 +157,12 @@ public class SimpleSql {
      * 
      * Returns (T, error) where error is null on success, an error string on failure.
      */
-    public static <T> Pair<T, String> executeQuery(DataSource dataSource, String sql, List<Class<?>> argTypes, List<Object> args,
+    public static <T> Pair<T, String> executeQuery(DatabaseConfiguration dbConf, String sql, List<Class<?>> argTypes, List<Object> args,
                                                    Function<QuietResultSet,T> func) {
         if(argTypes.size() != args.size()) {
             return Pair.with(null, "argTypes size (" + argTypes.size() + ") does not match args size (" + args.size() + ")");
         }
-        try(Connection conn = dataSource.getConnection()) {
+        try(Connection conn = dbConf.getDataSource().getConnection()) {
             String sqlWithCommit = sql + "; COMMIT;";
             try (PreparedStatement stmt = conn.prepareStatement(sqlWithCommit)) {
                 for(int i = 0; i < argTypes.size(); i++) {

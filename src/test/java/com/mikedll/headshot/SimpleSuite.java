@@ -29,11 +29,11 @@ public class SimpleSuite extends TestSuite {
     public boolean doSetUp() throws IOException {
         this.app = new Application();
         this.app.setConfig(TestSuite.testConfig);
-        String error = app.postDbSetup();
+        String error = app.webSetup();
         if(error != null) {
             return false;
         }
-        
+
         return true;
     }
 

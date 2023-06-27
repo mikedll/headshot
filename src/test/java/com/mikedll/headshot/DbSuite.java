@@ -36,23 +36,24 @@ public class DbSuite extends TestSuite {
     public boolean doSetUp() throws IOException {
         this.app = new Application();
         app.setConfig(TestSuite.testConfig);
-        app.basicSetup();
+        app.loggingSetup();
+        app.dbSetup();
         
         String schemaSql = FileUtils.readFileToString(new File("./db/schema.sql"), "UTF-8");
 
-        String error = SimpleSql.executeUpdate(app.dbConf.getDataSource(), "DROP SCHEMA public CASCADE; CREATE SCHEMA public;");
+        String error = SimpleSql.executeUpdate(app.dbConf, "DROP SCHEMA public CASCADE; CREATE SCHEMA public;");
         if(error != null) {
             System.out.println("Error when dropping schema: " + error);
             return false;
         }
 
-        error = SimpleSql.execute(app.dbConf.getDataSource(), schemaSql);
+        error = SimpleSql.execute(app.dbConf, schemaSql);
         if(error != null) {
             System.out.println("Error when loading schema: " + error);
             return false;
         }
  
-        this.app.setUp();
+        this.app.webSetup();
         
         return true;
     }
@@ -84,16 +85,9 @@ public class DbSuite extends TestSuite {
             throw new RuntimeException("can't truncate database in production");
         }
 
-        DataSource ds = app.dbConf.getDataSource();
-        try(Connection conn = ds.getConnection()) {
-            try (Statement stmt = conn.createStatement()) {
-                stmt.execute("SET search_path TO public; TRUNCATE users, repositories RESTART IDENTITY CASCADE; COMMIT;");
-            } catch(SQLException ex) {
-                System.out.println("SQLException when truncating database: " + ex.getMessage());
-                return false;
-            }
-        } catch(SQLException ex) {
-            System.out.println("SQLException when handling connection: " + ex.getMessage());
+        String error = SimpleSql.execute(app.dbConf, "SET search_path TO public; TRUNCATE users, repositories RESTART IDENTITY CASCADE; COMMIT;");
+        if(error != null) {
+            System.out.println("Error when truncating database: " + error);
             return false;
         }
 

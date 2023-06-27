@@ -10,40 +10,34 @@ import javax.sql.DataSource;
 
 import com.zaxxer.hikari.HikariDataSource;
 import org.apache.commons.io.FileUtils;
-
 import org.junit.platform.suite.api.Suite;
 import org.junit.platform.suite.api.SelectClasses;
+
+import com.mikedll.headshot.db.DatabaseConfiguration;
+import com.mikedll.headshot.db.MigrationsTests;
+import com.mikedll.headshot.db.SimpleSql;
 
 @Suite
 @SelectClasses({MigrationsTests.class})
 public class MigrationsSuite extends TestSuite {
 
-    public HikariDataSource dataSource;
+    public DatabaseConfiguration dbConf;
         
     /*
      * Returns true on success, false on failure.
      */
     @Override
     public boolean doSetUp() throws IOException {
-        this.dataSource = new HikariDataSource();
-        dataSource.setJdbcUrl(TestSuite.testConfig.dbUrl);
-				dataSource.setPoolName("default");
-        dataSource.setMaximumPoolSize(1);
+        this.dbConf = new DatabaseConfiguration(TestSuite.testConfig);
         
         return true;
     }
 
     @Override
     public boolean doBeforeEach() {
-        try(Connection conn = dataSource.getConnection()) {
-            try (Statement stmt = conn.createStatement()) {
-                stmt.executeUpdate("DROP SCHEMA public CASCADE; CREATE SCHEMA public;");
-            } catch(SQLException ex) {
-                System.out.println("SQLException when dropping schema: " + ex.getMessage());
-                return false;
-            }
-        } catch(SQLException ex) {
-            System.out.println("SQLException when handling connection: " + ex.getMessage());
+        String error = SimpleSql.executeUpdate(dbConf, "DROP SCHEMA public CASCADE; CREATE SCHEMA public;");
+        if(error != null) {
+            System.out.println("Error when dropping schema: " + error);
             return false;
         }
         
@@ -52,8 +46,6 @@ public class MigrationsSuite extends TestSuite {
 
     @Override
     public void doTearDown() {
-        if(this.dataSource != null) {
-            this.dataSource.close();
-        }
+        this.dbConf.shutdown();
     }
 }

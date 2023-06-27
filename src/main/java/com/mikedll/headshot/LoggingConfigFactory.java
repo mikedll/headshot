@@ -8,25 +8,64 @@ import org.apache.logging.log4j.core.config.DefaultConfiguration;
 import org.apache.logging.log4j.core.config.Configuration;
 import org.apache.logging.log4j.core.config.builder.api.ConfigurationBuilder;
 import org.apache.logging.log4j.core.config.builder.impl.BuiltConfiguration;
+import org.apache.logging.log4j.core.config.builder.api.AppenderComponentBuilder;
+import org.apache.logging.log4j.core.config.builder.api.LayoutComponentBuilder;
+import org.apache.logging.log4j.core.config.builder.api.LoggerComponentBuilder;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.core.config.ConfigurationSource;
-
+    
 public class LoggingConfigFactory extends ConfigurationFactory {
 
-    static Configuration createConfiguration(final String name, ConfigurationBuilder<BuiltConfiguration> builder) {
-        // return new DefaultConfiguration();
+    private Config config;
+    
+    public LoggingConfigFactory(Config config) {
+        this.config = config;
+    }
+    
+    private Configuration createConfiguration(final String name, ConfigurationBuilder<BuiltConfiguration> builder) {
         builder.setConfigurationName(name);
         builder.setStatusLevel(Level.ERROR);
 
+        // We don't mess with the root logger. We set additivity to false to avoid
+        // inheriting things from it (or if we don't set that to false we get double
+        // logging).
+        
+        AppenderComponentBuilder console = builder.newAppender("stdout", "Console");
+        LayoutComponentBuilder standardLayout = builder.newLayout("PatternLayout");
+        standardLayout.addAttribute("pattern", "%d [%t] %-5level: %msg%n%throwable");
+        console.add(standardLayout);
+
+        AppenderComponentBuilder sqlConsole = builder.newAppender("sqlconsole", "Console");
+        LayoutComponentBuilder sqlLayout = builder.newLayout("PatternLayout");
+        sqlLayout.addAttribute("pattern", "SQL %-5level: %msg%n");
+        sqlConsole.add(sqlLayout);
+        
+        builder.add(console);
+        builder.add(sqlConsole);
+
+        // Turn on verbose logging in rest client calls.
         // builder.add(builder.newLogger("org.apache.hc.client5.http.headers", Level.DEBUG));
         // builder.add(builder.newLogger("org.apache.hc.client5.http", Level.DEBUG));
 
 
-        // these don't do anything
+        // Trying to shutup tomcat but these don't do anything. I hear tomcat uses the JUL, whatever that is.
         // builder.add(builder.newLogger("org.apache.catalina.core.StandardService", Level.ERROR));
         // builder.add(builder.newLogger("org.apache.coyote.AbstractProtocol", Level.ERROR));
-        
-        builder.add(builder.newLogger("com.mikedll.headshot.Application", Level.DEBUG));
+
+        LoggerComponentBuilder appLogger = builder.newLogger("com.mikedll.headshot.Application", Level.DEBUG);
+        appLogger.add(builder.newAppenderRef("stdout"));
+        appLogger.addAttribute("additivity", false);
+        builder.add(appLogger);
+
+        LoggerComponentBuilder dbLogger = builder.newLogger("com.mikedll.headshot.db.DatabaseConfiguration");
+        dbLogger.addAttribute("additivity", false);
+        dbLogger.add(builder.newAppenderRef("sqlconsole"));
+        if(config.env == "test") {
+            dbLogger.addAttribute("level", Level.ERROR);
+        } else {
+            dbLogger.addAttribute("level", Level.DEBUG);
+        }
+        builder.add(dbLogger);
     
         return builder.build();
     }

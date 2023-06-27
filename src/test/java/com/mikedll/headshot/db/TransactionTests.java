@@ -22,16 +22,16 @@ import com.mikedll.headshot.DbTest;
 
 public class TransactionTests extends DbTest {
 
-    DataSource dataSource;
+    DatabaseConfiguration dbConf;
     
     @BeforeEach
     public void setUp() {
-        this.dataSource = TestSuite.getSuite(DbSuite.class).getApp().dbConf.getDataSource();        
+        this.dbConf = TestSuite.getSuite(DbSuite.class).getApp().dbConf;        
     }
     
     @Test
     public void testTxUpdate() {
-        Transaction tx = new Transaction(this.dataSource);
+        Transaction tx = new Transaction(this.dbConf);
 
         String insertSql = "INSERT INTO users (name, github_id, github_login, url, html_url, repos_url, access_token) VALUES (?,?,?,?,?,?,?)";
 
@@ -50,7 +50,7 @@ public class TransactionTests extends DbTest {
         String error = tx.execute();
         Assertions.assertNull(error, "inserts");
 
-        Pair<Long,String> countResult = SimpleSql.executeQuery(this.dataSource, "SELECT COUNT(*) from users", (rs) -> {
+        Pair<Long,String> countResult = SimpleSql.executeQuery(this.dbConf, "SELECT COUNT(*) from users", (rs) -> {
                 if(!rs.next()) {
                     return null;
                 }
@@ -60,7 +60,7 @@ public class TransactionTests extends DbTest {
         Assertions.assertNull(countResult.getValue1(), "count");
         Assertions.assertEquals(2, countResult.getValue0(), "correct count");
 
-        Pair<User,String> userResult = SimpleSql.executeQuery(this.dataSource, "SELECT * from users where github_id = ?", (rs) -> {
+        Pair<User,String> userResult = SimpleSql.executeQuery(this.dbConf, "SELECT * from users where github_id = ?", (rs) -> {
                 if(rs.next()) {
                     User user = new User();
                     user.setId(rs.getLong("id"));
@@ -75,7 +75,7 @@ public class TransactionTests extends DbTest {
 
     @Test
     public void testTxQuery() {
-        Transaction tx = new Transaction(this.dataSource);
+        Transaction tx = new Transaction(this.dbConf);
 
         String insertSql = "INSERT INTO users (name, github_id, github_login, url, html_url, repos_url, access_token)"
             + " VALUES (?,?,?,?,?,?,?) RETURNING id";
@@ -105,7 +105,7 @@ public class TransactionTests extends DbTest {
         Assertions.assertNull(error, "inserts");
         inserts.forEach(s -> ids.add(s.getResult()));
 
-        Pair<Long,String> countResult = SimpleSql.executeQuery(this.dataSource, "SELECT COUNT(*) from users", (rs) -> {
+        Pair<Long,String> countResult = SimpleSql.executeQuery(this.dbConf, "SELECT COUNT(*) from users", (rs) -> {
                 if(!rs.next()) {
                     return null;
                 }
@@ -115,7 +115,7 @@ public class TransactionTests extends DbTest {
         Assertions.assertNull(countResult.getValue1(), "count");
         Assertions.assertEquals(2, countResult.getValue0(), "correct count");
 
-        Pair<String, String> found = SimpleSql.executeQuery(this.dataSource, "SELECT name FROM users WHERE id = ?", (rs) -> {
+        Pair<String, String> found = SimpleSql.executeQuery(this.dbConf, "SELECT name FROM users WHERE id = ?", (rs) -> {
                 if(rs.next()) {
                     return rs.getString("name");
                 }
@@ -123,7 +123,7 @@ public class TransactionTests extends DbTest {
             }, new SqlArg(Long.class, ids.get(0)));
         Assertions.assertEquals("Mike", found.getValue0());
 
-        found = SimpleSql.executeQuery(this.dataSource, "SELECT name FROM users WHERE id = ?", (rs) -> {
+        found = SimpleSql.executeQuery(this.dbConf, "SELECT name FROM users WHERE id = ?", (rs) -> {
                 if(rs.next()) {
                     return rs.getString("name");
                 }
@@ -134,7 +134,7 @@ public class TransactionTests extends DbTest {
     
     @Test
     public void testTxRollback() {
-        Transaction tx = new Transaction(this.dataSource);
+        Transaction tx = new Transaction(this.dbConf);
 
         String insertSql = "INSERT INTO users (name, github_id, github_login, url, html_url, repos_url, access_token) VALUES (?,?,?,?,?,?,?) " +
             "RETURNING (id)";
@@ -165,7 +165,7 @@ public class TransactionTests extends DbTest {
         String error = tx.execute();
         Assertions.assertTrue(error.contains("duplicate key value violates unique constraint \"users_github_id\""), "error on inserts");
 
-        Pair<Long,String> countResult = SimpleSql.executeQuery(this.dataSource, "SELECT COUNT(*) from users", (rs) -> {
+        Pair<Long,String> countResult = SimpleSql.executeQuery(this.dbConf, "SELECT COUNT(*) from users", (rs) -> {
                 if(!rs.next()) {
                     return null;
                 }
@@ -203,12 +203,12 @@ public class TransactionTests extends DbTest {
                 return ids;
             });
 
-        Transaction tx = new Transaction(this.dataSource);
+        Transaction tx = new Transaction(this.dbConf);
         tx.add(statement);
         String error = tx.execute();
         Assertions.assertNull(error, "bulk insert okay");
 
-        Pair<Long,String> countResult = SimpleSql.executeQuery(this.dataSource, "SELECT COUNT(*) from users", (rs) -> {
+        Pair<Long,String> countResult = SimpleSql.executeQuery(this.dbConf, "SELECT COUNT(*) from users", (rs) -> {
                 if(!rs.next()) {
                     return null;
                 }

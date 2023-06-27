@@ -34,7 +34,7 @@ public class RepositoryRepository {
     }
 
     public Pair<Long,String> count() {
-        Pair<Long, String> result = SimpleSql.executeQuery(dbConf.getDataSource(), "SELECT COUNT(*) FROM repositories", (rs) -> {
+        Pair<Long, String> result = SimpleSql.executeQuery(dbConf, "SELECT COUNT(*) FROM repositories", (rs) -> {
                 if(!rs.next()) {
                     return null;
                 }
@@ -50,7 +50,7 @@ public class RepositoryRepository {
     public Pair<List<Repository>, String> forUser(User user) {
         List<SqlArg> params = new ArrayList<>();
         params.add(new SqlArg(Long.class, user.getId()));
-        Pair<List<Repository>, String> result = SimpleSql.executeQuery(dbConf.getDataSource(), "SELECT * FROM repositories WHERE user_id = ?", (rs) -> {
+        Pair<List<Repository>, String> result = SimpleSql.executeQuery(dbConf, "SELECT * FROM repositories WHERE user_id = ?", (rs) -> {
                 List<Repository> ret = new ArrayList<>();
                 while(rs.next()) {
                     Repository toAdd = new Repository();
@@ -73,7 +73,7 @@ public class RepositoryRepository {
         params.add(new SqlArg(Long.class, id));
 
         String query = "SELECT * FROM repositories WHERE user_id = ? AND id = ? LIMIT 1";
-        Pair<Optional<Repository>, String> result = SimpleSql.executeQuery(dbConf.getDataSource(), query, (rs) -> {
+        Pair<Optional<Repository>, String> result = SimpleSql.executeQuery(dbConf, query, (rs) -> {
                 Repository ret = null;
                 if(rs.next()) {
                     ret = new Repository();
@@ -95,7 +95,6 @@ public class RepositoryRepository {
             return "can't save Repository that has id (found id " + alreadyExists.getId() + ")";
         }        
         
-        DataSource dataSource = dbConf.getDataSource();
         String githubIdPlaceholders = String.join(",", input.stream().map(i -> "?").collect(Collectors.toList()));
         String sql = "SELECT github_id FROM repositories WHERE user_id = ? AND github_id in (" + githubIdPlaceholders + ")";
 
@@ -105,7 +104,7 @@ public class RepositoryRepository {
             params.add(new SqlArg(Long.class, input.get(i).getGithubId()));
         }
         
-        Pair<Set<Long>, String> result = SimpleSql.executeQuery(dataSource, sql, (rs) -> {
+        Pair<Set<Long>, String> result = SimpleSql.executeQuery(dbConf, sql, (rs) -> {
                 Set<Long> existing = new HashSet<>();
                 while(rs.next()) {
                     existing.add(rs.getLong("github_id"));
@@ -119,7 +118,7 @@ public class RepositoryRepository {
         
         String insertSql = "INSERT INTO repositories (user_id, github_id, name, is_private, description, github_created_at)"
             + " VALUES (?, ?, ?, ?, ?, ?) RETURNING id;";
-        Transaction tx = new Transaction(dataSource);
+        Transaction tx = new Transaction(dbConf);
 
         List<TransactionStatement<Long>> inserts = new ArrayList<>();
         List<Class<?>> argTypes = Arrays.asList(new Class<?>[] { Long.class, Long.class, String.class, Boolean.class, String.class, Instant.class });

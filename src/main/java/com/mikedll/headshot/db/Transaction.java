@@ -12,12 +12,12 @@ import java.sql.Statement;
  */
 public class Transaction {
 
-    private DataSource dataSource;
+    private DatabaseConfiguration dbConf;
 
     public List<TransactionStatement<?>> statements = new ArrayList<>(10);
 
-    public Transaction(DataSource dataSource) {
-        this.dataSource = dataSource;
+    public Transaction(DatabaseConfiguration dbConf) {
+        this.dbConf = dbConf;
     }
 
     public void add(TransactionStatement<?> stmt) {
@@ -28,7 +28,7 @@ public class Transaction {
      * Returns null on success, error on error.
      */
     public String execute() {
-        try(Connection conn = dataSource.getConnection()) {
+        try(Connection conn = dbConf.getDataSource().getConnection()) {
             try (Statement stmt = conn.createStatement()) {
                 String begin = "BEGIN;";
                 System.out.println(begin);

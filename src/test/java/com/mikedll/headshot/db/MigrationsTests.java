@@ -1,4 +1,4 @@
-package com.mikedll.headshot;
+package com.mikedll.headshot.db;
 
 import java.io.File;
 import java.io.IOException;
@@ -13,6 +13,8 @@ import org.apache.commons.io.FileUtils;
 
 import com.mikedll.headshot.db.Migrations;
 import com.mikedll.headshot.db.SimpleSql;
+import com.mikedll.headshot.MigrationsSuite;
+import com.mikedll.headshot.TestSuite;
 
 public class MigrationsTests {
 
@@ -35,7 +37,7 @@ public class MigrationsTests {
 
     @Test
     public void testNoFiles() {
-        Migrations migrations = new Migrations(suite.dataSource);
+        Migrations migrations = new Migrations(suite.dbConf);
         migrations.setMigrationsRoot("src/test/files/non_existent_dir");
         String error = migrations.readMigrations();
         Assertions.assertNull(error);
@@ -44,7 +46,7 @@ public class MigrationsTests {
     
     @Test
     public void testReadMigrations() {
-        Migrations migrations = new Migrations(suite.dataSource);
+        Migrations migrations = new Migrations(suite.dbConf);
         migrations.setMigrationsRoot("src/test/files/good_migrations");
         String error = migrations.readMigrations();
         
@@ -55,7 +57,7 @@ public class MigrationsTests {
 
     @Test
     public void testReadMigrationsMismatch() {
-        Migrations migrations = new Migrations(suite.dataSource);
+        Migrations migrations = new Migrations(suite.dbConf);
         migrations.setMigrationsRoot("src/test/files/bad_migrations");
         String error = migrations.readMigrations();
         Assertions.assertEquals("Missing matching forward-reverse pair for 20230613102201_create_dog_humans.sql", error);
@@ -63,7 +65,7 @@ public class MigrationsTests {
 
     @Test
     public void testReadMigrationsCountMismatch() {
-        Migrations migrations = new Migrations(suite.dataSource);
+        Migrations migrations = new Migrations(suite.dbConf);
         migrations.setMigrationsRoot("src/test/files/bad_count_migrations");
         String error = migrations.readMigrations();
         Assertions.assertEquals("File count mismatch between forward and reverse dirs under src/test/files/bad_count_migrations", error);
@@ -71,7 +73,7 @@ public class MigrationsTests {
 
     @Test
     public void testReadMigrationsTsMissing() {
-        Migrations migrations = new Migrations(suite.dataSource);
+        Migrations migrations = new Migrations(suite.dbConf);
         migrations.setMigrationsRoot("src/test/files/bad_ts_missing_migrations");
         String error = migrations.readMigrations();
         Assertions.assertEquals("Timestamp prefix missing in src/test/files/bad_ts_missing_migrations/reverse/file.txt", error);
@@ -79,7 +81,7 @@ public class MigrationsTests {
 
     @Test
     public void testMigrateForward() {
-        Migrations migrations = new Migrations(suite.dataSource);
+        Migrations migrations = new Migrations(suite.dbConf);
         migrations.setSilent(true);
         migrations.setMigrationsRoot("src/test/files/good_migrations");
         String error = migrations.readMigrations();
@@ -88,7 +90,7 @@ public class MigrationsTests {
         error = migrations.migrateForward();
         Assertions.assertNull(error, "migrate forward okay");
 
-        Pair<String, String> result = SimpleSql.executeQuery(suite.dataSource, "SELECT * FROM dogs WHERE name = 'Rex';", (rs) -> {
+        Pair<String, String> result = SimpleSql.executeQuery(suite.dbConf, "SELECT * FROM dogs WHERE name = 'Rex';", (rs) -> {
                 Assertions.assertTrue(rs.next());
                 return rs.getString("name");
             });
@@ -97,7 +99,7 @@ public class MigrationsTests {
         Assertions.assertEquals("Rex", result.getValue0());
 
         String migrationQuery = "SELECT * FROM schema_migrations WHERE version = '20230613102201';";
-        result = SimpleSql.executeQuery(suite.dataSource, migrationQuery, (rs) -> {
+        result = SimpleSql.executeQuery(suite.dbConf, migrationQuery, (rs) -> {
                 Assertions.assertTrue(rs.next(), "found version row");
                 return rs.getString("version");
             });
@@ -108,7 +110,7 @@ public class MigrationsTests {
 
     @Test
     public void testMigrationsTableExists() {
-        Migrations migrations = new Migrations(suite.dataSource);
+        Migrations migrations = new Migrations(suite.dbConf);
         migrations.setSilent(true);
         
         migrations.ensureMigrationsTableExists();
@@ -120,7 +122,7 @@ public class MigrationsTests {
         Assertions.assertNull(error);
 
         String migrationQuery = "SELECT * FROM schema_migrations WHERE version = '20230613102201';";
-        Pair<String, String> result = SimpleSql.executeQuery(suite.dataSource, migrationQuery, (rs) -> {
+        Pair<String, String> result = SimpleSql.executeQuery(suite.dbConf, migrationQuery, (rs) -> {
                 Assertions.assertTrue(rs.next(), "found version row");
                 return rs.getString("version");
             });
@@ -131,16 +133,16 @@ public class MigrationsTests {
 
     @Test
     public void testMigrationAlreadyRun() throws IOException {
-        Migrations migrations = new Migrations(suite.dataSource);
+        Migrations migrations = new Migrations(suite.dbConf);
         migrations.setSilent(true);
 
         migrations.ensureMigrationsTableExists();
         String root = "src/test/files/good_migrations";
         File file = new File(String.format("%s/%s/%s", root, Migrations.FORWARD, "20230613101849_create_dogs.sql"));
         String sql = FileUtils.readFileToString(file, "UTF-8");
-        String error = SimpleSql.execute(suite.dataSource, sql);
+        String error = SimpleSql.execute(suite.dbConf, sql);
         Assertions.assertNull(error, "manual migration okay");        
-        error = SimpleSql.execute(suite.dataSource, "INSERT INTO schema_migrations (version) VALUES ('20230613101849');");
+        error = SimpleSql.execute(suite.dbConf, "INSERT INTO schema_migrations (version) VALUES ('20230613101849');");
         Assertions.assertNull(error, "manual migration tracking okay");        
         
         migrations.setMigrationsRoot("src/test/files/good_migrations");
@@ -151,7 +153,7 @@ public class MigrationsTests {
         Assertions.assertNull(error);
 
         String migrationQuery = "SELECT * FROM schema_migrations WHERE version = '20230613102201';";
-        Pair<String, String> result = SimpleSql.executeQuery(suite.dataSource, migrationQuery, (rs) -> {
+        Pair<String, String> result = SimpleSql.executeQuery(suite.dbConf, migrationQuery, (rs) -> {
                 Assertions.assertTrue(rs.next(), "found version row");
                 return rs.getString("version");
             });
@@ -162,7 +164,7 @@ public class MigrationsTests {
 
     @Test
     public void testReverseNonexistent() {
-        Migrations migrations = new Migrations(suite.dataSource);
+        Migrations migrations = new Migrations(suite.dbConf);
         migrations.setSilent(true);
         migrations.setMigrationsRoot("src/test/files/good_migrations");
         migrations.readMigrations();
@@ -177,7 +179,7 @@ public class MigrationsTests {
 
     @Test
     public void testReverse() {
-        Migrations migrations = new Migrations(suite.dataSource);
+        Migrations migrations = new Migrations(suite.dbConf);
         migrations.setSilent(true);
         migrations.setMigrationsRoot("src/test/files/good_migrations");
         migrations.readMigrations();
@@ -187,7 +189,7 @@ public class MigrationsTests {
         Assertions.assertNull(error, "reverse okay");
 
         String migrationQuery = "SELECT * FROM schema_migrations WHERE version = '20230613102201';";
-        Pair<String, String> result = SimpleSql.executeQuery(suite.dataSource, migrationQuery, (rs) -> {
+        Pair<String, String> result = SimpleSql.executeQuery(suite.dbConf, migrationQuery, (rs) -> {
                 Assertions.assertFalse(rs.next(), "version is gone");
                 return null;
             });
@@ -195,7 +197,7 @@ public class MigrationsTests {
         Assertions.assertNull(result.getValue1());
 
         String verifySql = "SELECT table_name FROM information_schema.tables WHERE table_name = 'dog_humans'";
-        Pair<String, String> verifyTableGone = SimpleSql.executeQuery(suite.dataSource, verifySql, (rs) -> {
+        Pair<String, String> verifyTableGone = SimpleSql.executeQuery(suite.dbConf, verifySql, (rs) -> {
                 Assertions.assertFalse(rs.next(), "table is also gone");
                 return null;
             });

@@ -13,6 +13,8 @@ import org.thymeleaf.templateresolver.FileTemplateResolver;
 import org.thymeleaf.templatemode.TemplateMode;
 import nz.net.ultraq.thymeleaf.layoutdialect.LayoutDialect;
 import org.apache.logging.log4j.core.config.ConfigurationFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.mikedll.headshot.db.DatabaseConfiguration;
 import com.mikedll.headshot.db.Migrations;
@@ -40,20 +42,22 @@ public class Application {
 
     public TemplateEngine templateEngine;
 
+    public Logger logger;
+
     public void setConfig(Config config) {
         this.config = config;
     }
     
     public void run(String[] args) {
-        ConfigurationFactory.setConfigurationFactory(new LoggingConfigFactory());
         loadConfig();
-        basicSetup();
+        loggingSetup();
+        dbSetup();
 
         if(argInterception(args)) {
             return;
         }
 
-        String error = setUp();
+        String error = webSetup();
         if(error != null) {
             System.out.println(error);
             shutdown();
@@ -66,14 +70,19 @@ public class Application {
         shutdown();
     }
 
-    public void basicSetup() {
+    public void loggingSetup() {
+        ConfigurationFactory.setConfigurationFactory(new LoggingConfigFactory(config));
+        this.logger = LogManager.getLogger("com.mikedll.headshot.Application");
+        this.logger.debug("Starting app in " + this.config.env + " environment");
+    }
+
+    public void dbSetup() {
         this.dbConf = new DatabaseConfiguration(this.config);
-        this.apiClientManager = new ApiClientManager();
     }
 
     public boolean argInterception(String[] args) {
         if(args.length == 1 && args[0].equals("migrate")) {
-            Migrations migrations = new Migrations(this.dbConf.getDataSource());
+            Migrations migrations = new Migrations(this.dbConf);
             String error = migrations.readMigrations();
             if(error != null) {
                 System.out.println("Error: " + error);
@@ -87,7 +96,7 @@ public class Application {
             shutdown();
             return true;
         } else if(args.length == 2 && args[0].equals("migrate:reverse")) {
-            Migrations migrations = new Migrations(this.dbConf.getDataSource());
+            Migrations migrations = new Migrations(this.dbConf);
             String error = migrations.readMigrations();
             if(error != null) {
                 System.out.println("Error: " + error);
@@ -131,21 +140,9 @@ public class Application {
     /*
      * Return error on failure, null on success.
      */
-    public String setUp() {
-        if(this.config.shouldLog()) {
-            System.out.println("Starting app in " + this.config.env + " environment...");
-        }
+    public String webSetup() {
+        this.apiClientManager = new ApiClientManager();
         
-        System.out.println("Making repositories...");
-        this.dbConf.makeRepositories();
-
-        return postDbSetup();
-    }
-
-    /*
-     * Mostly here to help with tests that don't need the database.
-     */
-    public String postDbSetup() {
         System.out.println("Scanning for request handlers...");
         String error = findRequestHandlers();
         if(error != null) {
@@ -155,6 +152,7 @@ public class Application {
         setupTemplateEngine();
         System.out.println("Refreshing assets...");
         assetFingerprinter.refresh();
+        
         return null;
     }
 

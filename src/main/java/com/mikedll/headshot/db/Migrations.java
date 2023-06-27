@@ -38,12 +38,12 @@ public class Migrations {
 
     public static final String SCHEMA_MIGRATIONS_TABLE = "schema_migrations";
 
-    private DataSource dataSource;
+    private DatabaseConfiguration dbConf;
 
     private boolean silent;
 
-    public Migrations(DataSource dataSource) {
-        this.dataSource = dataSource;
+    public Migrations(DatabaseConfiguration dbConf) {
+        this.dbConf = dbConf;
     }
 
     public void setSilent(boolean silent) {
@@ -124,7 +124,7 @@ public class Migrations {
     }
 
     public Pair<Set<String>, String> existingMigrations() {
-        Pair<Set<String>, String> result = SimpleSql.executeQuery(dataSource, "SELECT * FROM schema_migrations", (rs) -> {
+        Pair<Set<String>, String> result = SimpleSql.executeQuery(dbConf, "SELECT * FROM schema_migrations", (rs) -> {
                 Set<String> existing = new HashSet<>();
                 while(rs.next()) {
                     existing.add(rs.getString("version"));
@@ -167,14 +167,14 @@ public class Migrations {
                 System.out.println("Executing " + forward);
                 System.out.println(sql);
             }
-            String migrationError = SimpleSql.execute(dataSource, sql);
+            String migrationError = SimpleSql.execute(dbConf, sql);
             if(migrationError != null) {
                 System.out.println("SQL Error: " + migrationError);
                 return migrationError;
             }
 
             String insertSql = "INSERT INTO " + SCHEMA_MIGRATIONS_TABLE + " (version) VALUES (?);";
-            String versionError = SimpleSql.executeUpdate(dataSource, insertSql, new SqlArg(String.class, tsOf(forward)));
+            String versionError = SimpleSql.executeUpdate(dbConf, insertSql, new SqlArg(String.class, tsOf(forward)));
             if(versionError != null) {
                 System.out.println("SQL Error: " + versionError);
                 return versionError;
@@ -202,14 +202,14 @@ public class Migrations {
             return "Unable to read " + reverse + ": " + ex.getMessage();
         }
 
-        String migrationError = SimpleSql.execute(dataSource, sql);
+        String migrationError = SimpleSql.execute(dbConf, sql);
         if(migrationError != null) {
             System.out.println("SQL Error: " + migrationError);
             return migrationError;
         }
 
         String deleteSql = "DELETE FROM " + SCHEMA_MIGRATIONS_TABLE + " WHERE version = ?;";
-        String deleteVersionError = SimpleSql.executeUpdate(dataSource, deleteSql, new SqlArg(String.class, ts));
+        String deleteVersionError = SimpleSql.executeUpdate(dbConf, deleteSql, new SqlArg(String.class, ts));
         if(deleteVersionError != null) {
             System.out.println("SQL Error: " + deleteVersionError);
             return deleteVersionError;
@@ -220,7 +220,7 @@ public class Migrations {
 
     public String ensureMigrationsTableExists() {
         String query = "SELECT table_name FROM information_schema.tables WHERE table_name = '" + SCHEMA_MIGRATIONS_TABLE + "';";
-        Pair<String, String> result = SimpleSql.executeQuery(dataSource, query, (rs) -> {
+        Pair<String, String> result = SimpleSql.executeQuery(dbConf, query, (rs) -> {
                 if(!rs.next()) {
                     return null;
                 }
@@ -241,7 +241,7 @@ public class Migrations {
         String sql = "CREATE TABLE " + SCHEMA_MIGRATIONS_TABLE + " (id BIGSERIAL PRIMARY KEY, version CHARACTER VARYING);";
         sql += "\n\n";
         sql += "CREATE UNIQUE INDEX schema_migrations_version ON schema_migrations (version);";
-        return SimpleSql.execute(dataSource, sql);
+        return SimpleSql.execute(dbConf, sql);
     }
 
     public static String tsOf(String filename) {

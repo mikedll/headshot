@@ -9,6 +9,8 @@ import java.util.LinkedHashSet;
 
 import javax.sql.DataSource;
 import com.zaxxer.hikari.HikariDataSource;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 import com.mikedll.headshot.model.UserRepository;
 import com.mikedll.headshot.model.RepositoryRepository;
@@ -26,9 +28,15 @@ public class DatabaseConfiguration {
 
     private Map<Class<?>, Object> repositories;
 
+    public Logger logger;
+
     public DatabaseConfiguration(Config config) {
+        this.logger = LogManager.getLogger("com.mikedll.headshot.db.DatabaseConfiguration");
         this.config = config;
         this.repositories = new HashMap<>();
+
+        this.repositories.put(UserRepository.class, new UserRepository(this));
+        this.repositories.put(RepositoryRepository.class, new RepositoryRepository(this));        
     }
    
     /*
@@ -55,8 +63,6 @@ public class DatabaseConfiguration {
 		}
 
     public void makeRepositories() {
-        this.repositories.put(UserRepository.class, new UserRepository(this));
-        this.repositories.put(RepositoryRepository.class, new RepositoryRepository(this));
     }
     
     public <T> T getRepository(Application app, Class<T> repositoryClass) {

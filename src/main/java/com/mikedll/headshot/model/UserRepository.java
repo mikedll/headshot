@@ -20,7 +20,7 @@ public class UserRepository {
     }
 
     public Pair<Long,String> count() {
-        Pair<Long,String> countResult = SimpleSql.executeQuery(dbConf.getDataSource(), "SELECT COUNT(*) FROM users", (rs) -> {
+        Pair<Long,String> countResult = SimpleSql.executeQuery(dbConf, "SELECT COUNT(*) FROM users", (rs) -> {
                 if(rs.next()) {
                     return rs.getLong("count");
                 }
@@ -49,7 +49,7 @@ public class UserRepository {
     }
 
     public Pair<Optional<User>,String> findById(Long id) {
-        Pair<Optional<User>, String> result = SimpleSql.executeQuery(dbConf.getDataSource(), "SELECT * FROM users WHERE id = ?", (rs) -> {
+        Pair<Optional<User>, String> result = SimpleSql.executeQuery(dbConf, "SELECT * FROM users WHERE id = ?", (rs) -> {
                 return rsToUser(rs);
             }, new SqlArg(Long.class, id));
 
@@ -61,7 +61,7 @@ public class UserRepository {
     }
     
     public Pair<Optional<User>,String> findByGithubId(Long githubId) {
-        Pair<Optional<User>, String> result = SimpleSql.executeQuery(dbConf.getDataSource(), "SELECT * FROM users WHERE github_id = ?", (rs) -> {
+        Pair<Optional<User>, String> result = SimpleSql.executeQuery(dbConf, "SELECT * FROM users WHERE github_id = ?", (rs) -> {
                 return rsToUser(rs);
             }, new SqlArg(Long.class, githubId));
 
@@ -83,7 +83,7 @@ public class UserRepository {
                                                             user.getUrl(),
                                                             user.getHtmlUrl(), user.getReposUrl(), user.getAccessToken(),
                                                             user.getId() });
-            return SimpleSql.executeUpdate(dbConf.getDataSource(), updateSql, argTypes, args, 1);
+            return SimpleSql.executeUpdate(dbConf, updateSql, argTypes, args, 1);
         } else {
             List<Class<?>> argTypes = Arrays.asList(new Class<?>[] { String.class, Long.class, String.class, String.class,
                         String.class, String.class, String.class });
@@ -93,7 +93,7 @@ public class UserRepository {
                                                             user.getUrl(),
                                                             user.getHtmlUrl(), user.getReposUrl(), user.getAccessToken() });
 
-            Pair<Long,String> insertResult = SimpleSql.executeQuery(dbConf.getDataSource(), insertSql, argTypes, args, (rs) -> {
+            Pair<Long,String> insertResult = SimpleSql.executeQuery(dbConf, insertSql, argTypes, args, (rs) -> {
                     if(rs.next()) {
                         return rs.getLong("id");
                     }
