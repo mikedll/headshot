@@ -57,7 +57,7 @@ public class LoggingConfigFactory extends ConfigurationFactory {
         if(config.env == "development") {
             appLogger.addAttribute("level", Level.DEBUG);
         } else if(config.env == "test") {
-            appLogger.addAttribute("level", Level.ERROR);
+            appLogger.addAttribute("level", Level.FATAL);
         } else {
             appLogger.addAttribute("level", Level.INFO);
         }
