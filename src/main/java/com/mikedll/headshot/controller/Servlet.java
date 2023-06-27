@@ -59,7 +59,7 @@ public class Servlet extends HttpServlet {
         
         String path = req.getRequestURI().toString();
         if(shouldLog()) {
-            System.out.println("Path: " + path);
+            this.app.logger.info("Path: " + path);
         }
 
         Pair<RequestHandler,PathMatch> handlerMatch = findHandlerMatch(Pair.with(path, method)).orElse(null);
@@ -80,7 +80,7 @@ public class Servlet extends HttpServlet {
             .apply(Quartet.with(this.app, req, res, handlerMatch.getValue1()));
         if(error != null) {
             try {
-                System.out.println("Error: " + error);
+                // Error is logged in handler
                 res.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, error);
             } catch (IOException ex) {
                 throw new RuntimeException("failed to send 500", ex);

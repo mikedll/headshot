@@ -31,7 +31,7 @@ public class Transaction {
         try(Connection conn = dbConf.getDataSource().getConnection()) {
             try (Statement stmt = conn.createStatement()) {
                 String begin = "BEGIN;";
-                System.out.println(begin);
+                dbConf.logger.debug(begin);
                 stmt.execute(begin);
             } catch (SQLException ex) {
                 return "SQLException when starting transaction: " + ex.getMessage();
@@ -39,7 +39,7 @@ public class Transaction {
             
             String error = null;
             for(TransactionStatement stmt : this.statements) {
-                error = stmt.execute(conn);
+                error = stmt.execute(dbConf.logger, conn);
                 if(error != null) {
                     break;
                 }
@@ -47,7 +47,7 @@ public class Transaction {
             if(error != null) {
                 try (Statement stmt = conn.createStatement()) {
                     String rollback = "ROLLBACK;";
-                    System.out.println(rollback);
+                    dbConf.logger.debug(rollback);
                     stmt.execute(rollback);
                 } catch (SQLException ex) {
                     return "SQLException when rolling back transaction: " + ex.getMessage();
@@ -57,7 +57,7 @@ public class Transaction {
 
             try (Statement stmt = conn.createStatement()) {
                 String commit = "COMMIT;";
-                System.out.println(commit);
+                dbConf.logger.debug(commit);
                 stmt.execute(commit);
             } catch (SQLException ex) {
                 return "SQLException when commiting transaction: " + ex.getMessage();

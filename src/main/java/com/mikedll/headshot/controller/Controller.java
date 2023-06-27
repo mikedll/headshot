@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.io.UnsupportedEncodingException;
 import java.util.Optional;
 import java.io.PrintWriter;
+import java.util.stream.Collectors;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -15,6 +16,7 @@ import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.javatuples.Pair;
+import org.apache.logging.log4j.Logger;
 
 import com.mikedll.headshot.apiclients.GithubClient;
 import com.mikedll.headshot.model.UserRepository;
@@ -32,7 +34,7 @@ public class Controller {
     
     public static final String CONTENT_TYPE_JSON = "application/json";
 
-    private Application app;
+    public Application app;
     
     private TemplateEngine templateEngine;
     
@@ -56,6 +58,8 @@ public class Controller {
 
     protected CookieManager cookieManager;
 
+    protected Logger logger;
+
     protected User currentUser;
 
     protected Map<String,Object> session = null;
@@ -74,7 +78,8 @@ public class Controller {
         this.app = app;
         this.cookieManager= new CookieManager(this.app.config.cookieSigningKey);
         this.assetFingerprinter = this.app.assetFingerprinter;
-        this.templateEngine = app.templateEngine;
+        this.templateEngine = this.app.templateEngine;
+        this.logger = this.app.logger;
     }
 
     public <T> T getRepository(Class<T> clazz) {
@@ -149,12 +154,12 @@ public class Controller {
             try {
                 result = cookieManager.verify(cookie.getValue());
             } catch (UnsupportedEncodingException ex) {
-                System.out.println("UnsupportedEncodingException when verifing cookie: " + ex.getMessage());
+                this.logger.error("UnsupportedEncodingException when verifing cookie: " + ex.getMessage());
                 sendInternalServerError("Internal logic error: unsupported encoding when parsing cookie");
                 return false;
             } catch (JsonProcessingException ex) {
                 // Probably a hack attempt. No reason for json to be malformed.
-                System.out.println("JsonProcessingException when verifing cookie: " + ex.getMessage());
+                this.logger.error("JsonProcessingException when verifing cookie: " + ex.getMessage());
                 cookieCheckOkay = false;
             }
                 
@@ -169,7 +174,7 @@ public class Controller {
         }
 
         if(!cookieCheckOkay) {
-            System.out.println("cookieFilters is resetting cookies redirecting to root");
+            this.logger.error("cookieFilters is resetting cookies redirecting to root");
             clearSession();
             sendCookies();
             sendRedirect("/");
@@ -276,8 +281,9 @@ public class Controller {
             } else {
                 res.sendError(status, message);
             }
-            System.out.println("Rendering " + status + " error: " + message);
-            Arrays.asList(Thread.currentThread().getStackTrace()).forEach(e -> System.out.println(e));
+            String st = String.join("\n", Arrays.asList(Thread.currentThread().getStackTrace())
+                                    .stream().map(ste -> ste.toString()).collect(Collectors.toList()));
+            this.logger.error("Rendering " + status + " error: " + message + ", Stacktrace follows:\n" + st);
         } catch (IOException ex) {
             throw new RuntimeException("failed to send 500", ex);
         }

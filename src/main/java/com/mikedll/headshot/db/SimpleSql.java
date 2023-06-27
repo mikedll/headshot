@@ -70,7 +70,7 @@ public class SimpleSql {
                         return error;
                     }
                 }
-                System.out.println(sqlWithCommit);
+                dbConf.logger.debug(sqlWithCommit);
                 stmt.executeUpdate();
             } catch(SQLException ex) {
                 return "Failed to execute SQL: " + ex.getMessage();
@@ -88,6 +88,7 @@ public class SimpleSql {
             return "argTypes size (" + argTypes.size() + ") does not match args size (" + args.size() + ")";
         }
         try(Connection conn = dbConf.getDataSource().getConnection()) {
+            String sqlWithCommit = sql + "; COMMIT;";
             try (PreparedStatement stmt = conn.prepareStatement(sql)) {
                 for(int i = 0; i < argTypes.size(); i++) {
                     Class<?> clazz = argTypes.get(i);
@@ -97,7 +98,7 @@ public class SimpleSql {
                         return error;
                     }
                 }
-                System.out.println(sql);
+                dbConf.logger.debug(sqlWithCommit);
                 int rows = stmt.executeUpdate();
                 if(rows != expected) {
                     return "expected to update " + expected + " rows(s) but updated " + rows;
@@ -137,7 +138,7 @@ public class SimpleSql {
                         return Pair.with(null, error);
                     }
                 }
-                System.out.println(sqlWithCommit);
+                dbConf.logger.debug(sqlWithCommit);
                 boolean hasResults = stmt.execute();
                 if(!hasResults) {
                     return Pair.with(null, "failed to find results");
@@ -173,7 +174,7 @@ public class SimpleSql {
                         return Pair.with(null, error);
                     }
                 }
-                System.out.println(sqlWithCommit);
+                dbConf.logger.debug(sqlWithCommit);
                 boolean hasResults = stmt.execute();
                 if(!hasResults) {
                     return Pair.with(null, "failed to find results");

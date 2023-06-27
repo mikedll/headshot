@@ -14,7 +14,7 @@ public class ApiClientManager {
             throw new RuntimeException("Controller canAccessData() returned false in Application");
         }
         
-        return new GithubClient(new RestClient(), controller, accessToken);
+        return new GithubClient(controller.app.logger, new RestClient(), controller, accessToken);
     }
     
 }

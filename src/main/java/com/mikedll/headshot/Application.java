@@ -43,7 +43,7 @@ public class Application {
     public TemplateEngine templateEngine;
 
     public Logger logger;
-
+    
     public void setConfig(Config config) {
         this.config = config;
     }
@@ -73,7 +73,7 @@ public class Application {
     public void loggingSetup() {
         ConfigurationFactory.setConfigurationFactory(new LoggingConfigFactory(config));
         this.logger = LogManager.getLogger("com.mikedll.headshot.Application");
-        this.logger.debug("Starting app in " + this.config.env + " environment");
+        this.logger.info("Starting app in " + this.config.env + " environment");
     }
 
     public void dbSetup() {
@@ -85,13 +85,13 @@ public class Application {
             Migrations migrations = new Migrations(this.dbConf);
             String error = migrations.readMigrations();
             if(error != null) {
-                System.out.println("Error: " + error);
+                this.logger.error("Error: " + error);
                 shutdown();
                 return true;
             }
             error = migrations.migrateForward();
             if(error != null) {
-                System.out.println("Error: " + error);
+                this.logger.error("Error: " + error);
             }
             shutdown();
             return true;
@@ -99,13 +99,13 @@ public class Application {
             Migrations migrations = new Migrations(this.dbConf);
             String error = migrations.readMigrations();
             if(error != null) {
-                System.out.println("Error: " + error);
+                this.logger.error("Error: " + error);
                 shutdown();
                 return true;
             }
             error = migrations.reverse(args[1]);
             if(error != null) {
-                System.out.println("Error: " + error);
+                this.logger.error("Error: " + error);
             }
             shutdown();
             return true;
@@ -122,16 +122,16 @@ public class Application {
             } catch (IOException ex) {
                 throw new RuntimeException("IOException whne creating migration file", ex);
             }
-            System.out.println("Created " + forward.getName());
-            System.out.println("Created " + reverse.getName());
+            this.logger.info("Created " + forward.getName());
+            this.logger.info("Created " + reverse.getName());
             shutdown();
             return true;
         } else if(args.length > 0) {
-            System.out.println("Error: unrecognized command line arguments");
-            System.out.println("with args:");
-            System.out.println("  migrate");
-            System.out.println("  migrate:reverse VERSION");
-            System.out.println("without args, runs web server");
+            this.logger.info("Error: unrecognized command line arguments");
+            this.logger.info("with args:");
+            this.logger.info("  migrate");
+            this.logger.info("  migrate:reverse VERSION");
+            this.logger.info("without args, runs web server");
         }
 
         return false;
@@ -143,14 +143,14 @@ public class Application {
     public String webSetup() {
         this.apiClientManager = new ApiClientManager();
         
-        System.out.println("Scanning for request handlers...");
+        this.logger.info("Scanning for request handlers...");
         String error = findRequestHandlers();
         if(error != null) {
             return error;
         }
-        System.out.println("Creating thymeleaf template engine...");
+        this.logger.info("Creating thymeleaf template engine...");
         setupTemplateEngine();
-        System.out.println("Refreshing assets...");
+        this.logger.info("Refreshing assets...");
         assetFingerprinter.refresh();
         
         return null;
@@ -166,7 +166,7 @@ public class Application {
     }        
 
     public void shutdown() {
-        System.out.println("Shutting down database...");
+        this.logger.info("Shutting down database...");
         this.dbConf.shutdown();
     }
 
@@ -203,11 +203,11 @@ public class Application {
     }
 
     private void runTomcat() {
-        System.out.println("Initializing tomcat...");
+        this.logger.info("Initializing tomcat...");
         EmbeddedTomcat embeddedTomcat = new EmbeddedTomcat();
         embeddedTomcat.prepare();
 
-        System.out.println("Starting tomcat...");
+        this.logger.info("Starting tomcat...");
         embeddedTomcat.start();
     }
 

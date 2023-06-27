@@ -6,6 +6,8 @@ import java.lang.reflect.Method;
 import java.lang.IllegalAccessException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 import java.util.HashMap;
 import java.util.function.Function;
 import java.util.Optional;
@@ -89,7 +91,8 @@ public class RequestHandler {
             }
 
             Controller controller = (Controller)targetObject;
-            controller.setApplication(quartet.getValue0());
+            Application app = quartet.getValue0();
+            controller.setApplication(app);
             controller.setRequest(quartet.getValue1());
             controller.setResponse(quartet.getValue2());
             controller.setPathMatch(quartet.getValue3());
@@ -104,8 +107,11 @@ public class RequestHandler {
                 return "IllegalAccessException when running controller action: " + ex.getMessage();
             } catch (InvocationTargetException ex) {
                 if(ex.getCause() != null) {
-                    System.out.println(ex.getCause().getMessage());
-                    ex.getCause().printStackTrace(System.out);
+                    String st = String.join("\n", Arrays.asList(ex.getCause().getStackTrace())
+                                            .stream().map(ste -> ste.toString())
+                                            .collect(Collectors.toList()));
+                    app.logger.error("Error while invoking handler: " + ex.getCause().getMessage() +
+                                     ", Stacktrace follows:\n" + st);
                     return ex.getCause().getClass().getName() + ": " + ex.getCause().getMessage();
                 } else {
                     // have never tested this path.

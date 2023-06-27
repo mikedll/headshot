@@ -34,14 +34,13 @@ public class LoggingConfigFactory extends ConfigurationFactory {
         LayoutComponentBuilder standardLayout = builder.newLayout("PatternLayout");
         standardLayout.addAttribute("pattern", "%d [%t] %-5level: %msg%n%throwable");
         console.add(standardLayout);
+        builder.add(console);
 
         AppenderComponentBuilder sqlConsole = builder.newAppender("sqlconsole", "Console");
         LayoutComponentBuilder sqlLayout = builder.newLayout("PatternLayout");
         sqlLayout.addAttribute("pattern", "SQL %-5level: %msg%n");
         sqlConsole.add(sqlLayout);
-        
-        builder.add(console);
-        builder.add(sqlConsole);
+        builder.add(sqlConsole);        
 
         // Turn on verbose logging in rest client calls.
         // builder.add(builder.newLogger("org.apache.hc.client5.http.headers", Level.DEBUG));
@@ -52,16 +51,23 @@ public class LoggingConfigFactory extends ConfigurationFactory {
         // builder.add(builder.newLogger("org.apache.catalina.core.StandardService", Level.ERROR));
         // builder.add(builder.newLogger("org.apache.coyote.AbstractProtocol", Level.ERROR));
 
-        LoggerComponentBuilder appLogger = builder.newLogger("com.mikedll.headshot.Application", Level.DEBUG);
-        appLogger.add(builder.newAppenderRef("stdout"));
+        LoggerComponentBuilder appLogger = builder.newLogger("com.mikedll.headshot.Application");
         appLogger.addAttribute("additivity", false);
+        appLogger.add(builder.newAppenderRef("stdout"));
+        if(config.env == "development") {
+            appLogger.addAttribute("level", Level.DEBUG);
+        } else if(config.env == "test") {
+            appLogger.addAttribute("level", Level.ERROR);
+        } else {
+            appLogger.addAttribute("level", Level.INFO);
+        }
         builder.add(appLogger);
 
         LoggerComponentBuilder dbLogger = builder.newLogger("com.mikedll.headshot.db.DatabaseConfiguration");
         dbLogger.addAttribute("additivity", false);
         dbLogger.add(builder.newAppenderRef("sqlconsole"));
         if(config.env == "test") {
-            dbLogger.addAttribute("level", Level.ERROR);
+            dbLogger.addAttribute("level", Level.FATAL);
         } else {
             dbLogger.addAttribute("level", Level.DEBUG);
         }

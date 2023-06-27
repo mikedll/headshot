@@ -29,6 +29,7 @@ public class SimpleSuite extends TestSuite {
     public boolean doSetUp() throws IOException {
         this.app = new Application();
         this.app.setConfig(TestSuite.testConfig);
+        this.app.loggingSetup();
         String error = app.webSetup();
         if(error != null) {
             return false;

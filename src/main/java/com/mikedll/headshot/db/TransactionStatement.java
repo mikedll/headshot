@@ -9,6 +9,8 @@ import java.sql.PreparedStatement;
 import java.sql.Timestamp;
 import java.time.Instant;
 
+import org.apache.logging.log4j.Logger;
+
 public class TransactionStatement<T> {
     
     private StatementType type;
@@ -48,7 +50,7 @@ public class TransactionStatement<T> {
     /*
      * Returns null on success, error on error.
      */
-    public String execute(Connection conn) {
+    public String execute(Logger logger, Connection conn) {
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             for(int i = 0; i < argsList.size(); i++) {
                 int offset = i * argTypes.size();
@@ -70,7 +72,7 @@ public class TransactionStatement<T> {
                     }
                 }
             }
-            System.out.println(sql);
+            logger.debug(sql);
             if(this.type == StatementType.UPDATE) {
                 int rows = stmt.executeUpdate();
                 if(rows != this.expectedRows) {

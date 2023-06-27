@@ -13,6 +13,7 @@ import org.apache.commons.io.FileUtils;
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.mockito.Mockito;
 import org.mockito.stubbing.OngoingStubbing;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -21,6 +22,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import com.mikedll.headshot.Factories;
 import com.mikedll.headshot.DbTest;
+import com.mikedll.headshot.DbSuite;
+import com.mikedll.headshot.TestSuite;
 import com.mikedll.headshot.controller.Controller;
 import com.mikedll.headshot.controller.ControllerUtils;
 import com.mikedll.headshot.model.User;
@@ -31,6 +34,13 @@ import com.mikedll.headshot.util.MyUri;
 
 public class GithubClientTests extends DbTest {
 
+    private DbSuite suite;
+    
+    @BeforeEach
+    public void setup() {
+        this.suite = TestSuite.getSuite(DbSuite.class);
+    }
+    
     @Test
     public void testRestDir() throws IOException {
         Controller controller = Mockito.mock(Controller.class);
@@ -47,7 +57,7 @@ public class GithubClientTests extends DbTest {
             OngoingStubbing z = Mockito.when(restClient.get(Mockito.any(URI.class), Mockito.any(Map.class)))
             .thenReturn(Pair.with(responseBody, null));
         
-        GithubClient client = new GithubClient(restClient, controller, "myAccessToken");
+        GithubClient client = new GithubClient(this.suite.getApp().logger, restClient, controller, "myAccessToken");
         Pair<GithubPath, String> result = client.readPath(user, repository, "some/root");
         Assertions.assertNull(result.getValue1(), "successful read");
         List<GithubFile> files = new ArrayList<>();
@@ -73,7 +83,7 @@ public class GithubClientTests extends DbTest {
             OngoingStubbing z = Mockito.when(restClient.get(Mockito.any(URI.class), Mockito.any(Map.class)))
             .thenReturn(Pair.with(responseBody, null));
         
-        GithubClient client = new GithubClient(restClient, controller, "myAccessToken");
+        GithubClient client = new GithubClient(this.suite.getApp().logger, restClient, controller, "myAccessToken");
         Pair<GithubPath, String> result = client.readPath(user, repository, "some/file.rb");
         Assertions.assertNull(result.getValue1(), "successful read");
         List<GithubFile> files = new ArrayList<>();
@@ -101,7 +111,7 @@ public class GithubClientTests extends DbTest {
             OngoingStubbing z = Mockito.when(restClient.get(Mockito.any(URI.class), Mockito.any(Map.class)))
             .thenReturn(Pair.with(responseBody, null));
         
-        GithubClient client = new GithubClient(restClient, controller, "myAccessToken");
+        GithubClient client = new GithubClient(this.suite.getApp().logger, restClient, controller, "myAccessToken");
         Pair<GithubPath, String> result = client.readPath(user, repository, "some/file.rb");
         Assertions.assertNull(result.getValue1(), "successful read");
         List<GithubFile> files = new ArrayList<>();
@@ -123,7 +133,7 @@ public class GithubClientTests extends DbTest {
             OngoingStubbing z = Mockito.when(restClient.get(Mockito.any(URI.class), Mockito.any(Map.class), Mockito.any(TypeReference.class)))
             .thenReturn(Pair.with(userResp, null));
         
-        GithubClient client = new GithubClient(restClient, controller, "myAccessToken");
+        GithubClient client = new GithubClient(this.suite.getApp().logger, restClient, controller, "myAccessToken");
         Pair<User,String> pullResult = client.pullUserInfo();
         Assertions.assertNull(pullResult.getValue1(), "pulluser success");
         User user = pullResult.getValue0();
@@ -150,7 +160,7 @@ public class GithubClientTests extends DbTest {
             OngoingStubbing z = Mockito.when(restClient.get(Mockito.any(URI.class), Mockito.any(Map.class), Mockito.any(TypeReference.class)))
             .thenReturn(Pair.with(userResp, null));
         
-        GithubClient client = new GithubClient(restClient, controller, "myAccessToken");
+        GithubClient client = new GithubClient(this.suite.getApp().logger, restClient, controller, "myAccessToken");
         Pair<User,String> pullResult = client.pullUserInfo();
         Assertions.assertNull(pullResult.getValue1(), "pulluser success");
 

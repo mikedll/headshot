@@ -9,7 +9,7 @@ public class RootController extends Controller {
 
     @Request(path="/")
     public void index() {
-        render("index", defaultCtx());        
+        render("index", defaultCtx());
     }
 
     @Request(path="/lit")

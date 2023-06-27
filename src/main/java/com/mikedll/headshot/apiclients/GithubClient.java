@@ -13,6 +13,7 @@ import java.util.Optional;
 import org.javatuples.Pair;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.core.type.TypeReference;
+import org.apache.logging.log4j.Logger;
 
 import com.mikedll.headshot.controller.Controller;
 import com.mikedll.headshot.model.UserRepository;
@@ -34,6 +35,8 @@ public class GithubClient {
     
     private String accessToken;
 
+    private Logger logger;
+
     public record RepoResponse(Long id, String name, boolean isPrivate, String description, String created_at) {
         public Repository toRepository() {
             Repository ret = new Repository();
@@ -48,7 +51,8 @@ public class GithubClient {
 
     public record PathReadFileResponse(String type, String name, String content) {}
 
-    public GithubClient(RestClient restClient, Controller controller, String accessToken) {
+    public GithubClient(Logger logger, RestClient restClient, Controller controller, String accessToken) {
+        this.logger = logger;
         this.restClient = restClient;
         this.userRepository = controller.getRepository(UserRepository.class);
         this.accessToken = accessToken;
@@ -81,10 +85,7 @@ public class GithubClient {
         User user = userResult.getValue0().orElse(null);
 
         if(user == null) {
-            System.out.println("Found no user");
             user = new User();
-        } else {
-            System.out.println("Found existing user");
         }
         userResponse.copyFieldsTo(user);
         user.setAccessToken(accessToken);
