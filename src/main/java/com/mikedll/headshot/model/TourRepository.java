@@ -30,13 +30,14 @@ public class TourRepository extends RepositoryBase {
             List<Class<?>> argTypes = Arrays.asList(new Class<?>[] { Long.class, Instant.class, String.class });
             List<Object> args = Arrays.asList(new Object[] { tour.getUserId(), tour.getCreatedAt(),
                                                             tour.getName() });
-            Pair<Long,String> insertResult = SimpleSql.executeQuery(dbConf, "INSERT INTO tours (user_id, created_at, name) VALUES "
-                                                                    + "(?,?,?) RETURNING (id)", argTypes, args, (rs) -> {
-                                                                        if(rs.next()) {
-                                                                            return rs.getLong("id");
-                                                                        }
-                                                                        return null;
-                                                                    });
+            String insertSql = "INSERT INTO tours (user_id, created_at, name) VALUES "
+                + "(?,?,?) RETURNING (id)";
+            Pair<Long,String> insertResult = SimpleSql.executeQuery(dbConf, insertSql, argTypes, args, (rs) -> {
+                    if(rs.next()) {
+                        return rs.getLong("id");
+                    }
+                    return null;
+                });
             if(insertResult.getValue1() != null) {
                 return insertResult.getValue1();
             }
