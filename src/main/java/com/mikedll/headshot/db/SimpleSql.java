@@ -41,8 +41,8 @@ public class SimpleSql {
      */
     public static String execute(DataSource dataSource, String sql) {
         try(Connection conn = dataSource.getConnection()) {
-            String sqlWithCommit = sql + "; COMMIT;";
             try (Statement stmt = conn.createStatement()) {
+                String sqlWithCommit = sql + "; COMMIT;";
                 System.out.println(sqlWithCommit);
                 stmt.execute(sqlWithCommit);
             } catch(SQLException ex) {
@@ -81,6 +81,7 @@ public class SimpleSql {
 
         return null;
     }
+    
 
     public static String executeUpdate(DataSource dataSource, String sql, List<Class<?>> argTypes, List<Object> args, int expected) {
         if(argTypes.size() != args.size()) {

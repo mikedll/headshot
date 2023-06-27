@@ -13,8 +13,10 @@ import org.apache.commons.io.FileUtils;
 import org.junit.platform.suite.api.Suite;
 import org.junit.platform.suite.api.SelectPackages;
 import org.junit.platform.suite.api.ExcludeClassNamePatterns;
+import org.javatuples.Pair;
 
 import com.mikedll.headshot.controller.ControllerUtils;
+import com.mikedll.headshot.db.SimpleSql;
 
 @Suite
 @SelectPackages({"com.mikedll.headshot"})
@@ -36,32 +38,20 @@ public class DbSuite extends TestSuite {
         app.setConfig(TestSuite.testConfig);
         app.basicSetup();
         
-        // This is ridiculous. These changes aren't working unless I close and reopen
-        // the data source.
-        // Setup schema before Hibernate reads anything
         String schemaSql = FileUtils.readFileToString(new File("./db/schema.sql"), "UTF-8");
-        // DataSource ds = app.dbConf.getDataSource();
-        HikariDataSource ds = this.app.dbConf.buildDataSource();
-        try(Connection conn = ds.getConnection()) {
-            try (Statement stmt = conn.createStatement()) {
-                stmt.executeUpdate("DROP SCHEMA public CASCADE; CREATE SCHEMA public; COMMIT;");
-            } catch(SQLException ex) {
-                System.out.println("SQLException when dropping schema: " + ex.getMessage());
-                return false;
-            }
 
-            try (Statement stmt = conn.createStatement()) {
-                stmt.execute(schemaSql + "; COMMIT;");
-            } catch(SQLException ex) {
-                System.out.println("SQLException when loading schema: " + ex.getMessage());
-                return false;
-            }
-        } catch(SQLException ex) {
-            System.out.println("SQLException when handling connection: " + ex.getMessage());
+        String error = SimpleSql.executeUpdate(app.dbConf.getDataSource(), "DROP SCHEMA public CASCADE; CREATE SCHEMA public;");
+        if(error != null) {
+            System.out.println("Error when dropping schema: " + error);
             return false;
         }
-        ds.close();
 
+        error = SimpleSql.execute(app.dbConf.getDataSource(), schemaSql);
+        if(error != null) {
+            System.out.println("Error when loading schema: " + error);
+            return false;
+        }
+ 
         this.app.setUp();
         
         return true;
@@ -82,7 +72,7 @@ public class DbSuite extends TestSuite {
         // Application instance (it can give it to the TestRequest for use in
         // TestRequest#execute).
         ControllerUtils.app = Application.current = this.app;
-        
+
         return truncateDatabase();        
     }
 
@@ -97,7 +87,7 @@ public class DbSuite extends TestSuite {
         DataSource ds = app.dbConf.getDataSource();
         try(Connection conn = ds.getConnection()) {
             try (Statement stmt = conn.createStatement()) {
-                stmt.execute("TRUNCATE users, repositories RESTART IDENTITY CASCADE; COMMIT;");
+                stmt.execute("SET search_path TO public; TRUNCATE users, repositories RESTART IDENTITY CASCADE; COMMIT;");
             } catch(SQLException ex) {
                 System.out.println("SQLException when truncating database: " + ex.getMessage());
                 return false;
