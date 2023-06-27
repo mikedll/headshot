@@ -11,14 +11,17 @@ import com.mikedll.headshot.db.SimpleSql;
 import com.mikedll.headshot.db.QuietResultSet;
 import com.mikedll.headshot.db.SqlArg;
 
-public class UserRepository {
-
-    private DatabaseConfiguration dbConf;
-
+public class UserRepository extends RepositoryBase {
+    
     public UserRepository(DatabaseConfiguration dbConf) {
-        this.dbConf = dbConf;
+        super(dbConf);
     }
 
+    @Override
+    public String getTable() {
+        return "users";
+    }
+    
     public Pair<Long,String> count() {
         Pair<Long,String> countResult = SimpleSql.executeQuery(dbConf, "SELECT COUNT(*) FROM users", (rs) -> {
                 if(rs.next()) {

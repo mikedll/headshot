@@ -14,6 +14,25 @@ SET default_tablespace = '';
 
 SET default_table_access_method = heap;
 
+CREATE TABLE public.pages (
+    id bigint NOT NULL,
+    tour_id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    filename character varying NOT NULL,
+    line_number integer NOT NULL,
+    language character varying NOT NULL,
+    narration character varying NOT NULL
+);
+
+CREATE SEQUENCE public.pages_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+ALTER SEQUENCE public.pages_id_seq OWNED BY public.pages.id;
+
 CREATE TABLE public.repositories (
     id bigint NOT NULL,
     user_id bigint NOT NULL,
@@ -47,6 +66,22 @@ CREATE SEQUENCE public.schema_migrations_id_seq
 
 ALTER SEQUENCE public.schema_migrations_id_seq OWNED BY public.schema_migrations.id;
 
+CREATE TABLE public.tours (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    name character varying NOT NULL
+);
+
+CREATE SEQUENCE public.tours_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+ALTER SEQUENCE public.tours_id_seq OWNED BY public.tours.id;
+
 CREATE TABLE public.users (
     id bigint NOT NULL,
     name character varying NOT NULL,
@@ -67,17 +102,27 @@ CREATE SEQUENCE public.users_id_seq
 
 ALTER SEQUENCE public.users_id_seq OWNED BY public.users.id;
 
+ALTER TABLE ONLY public.pages ALTER COLUMN id SET DEFAULT nextval('public.pages_id_seq'::regclass);
+
 ALTER TABLE ONLY public.repositories ALTER COLUMN id SET DEFAULT nextval('public.repositories_id_seq'::regclass);
 
 ALTER TABLE ONLY public.schema_migrations ALTER COLUMN id SET DEFAULT nextval('public.schema_migrations_id_seq'::regclass);
 
+ALTER TABLE ONLY public.tours ALTER COLUMN id SET DEFAULT nextval('public.tours_id_seq'::regclass);
+
 ALTER TABLE ONLY public.users ALTER COLUMN id SET DEFAULT nextval('public.users_id_seq'::regclass);
+
+ALTER TABLE ONLY public.pages
+    ADD CONSTRAINT pages_pkey PRIMARY KEY (id);
 
 ALTER TABLE ONLY public.repositories
     ADD CONSTRAINT repositories_pkey PRIMARY KEY (id);
 
 ALTER TABLE ONLY public.schema_migrations
     ADD CONSTRAINT schema_migrations_pkey PRIMARY KEY (id);
+
+ALTER TABLE ONLY public.tours
+    ADD CONSTRAINT tours_pkey PRIMARY KEY (id);
 
 ALTER TABLE ONLY public.users
     ADD CONSTRAINT users_pkey PRIMARY KEY (id);
@@ -88,6 +133,12 @@ CREATE UNIQUE INDEX schema_migrations_version ON public.schema_migrations USING 
 
 CREATE UNIQUE INDEX users_github_id ON public.users USING btree (github_id);
 
+ALTER TABLE ONLY public.pages
+    ADD CONSTRAINT fk_pages_tours FOREIGN KEY (tour_id) REFERENCES public.tours(id);
+
 ALTER TABLE ONLY public.repositories
     ADD CONSTRAINT fk_repositories_users FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+ALTER TABLE ONLY public.tours
+    ADD CONSTRAINT fk_tours_users FOREIGN KEY (user_id) REFERENCES public.users(id);
 

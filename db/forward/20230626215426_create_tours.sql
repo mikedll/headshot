@@ -1,0 +1,20 @@
+CREATE TABLE tours (
+  id BIGSERIAL PRIMARY KEY,
+  user_id BIGINT NOT NULL,
+  created_at TIMESTAMP(6) NOT NULL,
+  name CHARACTER VARYING NOT NULL
+);
+
+ALTER TABLE tours ADD CONSTRAINT fk_tours_users FOREIGN KEY (user_id) REFERENCES users (id);
+
+CREATE TABLE pages (
+  id BIGSERIAL PRIMARY KEY,
+  tour_id BIGINT NOT NULL,
+  created_at TIMESTAMP(6)  NOT NULL,
+  filename CHARACTER VARYING NOT NULL,
+  line_number INT NOT NULL,
+  language CHARACTER VARYING NOT NULL,
+  narration CHARACTER VARYING NOT NULL
+);
+
+ALTER TABLE pages ADD CONSTRAINT fk_pages_tours FOREIGN KEY (tour_id) REFERENCES tours (id);

@@ -40,14 +40,8 @@ public class Migrations {
 
     private DatabaseConfiguration dbConf;
 
-    private boolean silent;
-
     public Migrations(DatabaseConfiguration dbConf) {
         this.dbConf = dbConf;
-    }
-
-    public void setSilent(boolean silent) {
-        this.silent = silent;
     }
     
     public void setMigrationsRoot(String path) {
@@ -142,7 +136,7 @@ public class Migrations {
     public String migrateForward() {
         String error = ensureMigrationsTableExists();
         if(error != null) {
-            System.out.println("Error while migrating forward: " + error);
+            dbConf.logger.error("Error while migrating forward: " + error);
             return error;
         }
 
@@ -163,20 +157,17 @@ public class Migrations {
             } catch (IOException ex) {
                 return "Unable to read " + forward + ": " + ex.getMessage();
             }
-            if(!this.silent) {
-                System.out.println("Executing " + forward);
-                System.out.println(sql);
-            }
+            dbConf.logger.info("Executing " + forward);
             String migrationError = SimpleSql.execute(dbConf, sql);
             if(migrationError != null) {
-                System.out.println("SQL Error: " + migrationError);
+                dbConf.logger.error("SQL Error: " + migrationError);
                 return migrationError;
             }
 
             String insertSql = "INSERT INTO " + SCHEMA_MIGRATIONS_TABLE + " (version) VALUES (?);";
             String versionError = SimpleSql.executeUpdate(dbConf, insertSql, new SqlArg(String.class, tsOf(forward)));
             if(versionError != null) {
-                System.out.println("SQL Error: " + versionError);
+                dbConf.logger.error("SQL Error: " + versionError);
                 return versionError;
             }
         }
@@ -202,16 +193,17 @@ public class Migrations {
             return "Unable to read " + reverse + ": " + ex.getMessage();
         }
 
+        dbConf.logger.info("Executing reverse of " + reverse);
         String migrationError = SimpleSql.execute(dbConf, sql);
         if(migrationError != null) {
-            System.out.println("SQL Error: " + migrationError);
+            dbConf.logger.error("SQL Error: " + migrationError);
             return migrationError;
         }
 
         String deleteSql = "DELETE FROM " + SCHEMA_MIGRATIONS_TABLE + " WHERE version = ?;";
         String deleteVersionError = SimpleSql.executeUpdate(dbConf, deleteSql, new SqlArg(String.class, ts));
         if(deleteVersionError != null) {
-            System.out.println("SQL Error: " + deleteVersionError);
+            dbConf.logger.error("SQL Error: " + deleteVersionError);
             return deleteVersionError;
         }
 

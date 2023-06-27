@@ -22,31 +22,18 @@ import com.mikedll.headshot.db.Transaction;
 import com.mikedll.headshot.db.TransactionStatement;
 import com.mikedll.headshot.controller.Controller;
 
-public class RepositoryRepository {
+public class RepositoryRepository extends RepositoryBase {
 
-    private DatabaseConfiguration dbConf;
+    public RepositoryRepository(DatabaseConfiguration dbConf) {
+        super(dbConf);
+    }
 
-    private RepositoryRepository() {
+    @Override
+    public String getTable() {
+        return "repositories";
     }
     
-    public RepositoryRepository(DatabaseConfiguration dbConf) {
-        this.dbConf = dbConf;
-    }
-
-    public Pair<Long,String> count() {
-        Pair<Long, String> result = SimpleSql.executeQuery(dbConf, "SELECT COUNT(*) FROM repositories", (rs) -> {
-                if(!rs.next()) {
-                    return null;
-                }
-                return rs.getLong("count");
-            });
-
-        if(result.getValue1() != null) {
-            return Pair.with(null, "Failed to get count");
-        }
-        return Pair.with(result.getValue0(), null);
-    }
-
+    
     public Pair<List<Repository>, String> forUser(User user) {
         List<SqlArg> params = new ArrayList<>();
         params.add(new SqlArg(Long.class, user.getId()));

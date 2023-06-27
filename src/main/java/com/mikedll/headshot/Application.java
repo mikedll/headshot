@@ -127,11 +127,14 @@ public class Application {
             shutdown();
             return true;
         } else if(args.length > 0) {
-            this.logger.info("Error: unrecognized command line arguments");
-            this.logger.info("with args:");
-            this.logger.info("  migrate");
-            this.logger.info("  migrate:reverse VERSION");
-            this.logger.info("without args, runs web server");
+            String error = "unrecognized command line arguments\n"
+                + "usage with args:\n"
+                + "  migrate\n"
+                + "  migrate:reverse VERSION\n"
+                + "  gen_migration SNAKE_CASE_NAME\n"
+                + "without args, runs web server\n";
+            this.logger.error(error);
+            return true;
         }
 
         return false;

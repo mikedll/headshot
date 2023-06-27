@@ -82,7 +82,6 @@ public class MigrationsTests {
     @Test
     public void testMigrateForward() {
         Migrations migrations = new Migrations(suite.dbConf);
-        migrations.setSilent(true);
         migrations.setMigrationsRoot("src/test/files/good_migrations");
         String error = migrations.readMigrations();
         Assertions.assertNull(error, "read migrations okay");
@@ -111,8 +110,6 @@ public class MigrationsTests {
     @Test
     public void testMigrationsTableExists() {
         Migrations migrations = new Migrations(suite.dbConf);
-        migrations.setSilent(true);
-        
         migrations.ensureMigrationsTableExists();
 
         migrations.setMigrationsRoot("src/test/files/good_migrations");
@@ -134,7 +131,6 @@ public class MigrationsTests {
     @Test
     public void testMigrationAlreadyRun() throws IOException {
         Migrations migrations = new Migrations(suite.dbConf);
-        migrations.setSilent(true);
 
         migrations.ensureMigrationsTableExists();
         String root = "src/test/files/good_migrations";
@@ -165,7 +161,6 @@ public class MigrationsTests {
     @Test
     public void testReverseNonexistent() {
         Migrations migrations = new Migrations(suite.dbConf);
-        migrations.setSilent(true);
         migrations.setMigrationsRoot("src/test/files/good_migrations");
         migrations.readMigrations();
         migrations.migrateForward();
@@ -180,7 +175,6 @@ public class MigrationsTests {
     @Test
     public void testReverse() {
         Migrations migrations = new Migrations(suite.dbConf);
-        migrations.setSilent(true);
         migrations.setMigrationsRoot("src/test/files/good_migrations");
         migrations.readMigrations();
         migrations.migrateForward();

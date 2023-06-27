@@ -5,7 +5,7 @@ import java.time.ZoneId;
 
 public class Formats {
 
-    public static final String LEXICAL_TIME = "uuuuMMddhhmmss";
+    public static final String LEXICAL_TIME = "uuuuMMddkkmmss";
     
     public static final String PRETTY_TIME = "MMM d, uuuu hh:mm:ssa";
 

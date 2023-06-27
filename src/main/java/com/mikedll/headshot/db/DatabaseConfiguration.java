@@ -14,6 +14,8 @@ import org.apache.logging.log4j.LogManager;
 
 import com.mikedll.headshot.model.UserRepository;
 import com.mikedll.headshot.model.RepositoryRepository;
+import com.mikedll.headshot.model.TourRepository;
+import com.mikedll.headshot.model.PageRepository;
 import com.mikedll.headshot.Config;
 import com.mikedll.headshot.Application;
 import com.mikedll.headshot.controller.Controller;
@@ -37,6 +39,8 @@ public class DatabaseConfiguration {
 
         this.repositories.put(UserRepository.class, new UserRepository(this));
         this.repositories.put(RepositoryRepository.class, new RepositoryRepository(this));        
+        this.repositories.put(TourRepository.class, new TourRepository(this));
+        this.repositories.put(PageRepository.class, new PageRepository(this));
     }
    
     /*

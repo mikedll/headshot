@@ -85,7 +85,8 @@ public class DbSuite extends TestSuite {
             throw new RuntimeException("can't truncate database in production");
         }
 
-        String error = SimpleSql.execute(app.dbConf, "SET search_path TO public; TRUNCATE users, repositories RESTART IDENTITY CASCADE; COMMIT;");
+        String error = SimpleSql.execute(app.dbConf, "SET search_path TO public; " +
+                                         "TRUNCATE users, repositories, tours, pages RESTART IDENTITY CASCADE; COMMIT;");
         if(error != null) {
             System.out.println("Error when truncating database: " + error);
             return false;
