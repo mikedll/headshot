@@ -17,6 +17,7 @@ import org.javatuples.Pair;
 
 import com.mikedll.headshot.db.DatabaseConfiguration;
 import com.mikedll.headshot.db.SimpleSql;
+import com.mikedll.headshot.db.QuietResultSet;
 import com.mikedll.headshot.db.SqlArg;
 import com.mikedll.headshot.db.Transaction;
 import com.mikedll.headshot.db.TransactionStatement;
@@ -32,7 +33,17 @@ public class RepositoryRepository extends RepositoryBase {
     public String getTable() {
         return "repositories";
     }
-    
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public Optional<Repository> rsToEntity(QuietResultSet rs) {
+        Repository repository = null;
+        if(rs.next()) {
+            repository = new Repository();
+            repository.copyFromRs(rs);
+        }
+        return Optional.ofNullable(repository);
+    }
     
     public Pair<List<Repository>, String> forUser(User user) {
         List<SqlArg> params = new ArrayList<>();
@@ -108,11 +119,16 @@ public class RepositoryRepository extends RepositoryBase {
         Transaction tx = new Transaction(dbConf);
 
         List<TransactionStatement<Long>> inserts = new ArrayList<>();
-        List<Class<?>> argTypes = Arrays.asList(new Class<?>[] { Long.class, Long.class, String.class, Boolean.class, String.class, Instant.class });
-        List<Repository> toInsert = input.stream().filter(i -> !result.getValue0().contains(i.getGithubId())).collect(Collectors.toList());
+        List<Class<?>> argTypes = Arrays.asList(new Class<?>[] { Long.class, Long.class, String.class,
+                    Boolean.class, String.class, Instant.class });
+        List<Repository> toInsert = input.stream().filter(i -> !result.getValue0().contains(i.getGithubId()))
+            .collect(Collectors.toList());
         for(Repository repository : toInsert) {
-            List<Object> args = Arrays.asList(new Object[] { user.getId(), repository.getGithubId(), repository.getName(),
-                                                            repository.getIsPrivate(), repository.getDescription(), repository.getCreatedAt() });
+            repository.setUserId(user.getId());
+            List<Object> args = Arrays.asList(new Object[] { repository.getUserId(), repository.getGithubId(),
+                                                            repository.getName(),
+                                                            repository.getIsPrivate(), repository.getDescription(),
+                                                            repository.getGithubCreatedAt() });
 
             inserts.add(TransactionStatement.buildWithArgs(insertSql, argTypes, args, (rs) -> {
                         if(rs.next()) {

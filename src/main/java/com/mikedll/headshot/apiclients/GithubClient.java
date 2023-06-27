@@ -44,7 +44,7 @@ public class GithubClient {
             ret.setName(name);
             ret.setIsPrivate(isPrivate);
             ret.setDescription(description);
-            ret.setCreatedAt(Instant.parse(created_at));
+            ret.setGithubCreatedAt(Instant.parse(created_at));
             return ret;
         }
     }

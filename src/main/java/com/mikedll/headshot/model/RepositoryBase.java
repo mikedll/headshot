@@ -34,7 +34,7 @@ public abstract class RepositoryBase {
     }
 
     protected <T> Optional<T> rsToEntity(QuietResultSet rs) {
-        throw new RuntimeException("sublcass must rsToEntity");
+        throw new RuntimeException("sublcass must implement rsToEntity(rs)");
     }
 
     public <T> Pair<Optional<T>,String> findById(Long id) {

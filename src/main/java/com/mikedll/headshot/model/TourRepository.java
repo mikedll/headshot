@@ -1,13 +1,15 @@
 package com.mikedll.headshot.model;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Arrays;
-import java.time.Instant;
+import java.util.Optional;
 
 import org.javatuples.Pair;
 
 import com.mikedll.headshot.db.DatabaseConfiguration;
 import com.mikedll.headshot.db.SimpleSql;
+import com.mikedll.headshot.db.QuietResultSet;
 
 public class TourRepository extends RepositoryBase {
     
@@ -18,6 +20,20 @@ public class TourRepository extends RepositoryBase {
     @Override
     public String getTable() {
         return "tours";
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    protected Optional<Tour> rsToEntity(QuietResultSet rs) {
+        Tour tour = null;
+        if(rs.next()) {
+            tour = new Tour();
+            tour.setId(rs.getLong("id"));
+            tour.setUserId(rs.getLong("user_id"));
+            tour.setCreatedAt(Instant.ofEpochMilli(rs.getTimestamp("created_at").getTime()));
+            tour.setName(rs.getString("name"));
+        }
+        return Optional.ofNullable(tour);
     }
     
     public String save(Tour tour) {

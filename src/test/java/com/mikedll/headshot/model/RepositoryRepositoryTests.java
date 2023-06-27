@@ -2,6 +2,7 @@ package com.mikedll.headshot.model;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Assertions;
@@ -20,13 +21,26 @@ public class RepositoryRepositoryTests extends DbTest {
     public void testSave() {
         User user = Factories.createUser();
         List<Repository> repositories = new ArrayList<>();
-        repositories.add(Factories.buildRepository());
+        Repository repo = Factories.buildRepository();
+        repositories.add(repo);
 
         RepositoryRepository repositoryRepository = ControllerUtils.getRepository(RepositoryRepository.class);
 
         String error = repositoryRepository.save(user, repositories);
         Assertions.assertNull(error, "save success");
         Assertions.assertNotNull(repositories.get(0).getId(), "id set");
+
+        Pair<Optional<Repository>,String> findResult = repositoryRepository.findById(repositories.get(0).getId());
+        Assertions.assertNull(findResult.getValue1(), "find ok");
+        Repository foundRepo = findResult.getValue0().orElse(null);
+        Assertions.assertNotNull(foundRepo);
+        Assertions.assertEquals(repo.getId(), foundRepo.getId());
+        Assertions.assertEquals(repo.getUserId(), foundRepo.getUserId());
+        Assertions.assertEquals(repo.getGithubId(), foundRepo.getGithubId());
+        Assertions.assertEquals(repo.getName(), foundRepo.getName());
+        Assertions.assertEquals(repo.getIsPrivate(), foundRepo.getIsPrivate());
+        Assertions.assertEquals(repo.getDescription(), foundRepo.getDescription());
+        Assertions.assertEquals(repo.getGithubCreatedAt(), foundRepo.getGithubCreatedAt());
     }
 
     @Test

@@ -1,6 +1,7 @@
 package com.mikedll.headshot.model;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 
 public class Tour {
     private Long id;
@@ -32,7 +33,7 @@ public class Tour {
     }
 
     public void setCreatedAt(Instant createdAt) {
-        this.createdAt = createdAt;
+        this.createdAt = createdAt.truncatedTo(ChronoUnit.MILLIS);
     }
 
     public String getName() {

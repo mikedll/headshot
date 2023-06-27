@@ -1,6 +1,7 @@
 package com.mikedll.headshot.model;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 
 import com.mikedll.headshot.db.QuietResultSet;
 
@@ -18,7 +19,7 @@ public class Repository {
 
     private String description;
 
-    private Instant createdAt;
+    private Instant githubCreatedAt;
 
     public void setId(Long id) {
         this.id = id;
@@ -68,16 +69,16 @@ public class Repository {
         return this.description;
     }
 
-    public void setCreatedAt(Instant createdAt) {
-        this.createdAt = createdAt;
+    public void setGithubCreatedAt(Instant githubCreatedAt) {
+        this.githubCreatedAt = githubCreatedAt.truncatedTo(ChronoUnit.MILLIS);
     }
 
-    public Instant getCreatedAt() {
-        return this.createdAt;
+    public Instant getGithubCreatedAt() {
+        return this.githubCreatedAt;
     }
 
     public String prettyCreatedAt() {
-        return Formats.PRETTY_TIME_FORMATTER.format(this.createdAt);
+        return Formats.PRETTY_TIME_FORMATTER.format(this.githubCreatedAt);
     }
 
     public void copyFromRs(QuietResultSet rs) {
@@ -87,6 +88,6 @@ public class Repository {
         setName(rs.getString("name"));
         setIsPrivate(rs.getBoolean("is_private"));
         setDescription(rs.getString("description"));
-        setCreatedAt(Instant.ofEpochMilli(rs.getTimestamp("github_created_at").getTime()));
+        setGithubCreatedAt(Instant.ofEpochMilli(rs.getTimestamp("github_created_at").getTime()));
     }
 }
