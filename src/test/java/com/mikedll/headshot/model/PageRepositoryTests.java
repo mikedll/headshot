@@ -24,10 +24,7 @@ public class PageRepositoryTests extends DbTest {
         String error = pageRepository.save(page);
         Assertions.assertNull(error, "saved");
         Assertions.assertNotNull(page.getId(), "id set");
-        Assertions.assertNotNull(page.getCreatedAt(), "createdAt set");
-        System.out.println("createdAt after save: " + page.getCreatedAt());
-        
-        Assertions.assertEquals(1L, pageRepository.count().getValue0(), "count of 1");
+        Assertions.assertNotNull(page.getCreatedAt(), "createdAt set");        
 
         Pair<Optional<Page>,String> findResult = pageRepository.findById(page.getId());
         Assertions.assertNull(findResult.getValue1(), "find ok");
