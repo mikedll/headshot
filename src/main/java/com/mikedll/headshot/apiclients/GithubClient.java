@@ -115,13 +115,13 @@ public class GithubClient {
         if(restResult.getValue1() != null) {
             return Pair.with(null, restResult.getValue1());
         }
-
+        
         String body = restResult.getValue0();
         Pair<JsonNode,String> node = JsonMarshal.getJsonNode(body);
         if(node.getValue1() != null) {
             return Pair.with(null, "unable to read path: " + node.getValue1());
         }
-
+        
         if(node.getValue0().isArray()) {
             // Directory
             Pair<List<PathReadFileResponse>, String> dirResult

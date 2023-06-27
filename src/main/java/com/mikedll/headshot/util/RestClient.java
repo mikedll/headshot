@@ -41,7 +41,6 @@ public class RestClient {
             String result = httpclient.execute(httpGet, response -> {
                     return EntityUtils.toString(response.getEntity());
                 });
-            System.out.println(result);
             return Pair.with(result, null);
         } catch (IOException ex) {
             return Pair.with(null, "Error in REST call: " + ex.getMessage());

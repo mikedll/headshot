@@ -38,6 +38,14 @@ public class QuietResultSet {
         }
     }
 
+    public Integer getInt(String col) {
+        try {
+            return this.resultSet.getInt(col);
+        } catch (SQLException ex) {
+            throw new RuntimeException("getInt() failed", ex);
+        }
+    }    
+
     public Long getLong(String col) {
         try {
             return this.resultSet.getLong(col);

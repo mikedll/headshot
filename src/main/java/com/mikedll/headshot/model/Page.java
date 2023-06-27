@@ -1,6 +1,7 @@
 package com.mikedll.headshot.model;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 
 public class Page {
 
@@ -15,6 +16,8 @@ public class Page {
     private Integer lineNumber;
 
     private String language;
+
+    private String content;
 
     private String narration;
 
@@ -39,7 +42,7 @@ public class Page {
     }
 
     public void setCreatedAt(Instant createdAt) {
-        this.createdAt = createdAt;
+        this.createdAt = createdAt.truncatedTo(ChronoUnit.MILLIS);
     }    
 
     public String getFilename() {
@@ -64,7 +67,15 @@ public class Page {
 
     public void setLanguage(String language) {
         this.language = language;
-    }    
+    }
+
+    public String getContent() {
+        return this.content;
+    }
+
+    public void setContent(String content) {
+        this.content = content;
+    }
 
     public String getNarration() {
         return this.narration;

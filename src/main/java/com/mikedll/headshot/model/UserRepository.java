@@ -34,8 +34,10 @@ public class UserRepository extends RepositoryBase {
         }
         return Pair.with(countResult.getValue0(), null);
     }
-    
-    private Optional<User> rsToUser(QuietResultSet rs) {
+
+    @SuppressWarnings("unchecked")
+    @Override
+    protected Optional<User> rsToEntity(QuietResultSet rs) {
         User user = null;
         if(rs.next()) {
             user = new User();
@@ -50,22 +52,10 @@ public class UserRepository extends RepositoryBase {
         }
         return Optional.ofNullable(user);
     }
-
-    public Pair<Optional<User>,String> findById(Long id) {
-        Pair<Optional<User>, String> result = SimpleSql.executeQuery(dbConf, "SELECT * FROM users WHERE id = ?", (rs) -> {
-                return rsToUser(rs);
-            }, new SqlArg(Long.class, id));
-
-        if(result.getValue1() != null) {
-            return Pair.with(null, result.getValue1());
-        }
-
-        return Pair.with(result.getValue0(), null);
-    }
     
     public Pair<Optional<User>,String> findByGithubId(Long githubId) {
         Pair<Optional<User>, String> result = SimpleSql.executeQuery(dbConf, "SELECT * FROM users WHERE github_id = ?", (rs) -> {
-                return rsToUser(rs);
+                return rsToEntity(rs);
             }, new SqlArg(Long.class, githubId));
 
         if(result.getValue1() != null) {

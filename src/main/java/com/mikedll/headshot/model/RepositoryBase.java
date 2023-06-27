@@ -1,9 +1,13 @@
 package com.mikedll.headshot.model;
 
+import java.util.Optional;
+
 import org.javatuples.Pair;
 
 import com.mikedll.headshot.db.DatabaseConfiguration;
 import com.mikedll.headshot.db.SimpleSql;
+import com.mikedll.headshot.db.QuietResultSet;
+import com.mikedll.headshot.db.SqlArg;
 
 public abstract class RepositoryBase {
 
@@ -28,5 +32,22 @@ public abstract class RepositoryBase {
         }
         return Pair.with(result.getValue0(), null);
     }
+
+    protected <T> Optional<T> rsToEntity(QuietResultSet rs) {
+        throw new RuntimeException("sublcass must rsToEntity");
+    }
+
+    public <T> Pair<Optional<T>,String> findById(Long id) {
+        Pair<Optional<T>, String> result = SimpleSql.executeQuery(dbConf, "SELECT * FROM " + getTable() + " WHERE id = ?", (rs) -> {
+                return rsToEntity(rs);
+            }, new SqlArg(Long.class, id));
+
+        if(result.getValue1() != null) {
+            return Pair.with(null, result.getValue1());
+        }
+
+        return Pair.with(result.getValue0(), null);
+    }
+    
     
 }

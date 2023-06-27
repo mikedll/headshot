@@ -21,6 +21,7 @@ CREATE TABLE public.pages (
     filename character varying NOT NULL,
     line_number integer NOT NULL,
     language character varying NOT NULL,
+    content text NOT NULL,
     narration character varying NOT NULL
 );
 

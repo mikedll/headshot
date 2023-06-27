@@ -1,9 +1,13 @@
 package com.mikedll.headshot;
 
+import java.io.File;
+import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.ArrayList;
+
+import org.apache.commons.io.FileUtils;
 
 import com.mikedll.headshot.model.User;
 import com.mikedll.headshot.model.Page;
@@ -26,6 +30,14 @@ public class Factories {
     private static int lineNumberI = 200;
 
     private static long tourI = 1L;
+    
+    public static String sourceCode() {
+        try {
+            return FileUtils.readFileToString(new File("src/test/files/sample_source_files/cknife_aws.rb"), "UTF-8");
+        } catch (IOException ex) {
+            throw new RuntimeException("IOException when reading source code", ex);
+        }
+    }
     
     public static User buildUser() {
         User user = new User();
@@ -98,6 +110,7 @@ public class Factories {
         page.setFilename("myFile" + filenameI + ".rb");
         page.setLineNumber(lineNumberI);
         page.setLanguage("ruby");
+        page.setContent(sourceCode());
         page.setNarration("The subject of this method is farming corn. The farmer comes in and we examine whether he wants to harvest, or leave the corn to grow more.");
         return page;
     }

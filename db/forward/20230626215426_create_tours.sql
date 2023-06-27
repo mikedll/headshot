@@ -14,6 +14,7 @@ CREATE TABLE pages (
   filename CHARACTER VARYING NOT NULL,
   line_number INT NOT NULL,
   language CHARACTER VARYING NOT NULL,
+  content TEXT NOT NULL,
   narration CHARACTER VARYING NOT NULL
 );
 
