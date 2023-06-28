@@ -3,12 +3,14 @@ package com.mikedll.headshot.model;
 import java.time.Instant;
 import java.util.List;
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Optional;
 
 import org.javatuples.Pair;
 
 import com.mikedll.headshot.db.DatabaseConfiguration;
 import com.mikedll.headshot.db.SimpleSql;
+import com.mikedll.headshot.db.SqlArg;
 import com.mikedll.headshot.db.QuietResultSet;
 
 public class TourRepository extends RepositoryBase<Tour> {
@@ -33,6 +35,18 @@ public class TourRepository extends RepositoryBase<Tour> {
             tour.setName(rs.getString("name"));
         }
         return Optional.ofNullable(tour);
+    }
+
+    public Pair<List<Tour>,String> forUser(User user) {
+        return SimpleSql.executeQuery(dbConf, "SELECT * FROM tours WHERE user_id = ?", (rs) -> {
+                List<Tour> ret = new ArrayList<>();
+                Tour tour = rsToEntity(rs).orElse(null);
+                while(tour != null) {
+                    ret.add(tour);
+                    tour = rsToEntity(rs).orElse(null);
+                }
+                return ret;
+            }, new SqlArg(Long.class, user.getId()));
     }
     
     public String save(Tour tour) {

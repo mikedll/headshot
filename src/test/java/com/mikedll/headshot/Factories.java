@@ -19,6 +19,8 @@ import com.mikedll.headshot.model.RepositoryRepository;
 
 public class Factories {
 
+    private static long userGithubIdI = 2000L;
+    
     private static long repoGithubIdI = 2000L;
 
     private static long repoI = 2000L;
@@ -40,9 +42,11 @@ public class Factories {
     }
     
     public static User buildUser() {
+        userGithubIdI++;
+        
         User user = new User();
         user.setName("Randal Johnson");
-        user.setGithubId(2000L);
+        user.setGithubId(userGithubIdI);
         user.setGithubLogin("randal.johnson");
         user.setUrl("http://api.github.com/randal.johnson");
         user.setHtmlUrl("http://www.github.com/randal.johnson");
@@ -55,7 +59,10 @@ public class Factories {
         Application app = TestSuite.getSuite(DbSuite.class).getApp();
         UserRepository userRepository = app.dbConf.getRepository(app, UserRepository.class);
         User user = buildUser();
-        userRepository.save(user);
+        String error = userRepository.save(user);
+        if(error != null) {
+            throw new RuntimeException(error);
+        }
         return user;
     }
 
@@ -78,7 +85,10 @@ public class Factories {
         RepositoryRepository repositoryRepository = app.dbConf.getRepository(app, RepositoryRepository.class);
         List<Repository> repositories = new ArrayList<>();
         repositories.add(repository);
-        repositoryRepository.save(user, repositories);
+        String error = repositoryRepository.save(user, repositories);
+        if(error != null) {
+            throw new RuntimeException(error);
+        }
         return repository;
     }
 
@@ -96,7 +106,10 @@ public class Factories {
         
         Application app = TestSuite.getSuite(DbSuite.class).getApp();
         TourRepository tourRepository = app.dbConf.getRepository(app, TourRepository.class);
-        tourRepository.save(tour);
+        String error = tourRepository.save(tour);
+        if(error != null) {
+            throw new RuntimeException(error);
+        }
 
         return tour;
     }
