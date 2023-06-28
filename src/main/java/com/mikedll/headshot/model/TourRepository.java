@@ -11,7 +11,7 @@ import com.mikedll.headshot.db.DatabaseConfiguration;
 import com.mikedll.headshot.db.SimpleSql;
 import com.mikedll.headshot.db.QuietResultSet;
 
-public class TourRepository extends RepositoryBase {
+public class TourRepository extends RepositoryBase<Tour> {
     
     public TourRepository(DatabaseConfiguration dbConf) {
         super(dbConf);
@@ -22,7 +22,6 @@ public class TourRepository extends RepositoryBase {
         return "tours";
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     protected Optional<Tour> rsToEntity(QuietResultSet rs) {
         Tour tour = null;

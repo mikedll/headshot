@@ -11,7 +11,7 @@ import com.mikedll.headshot.db.SimpleSql;
 import com.mikedll.headshot.db.QuietResultSet;
 import com.mikedll.headshot.db.SqlArg;
 
-public class UserRepository extends RepositoryBase {
+public class UserRepository extends RepositoryBase<User> {
     
     public UserRepository(DatabaseConfiguration dbConf) {
         super(dbConf);
@@ -35,7 +35,6 @@ public class UserRepository extends RepositoryBase {
         return Pair.with(countResult.getValue0(), null);
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     protected Optional<User> rsToEntity(QuietResultSet rs) {
         User user = null;

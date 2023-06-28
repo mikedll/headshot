@@ -23,7 +23,7 @@ import com.mikedll.headshot.db.Transaction;
 import com.mikedll.headshot.db.TransactionStatement;
 import com.mikedll.headshot.controller.Controller;
 
-public class RepositoryRepository extends RepositoryBase {
+public class RepositoryRepository extends RepositoryBase<Repository> {
 
     public RepositoryRepository(DatabaseConfiguration dbConf) {
         super(dbConf);
@@ -34,7 +34,6 @@ public class RepositoryRepository extends RepositoryBase {
         return "repositories";
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public Optional<Repository> rsToEntity(QuietResultSet rs) {
         Repository repository = null;

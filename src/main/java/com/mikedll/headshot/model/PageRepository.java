@@ -11,7 +11,7 @@ import com.mikedll.headshot.db.DatabaseConfiguration;
 import com.mikedll.headshot.db.SimpleSql;
 import com.mikedll.headshot.db.QuietResultSet;
 
-public class PageRepository extends RepositoryBase {
+public class PageRepository extends RepositoryBase<Page> {
 
     public PageRepository(DatabaseConfiguration dbConf) {
         super(dbConf);
@@ -21,7 +21,6 @@ public class PageRepository extends RepositoryBase {
         return "pages";
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public Optional<Page> rsToEntity(QuietResultSet rs) {
         Page page = null;

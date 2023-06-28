@@ -9,7 +9,7 @@ import com.mikedll.headshot.db.SimpleSql;
 import com.mikedll.headshot.db.QuietResultSet;
 import com.mikedll.headshot.db.SqlArg;
 
-public abstract class RepositoryBase {
+public abstract class RepositoryBase<T> {
 
     protected DatabaseConfiguration dbConf;
     
@@ -33,11 +33,11 @@ public abstract class RepositoryBase {
         return Pair.with(result.getValue0(), null);
     }
 
-    protected <T> Optional<T> rsToEntity(QuietResultSet rs) {
+    protected Optional<T> rsToEntity(QuietResultSet rs) {
         throw new RuntimeException("sublcass must implement rsToEntity(rs)");
     }
 
-    public <T> Pair<Optional<T>,String> findById(Long id) {
+    public Pair<Optional<T>,String> findById(Long id) {
         Pair<Optional<T>, String> result = SimpleSql.executeQuery(dbConf, "SELECT * FROM " + getTable() + " WHERE id = ?", (rs) -> {
                 return rsToEntity(rs);
             }, new SqlArg(Long.class, id));
