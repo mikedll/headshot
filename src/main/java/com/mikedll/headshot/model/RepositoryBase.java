@@ -49,5 +49,7 @@ public abstract class RepositoryBase<T> {
         return Pair.with(result.getValue0(), null);
     }
     
-    
+    public String delete(Long id) {
+        return SimpleSql.executeUpdate(dbConf, "DELETE FROM " + getTable() + " WHERE id = ?", new SqlArg(Long.class, id));
+    }
 }

@@ -101,6 +101,10 @@ public class Factories {
         return tour;
     }
 
+    public static Tour createTour() {
+        return createTour(Factories.createUser());
+    }
+    
     public static Tour createTour(User user) {
         Tour tour = buildTour(user);
         

@@ -60,12 +60,42 @@ export class ToursView extends LitElement {
     })
   }
 
+  onDelete(e: Event, id: number) {
+    e.preventDefault();
+
+    const idx = this.tours.findIndex((t) => t.id == id);
+    if(idx === -1) {
+      console.error("unable to find tour with id ", id);
+      return;
+    }
+
+    const toDelete = this.tours[idx];
+    if(!confirm(`Delete Tour ${toDelete.id}`)) {
+      return;
+    }
+
+    if(this.busy) return;
+    this.busy = true;
+
+    fetch(`/tours/${toDelete.id}`, {
+      method: "DELETE"
+    }).then(r => {
+      if(r.ok) {
+        this.tours.splice(idx, 1);
+        this.busy = false;
+      } else {
+        this.error = `${r.status}: Failed to delete Tour ${toDelete.id}`;
+        this.busy = false;
+      }
+    })
+  }
+
   override render() {
     const tours = repeat(this.tours, (t) => t.id, (tour, i) => {
       const createdAt = new Date(tour.createdAt).toLocaleString();
       return html`
         <div>
-          ${tour.id} - ${tour.name} - ${createdAt}
+          ${tour.id} - ${tour.name} - ${createdAt} <a href="#" @click=${(e: Event) => this.onDelete(e, tour.id)}>[x]</a>
         </div>
       `;
     });

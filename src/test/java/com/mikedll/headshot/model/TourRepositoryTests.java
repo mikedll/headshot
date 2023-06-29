@@ -56,4 +56,16 @@ public class TourRepositoryTests extends DbTest {
                               expected.containsAll(foundIds) &&
                               foundIds.containsAll(expected), "correct tours returned");
     }
+
+    @Test
+    public void testForUserAndId() {
+        User user = Factories.createUser();
+        Tour tour = Factories.createTour(user);
+        TourRepository tourRepository = ControllerUtils.getRepository(TourRepository.class);
+        Pair<Optional<Tour>,String> fetchResult = tourRepository.forUserAndId(user, tour.getId());
+
+        Assertions.assertNull(fetchResult.getValue1(), "fetch ok");
+        Assertions.assertEquals(tour.getId(), fetchResult.getValue0().orElse(null).getId(), "found");
+    }
+        
 }

@@ -40,6 +40,11 @@ public class Servlet extends HttpServlet {
     protected final void doPost(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
         doService(req, res, HttpMethod.POST);
     }
+
+    @Override
+    protected final void doDelete(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+        doService(req, res, HttpMethod.DELETE);
+    }
     
 
     private Optional<Pair<RequestHandler,PathMatch>> findHandlerMatch(Pair<String, HttpMethod> incomingRequest) {

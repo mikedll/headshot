@@ -88,24 +88,39 @@ public class ControllerUtils {
     public TestRequest get(String path) {
         TestRequest request = makeRequest(path, "GET");
         request.execute();
+        runVerifications(request);
+
         return request;
     }
 
     public TestRequest put(String path) {
         TestRequest request = makeRequest(path, "PUT");
         request.execute();
+        runVerifications(request);
+        
         return request;
     }
 
     public TestRequest post(String path) {
         TestRequest request = makeRequest(path, "POST");
         request.execute();
+        runVerifications(request);
+        
+        return request;
+    }
 
+    public TestRequest delete(String path) {
+        TestRequest request = makeRequest(path, "DELETE");
+        request.execute();
+        runVerifications(request);
+        
+        return request;
+    }
+
+    public void runVerifications(TestRequest request) {
         if(this.expectedStatus != null) {
             Mockito.verify(request.res()).setStatus(this.expectedStatus);
         }
-        
-        return request;
     }
     
     public static Builder builder() {

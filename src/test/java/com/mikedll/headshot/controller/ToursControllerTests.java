@@ -1,6 +1,7 @@
 package com.mikedll.headshot.controller;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Assertions;
@@ -21,12 +22,25 @@ public class ToursControllerTests extends ControllerTest {
             .expectStatus(HttpServletResponse.SC_OK)
             .build().post("/tours");
 
-        System.out.println("body: " + request.responseBody());
         Assertions.assertTrue(request.responseBody().contains("\"userId\":" + user.getId()));
 
         TourRepository tourRepository = ControllerUtils.getRepository(TourRepository.class);
         Pair<List<Tour>, String> fetchResult = tourRepository.forUser(user);
         Assertions.assertNull(fetchResult.getValue1(), "fetch ok");
         Assertions.assertEquals(user.getId(), fetchResult.getValue0().get(0).getId());
+    }
+
+    @Test
+    public void testDelete() {
+        User user = Factories.createUser();
+        Tour tour = Factories.createTour(user);
+        TestRequest request = ControllerUtils.builder().withUser(user)
+            .expectStatus(HttpServletResponse.SC_OK)
+            .build().delete("/tours/" + tour.getId());
+
+        TourRepository tourRepository = ControllerUtils.getRepository(TourRepository.class);
+        Pair<Optional<Tour>, String> fetchResult = tourRepository.findById(tour.getId());
+        Assertions.assertNull(fetchResult.getValue1(), "fetch ok");
+        Assertions.assertNull(fetchResult.getValue0().orElse(null), "deleted");
     }
 }

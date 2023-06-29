@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.thymeleaf.context.Context;
 import org.javatuples.Pair;
+import jakarta.servlet.http.HttpServletResponse;
 
 import com.mikedll.headshot.util.JsonMarshal;
 import com.mikedll.headshot.model.Tour;
@@ -35,7 +36,7 @@ public class ToursController extends Controller {
     public void create() {
         Tour tour = new Tour();
         tour.setUserId(this.currentUser.getId());
-        tour.setName("");
+        tour.setName("Untitled Tour");
         String error = tourRepository.save(tour);
         if(error != null) {
             System.out.println("Error: " + error);
@@ -50,5 +51,21 @@ public class ToursController extends Controller {
         }
         
         sendJson(marshal.getValue0());
+    }
+
+    @Request(path="/tours/{id}", method=HttpMethod.DELETE)
+    public void delete() {
+        Tour tour = ResourceLoader.loadTour(this, tourRepository, this.currentUser, this.getPathParam("id")).orElse(null);
+        if(tour == null) {
+            return;
+        }
+           
+        String error = tourRepository.delete(tour.getId());
+        if(error != null) {
+            sendInternalServerError(error);
+            return;
+        }
+
+        res.setStatus(HttpServletResponse.SC_OK);
     }
 }

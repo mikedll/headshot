@@ -22,6 +22,8 @@ public record TestRequest(String method, HttpServletRequest req, HttpServletResp
                 servlet.doPut(req(), res());
             } else if(method == "POST") {
                 servlet.doPost(req(), res());
+            } else if(method == "DELETE") {
+                servlet.doDelete(req(), res());
             } else {
                 throw new RuntimeException("Unexpected method: " + method);
             }

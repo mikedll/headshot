@@ -48,6 +48,12 @@ public class TourRepository extends RepositoryBase<Tour> {
                 return ret;
             }, new SqlArg(Long.class, user.getId()));
     }
+
+    public Pair<Optional<Tour>,String> forUserAndId(User user, Long id) {
+        return SimpleSql.executeQuery(dbConf, "SELECT * FROM tours WHERE user_id = ? AND id = ?", (rs) -> {
+                return rsToEntity(rs);
+            }, new SqlArg(Long.class, user.getId()), new SqlArg(Long.class, id));
+    }
     
     public String save(Tour tour) {
         if(tour.getId() != null) {
