@@ -27,6 +27,9 @@ export class ToursView extends LitElement {
   connectedCallback() {
     super.connectedCallback();
     this.tours = window.tours;
+
+    this.addEventListener('delete-tour', ((e: CustomEvent<number>) => this.onDelete(e)) as EventListener);
+    this.addEventListener('update-tour', ((e: CustomEvent<Tour>) => this.onUpdate(e)) as EventListener);
   }
 
   createRenderRoot() {
@@ -60,12 +63,42 @@ export class ToursView extends LitElement {
     })
   }
 
-  onDelete(e: Event, id: number) {
+  onUpdate(e: CustomEvent<Tour>) {
     e.preventDefault();
 
-    const idx = this.tours.findIndex((t) => t.id == id);
+    const idx = this.tours.findIndex((t) => t.id == e.detail.id);
     if(idx === -1) {
-      console.error("unable to find tour with id ", id);
+      console.error("unable to find tour with id ", e.detail.id);
+      return;
+    }
+
+    if(this.busy) return;
+    this.busy = true;
+
+    fetch(`/tours/${e.detail.id}`, {
+      method: "PUT",
+      body: JSON.stringify(e.detail)
+    }).then(r => {
+      if(r.ok) {
+        return r.json();
+      } else {
+        return handleAjaxError(r, `Failed to update Tour ${e.detail.id}`);
+      }
+    }).then((data: Tour) => {
+      this.tours.splice(idx, 1, data);
+      this.busy = false;
+    }).catch(err => {
+      this.error = err;
+      this.busy = false;
+    })
+  }
+
+  onDelete(e: CustomEvent) {
+    e.preventDefault();
+
+    const idx = this.tours.findIndex((t) => t.id == e.detail);
+    if(idx === -1) {
+      console.error("unable to find tour with id ", e.detail);
       return;
     }
 
@@ -95,13 +128,12 @@ export class ToursView extends LitElement {
       const createdAt = new Date(tour.createdAt).toLocaleString();
       return html`
         <div>
-          ${tour.id} - ${tour.name} - ${createdAt} <a href="#" @click=${(e: Event) => this.onDelete(e, tour.id)}>[x]</a>
+          <tour-view .attrs=${tour}/>
         </div>
       `;
     });
 
     let error;
-    console.log("tours-view calling render with error", this.error);
     if(this.error !== null) {
       error = html`
         <div class="alert alert-danger">
