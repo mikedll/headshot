@@ -37,7 +37,6 @@ public class ToursController extends Controller {
         tour.setUserId(this.currentUser.getId());
         tour.setName("");
         String error = tourRepository.save(tour);
-        // String error = "mike failed";
         if(error != null) {
             System.out.println("Error: " + error);
             sendInternalServerError(error);

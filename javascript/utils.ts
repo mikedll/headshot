@@ -16,7 +16,7 @@ const makeAlert = (message: string) => {
 /*
   Takes a non-200 response and given error message, extracts any json error
   in the response, and throws a string tailored with what it found.
-  
+
   Mean to be called like thils:
 
   fetch('some/where').then(r => {
@@ -41,9 +41,8 @@ const handleAjaxError = (r: Response, msg: string) => {
     }
   })
   .catch(err => {
-    // json parse error I guess. Propagate to outer fetch catch.
-    throw `${msg} (and failed to parse JSON response)`;
-  });  
+    throw err;
+  });
 }
 
 export { makeAlert, handleAjaxError };

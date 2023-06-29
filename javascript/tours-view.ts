@@ -80,22 +80,28 @@ export class ToursView extends LitElement {
       `;
     }
 
-    const busyClass = {"ms-2": true, "d-none": !this.busy};
+    const busyClass = {"ms-2": true, "min-space": true, "d-none": !this.busy};
 
     return html`
       <div class="my-2">
 
         ${error}
 
-        <div class="my-2 d-flex align-items-center tours-nav">
+        <div class="my-2 d-flex tours-nav justify-content-between">
           <div>
-            ${this.tours.length} tour(s)
+            <div>
+              ${this.tours.length} tour(s)
+            </div>
           </div>
-          <div>
-            <a href="#" class="btn btn-primary" @click=${this.onNew}>+ New</a>
-          </div>
-          <div class=${classMap(busyClass)}>
-            <i class="fa-solid fa-rotate fa-spin"></i>
+          <div class="d-flex align-items-center rhs">
+            <div>
+              <a href="#" class="btn btn-primary" @click=${this.onNew}>+ New</a>
+            </div>
+            <div class="spinner-container">
+              <div class=${classMap(busyClass)}>
+                <i class="fa-solid fa-rotate fa-spin"></i>
+              </div>
+            </div>
           </div>
         </div>
         ${tours}
