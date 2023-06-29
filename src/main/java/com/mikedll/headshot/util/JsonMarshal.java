@@ -6,10 +6,9 @@ import org.javatuples.Pair;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.type.CollectionType;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.SerializationFeature;
     
 public class JsonMarshal {
 
@@ -23,9 +22,7 @@ public class JsonMarshal {
         return Pair.with(marshalled, null);
     }
 
-    public static <T> Pair<T, String> unmarshal(String input, TypeReference<T> typeRef) {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    public static <T> Pair<T, String> unmarshal(ObjectMapper mapper, String input, TypeReference<T> typeRef) {
         T unmarshalled = null;
         try {
             unmarshalled = mapper.readValue(input, typeRef);
@@ -35,14 +32,11 @@ public class JsonMarshal {
         return Pair.with(unmarshalled, null);        
     }
 
-    public static <T> Pair<T, String> convert(JsonNode node, TypeReference<T> typeRef) {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    public static <T> Pair<T, String> convert(ObjectMapper mapper, JsonNode node, TypeReference<T> typeRef) {
         return Pair.with(mapper.convertValue(node, typeRef), null);        
     }
 
-    public static Pair<JsonNode, String> getJsonNode(String input) {
-        ObjectMapper mapper = new ObjectMapper();
+    public static Pair<JsonNode, String> getJsonNode(ObjectMapper mapper, String input) {
         JsonNode ret = null;
         try {
             ret = mapper.readTree(input);

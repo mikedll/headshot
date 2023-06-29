@@ -9,6 +9,7 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 
 import org.javatuples.Pair;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
@@ -26,6 +27,12 @@ import com.mikedll.headshot.util.JsonMarshal;
 
 public class RestClient {
 
+    private ObjectMapper jsonMapper;
+    
+    public RestClient(ObjectMapper mapper) {
+        this.jsonMapper = mapper;
+    }
+    
     public Pair<String,String> get(URI uri) {
         Map<String,String> headers = new HashMap<>();
         return get(uri, headers);
@@ -53,7 +60,7 @@ public class RestClient {
             return Pair.with(null, rawResult.getValue1());
         }
 
-        Pair<T,String> unmarshalResult = JsonMarshal.unmarshal(rawResult.getValue0(), typeRef);
+        Pair<T,String> unmarshalResult = JsonMarshal.unmarshal(this.jsonMapper, rawResult.getValue0(), typeRef);
         if(unmarshalResult.getValue1() != null) {
             return Pair.with(null, unmarshalResult.getValue1());
         }
@@ -92,7 +99,7 @@ public class RestClient {
             return Pair.with(null, rawResult.getValue1());
         }
 
-        Pair<T,String> unmarshalResult = JsonMarshal.unmarshal(rawResult.getValue0(), typeRef);
+        Pair<T,String> unmarshalResult = JsonMarshal.unmarshal(this.jsonMapper, rawResult.getValue0(), typeRef);
         if(unmarshalResult.getValue1() != null) {
             return Pair.with(null, unmarshalResult.getValue1());
         }

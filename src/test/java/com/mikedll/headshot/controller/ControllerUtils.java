@@ -3,6 +3,8 @@ package com.mikedll.headshot.controller;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.io.BufferedReader;
+import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.util.Map;
 import java.util.LinkedHashMap;
@@ -26,6 +28,8 @@ public class ControllerUtils {
 
     private Integer expectedStatus;
 
+    private String body;
+
     public void setSession(Map<String,Object> session) {
         this.session = session;
     }
@@ -38,6 +42,10 @@ public class ControllerUtils {
         this.expectedStatus = status;
     }
 
+    public void setBody(String body) {
+        this.body = body;
+    }
+
     public TestRequest makeRequest(String path, String method) {
         HttpServletRequest req = Mockito.mock(HttpServletRequest.class);
         HttpServletResponse res = Mockito.mock(HttpServletResponse.class);
@@ -48,6 +56,16 @@ public class ControllerUtils {
         Mockito.when(req.getServerPort()).thenReturn(80);
         Mockito.when(req.getRequestURI()).thenReturn(path);
         Mockito.when(req.getMethod()).thenReturn(method);
+
+        if(this.body != null) {
+            BufferedReader reader = new BufferedReader(new StringReader(this.body));
+            try {
+                Mockito.when(req.getReader()).thenReturn(reader);
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
+        }
+            
         StringWriter stringWriter = new StringWriter();
         PrintWriter printWriter = new PrintWriter(stringWriter);
         try {
@@ -138,6 +156,8 @@ public class ControllerUtils {
 
         private Integer expectedStatus;
 
+        private String body;
+
         public Builder withUser() {
             return withUser(Factories.createUser());
         }
@@ -159,6 +179,11 @@ public class ControllerUtils {
             this.cookieString = cookieString;
             return this;
         }
+
+        public Builder withBody(String body) {
+            this.body = body;
+            return this;
+        }
         
         public ControllerUtils build() {
             ControllerUtils controllerUtils = new ControllerUtils();
@@ -170,6 +195,9 @@ public class ControllerUtils {
             }
             if(expectedStatus != null) {
                 controllerUtils.setExpectedStatus(this.expectedStatus);
+            }
+            if(body != null) {
+                controllerUtils.setBody(body);
             }
 
             return controllerUtils;

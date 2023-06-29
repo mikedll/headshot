@@ -49,7 +49,7 @@ public class LoginController extends Controller {
 
     @Override
     public void acquireDataAccess() {
-        this.restClient = new RestClient();
+        this.restClient = new RestClient(getJsonObjectMapper());
         this.userRepository = getRepository(UserRepository.class);
     }
 

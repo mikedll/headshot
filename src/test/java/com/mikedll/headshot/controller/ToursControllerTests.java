@@ -12,6 +12,7 @@ import com.mikedll.headshot.Factories;
 import com.mikedll.headshot.model.User;
 import com.mikedll.headshot.model.Tour;
 import com.mikedll.headshot.model.TourRepository;
+import com.mikedll.headshot.util.JsonMarshal;
 
 public class ToursControllerTests extends ControllerTest {
 
@@ -42,5 +43,25 @@ public class ToursControllerTests extends ControllerTest {
         Pair<Optional<Tour>, String> fetchResult = tourRepository.findById(tour.getId());
         Assertions.assertNull(fetchResult.getValue1(), "fetch ok");
         Assertions.assertNull(fetchResult.getValue0().orElse(null), "deleted");
+    }
+
+    @Test
+    public void testUpdate() {
+        User user = Factories.createUser();
+        Tour tour = Factories.createTour(user);
+
+        tour.setName("Awesome name");
+        Pair<String, String> marshal = JsonMarshal.marshal(ControllerUtils.app.jsonObjectMapper, tour);
+        Assertions.assertNull(marshal.getValue1());
+            
+        TestRequest request = ControllerUtils.builder().withUser(user)
+            .withBody(marshal.getValue0())
+            .expectStatus(HttpServletResponse.SC_OK)
+            .build().put("/tours/" + tour.getId());
+        
+        TourRepository tourRepository = ControllerUtils.getRepository(TourRepository.class);
+        Pair<Optional<Tour>, String> fetchResult = tourRepository.findById(tour.getId());
+        Assertions.assertNull(fetchResult.getValue1(), "fetch ok");
+        Assertions.assertEquals("Awesome name", fetchResult.getValue0().orElse(null).getName());
     }
 }

@@ -18,6 +18,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 
 import com.mikedll.headshot.db.DatabaseConfiguration;
@@ -150,12 +151,13 @@ public class Application {
      * Return error on failure, null on success.
      */
     public String webSetup() {
-        this.apiClientManager = new ApiClientManager();
-
         this.jsonObjectMapper = JsonMapper.builder().findAndAddModules().build();
         this.jsonObjectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+        this.jsonObjectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         this.jsonObjectMapper.setTimeZone(TimeZone.getTimeZone("America/Los_Angeles"));
-                
+
+        this.apiClientManager = new ApiClientManager(this.jsonObjectMapper);
+        
         this.logger.info("Scanning for request handlers...");
         String error = findRequestHandlers();
         if(error != null) {

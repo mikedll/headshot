@@ -36,6 +36,18 @@ public class TourRepositoryTests extends DbTest {
         Assertions.assertEquals(tour.getName(), foundTour.getName());
     }
 
+
+    @Test
+    public void testUpdate() {
+        Tour tour = Factories.createTour();
+        TourRepository tourRepository = ControllerUtils.getRepository(TourRepository.class);
+        tour.setName("Mike's tour");
+        tourRepository.save(tour);
+        Pair<Optional<Tour>,String> fetchResult = tourRepository.findById(tour.getId());
+        Assertions.assertNull(fetchResult.getValue1(), "fetch ok");
+        Assertions.assertEquals("Mike's tour", fetchResult.getValue0().orElse(null).getName(), "save worked");
+    }
+
     @Test
     public void testForUser() {
         User user = Factories.createUser();
@@ -67,5 +79,6 @@ public class TourRepositoryTests extends DbTest {
         Assertions.assertNull(fetchResult.getValue1(), "fetch ok");
         Assertions.assertEquals(tour.getId(), fetchResult.getValue0().orElse(null).getId(), "found");
     }
+
         
 }

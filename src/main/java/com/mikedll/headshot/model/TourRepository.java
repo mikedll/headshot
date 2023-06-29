@@ -57,7 +57,9 @@ public class TourRepository extends RepositoryBase<Tour> {
     
     public String save(Tour tour) {
         if(tour.getId() != null) {
-            throw new RuntimeException("tour update not implemented yet");
+            return SimpleSql.executeUpdate(dbConf, "UPDATE tours SET name = ? WHERE id = ?",
+                                           new SqlArg(String.class, tour.getName()),
+                                           new SqlArg(Long.class, tour.getId()));
         } else {
             if(tour.getCreatedAt() == null) {
                 tour.setCreatedAt(Instant.now());

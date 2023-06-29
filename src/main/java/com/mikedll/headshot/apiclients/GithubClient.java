@@ -12,6 +12,7 @@ import java.util.Optional;
 
 import org.javatuples.Pair;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.apache.logging.log4j.Logger;
 
@@ -32,6 +33,8 @@ public class GithubClient {
     public static final String DIR_TYPE = "dir";
     
     private UserRepository userRepository;
+
+    private ObjectMapper jsonMapper;
     
     private String accessToken;
 
@@ -55,6 +58,7 @@ public class GithubClient {
         this.logger = logger;
         this.restClient = restClient;
         this.userRepository = controller.getRepository(UserRepository.class);
+        this.jsonMapper = controller.getJsonObjectMapper();
         this.accessToken = accessToken;
     }
 
@@ -117,7 +121,7 @@ public class GithubClient {
         }
         
         String body = restResult.getValue0();
-        Pair<JsonNode,String> node = JsonMarshal.getJsonNode(body);
+        Pair<JsonNode,String> node = JsonMarshal.getJsonNode(this.jsonMapper, body);
         if(node.getValue1() != null) {
             return Pair.with(null, "unable to read path: " + node.getValue1());
         }
@@ -125,7 +129,7 @@ public class GithubClient {
         if(node.getValue0().isArray()) {
             // Directory
             Pair<List<PathReadFileResponse>, String> dirResult
-                = JsonMarshal.convert(node.getValue0(), new TypeReference<List<PathReadFileResponse>>() {});
+                = JsonMarshal.convert(this.jsonMapper, node.getValue0(), new TypeReference<List<PathReadFileResponse>>() {});
             List<GithubFile> files = dirResult.getValue0().stream().map(fileResp -> {
                     return new GithubFile(fileResp.type(), fileResp.name(), null, false);
                 }).collect(Collectors.toList());
@@ -133,7 +137,7 @@ public class GithubClient {
         } else {
             // File
             Pair<PathReadFileResponse, String> fileResult
-                = JsonMarshal.convert(node.getValue0(), new TypeReference<PathReadFileResponse>() {});
+                = JsonMarshal.convert(this.jsonMapper, node.getValue0(), new TypeReference<PathReadFileResponse>() {});
             List<GithubFile> files = new ArrayList<>();
             PathReadFileResponse fileResp = fileResult.getValue0();
 
