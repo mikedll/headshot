@@ -5,6 +5,7 @@ import java.util.List;
 import java.time.Instant;
 import java.io.File;
 import java.io.IOException;
+import java.util.TimeZone;
 
 import io.github.cdimascio.dotenv.Dotenv;
 import org.javatuples.Pair;
@@ -15,6 +16,9 @@ import nz.net.ultraq.thymeleaf.layoutdialect.LayoutDialect;
 import org.apache.logging.log4j.core.config.ConfigurationFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 
 import com.mikedll.headshot.db.DatabaseConfiguration;
 import com.mikedll.headshot.db.Migrations;
@@ -43,6 +47,8 @@ public class Application {
     public TemplateEngine templateEngine;
 
     public Logger logger;
+
+    public ObjectMapper jsonObjectMapper;
     
     public void setConfig(Config config) {
         this.config = config;
@@ -145,7 +151,11 @@ public class Application {
      */
     public String webSetup() {
         this.apiClientManager = new ApiClientManager();
-        
+
+        this.jsonObjectMapper = JsonMapper.builder().findAndAddModules().build();
+        this.jsonObjectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+        this.jsonObjectMapper.setTimeZone(TimeZone.getTimeZone("America/Los_Angeles"));
+                
         this.logger.info("Scanning for request handlers...");
         String error = findRequestHandlers();
         if(error != null) {

@@ -5,6 +5,11 @@
     "noImplicitAny": true,
     "strict": true,
     "moduleResolution": "node",
-    "experimentalDecorators": true
+
+    // else Lit decorators don't work
+    "experimentalDecorators": true,
+    
+    // else reactive properties don't work in Lit
+    "useDefineForClassFields": false
   }
 }

@@ -9,11 +9,11 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.type.CollectionType;
 import com.fasterxml.jackson.databind.DeserializationFeature;
-
+import com.fasterxml.jackson.databind.SerializationFeature;
+    
 public class JsonMarshal {
 
-    public static <T> Pair<String,String> marshal(T input) {
-        ObjectMapper mapper = new ObjectMapper();
+    public static <T> Pair<String,String> marshal(ObjectMapper mapper, T input) {
         String marshalled = null;
         try {
             marshalled = mapper.writeValueAsString(input);

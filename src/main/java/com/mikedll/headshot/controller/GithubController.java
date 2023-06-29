@@ -57,7 +57,7 @@ public class GithubController extends Controller {
             return;
         }
 
-        Pair<String,String> marshalled = JsonMarshal.marshal(result.getValue0());
+        Pair<String,String> marshalled = JsonMarshal.marshal(getJsonObjectMapper(), result.getValue0());
         if(marshalled.getValue1() != null) {
             sendInternalServerError(marshalled.getValue1());
             return;

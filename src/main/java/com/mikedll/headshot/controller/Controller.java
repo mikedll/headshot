@@ -17,6 +17,7 @@ import org.thymeleaf.context.Context;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.javatuples.Pair;
 import org.apache.logging.log4j.Logger;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import com.mikedll.headshot.apiclients.GithubClient;
 import com.mikedll.headshot.model.UserRepository;
@@ -100,6 +101,10 @@ public class Controller {
 
     public Config getConfig() {
         return this.app.config;
+    }
+
+    public ObjectMapper getJsonObjectMapper() {
+        return this.app.jsonObjectMapper;
     }
     
     public Context defaultCtx() {
@@ -272,7 +277,7 @@ public class Controller {
             if(req.getHeader("Accept").equals(CONTENT_TYPE_JSON)) {
                 Map<String,String> response = new HashMap<>();
                 response.put("error", message);
-                Pair<String,String> marshalled = JsonMarshal.marshal(response);
+                Pair<String,String> marshalled = JsonMarshal.marshal(getJsonObjectMapper(), response);
                 if(marshalled.getValue1() != null) {
                     res.sendError(status, message);
                 } else {
@@ -296,6 +301,7 @@ public class Controller {
         }
         
         try {
+            res.setStatus(HttpServletResponse.SC_OK);
             templateEngine.process(template, ctx, res.getWriter());
         } catch (IOException ex) {
             throw new RuntimeException("failed to render template: " + template, ex);

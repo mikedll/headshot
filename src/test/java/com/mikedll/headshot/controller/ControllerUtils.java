@@ -24,12 +24,18 @@ public class ControllerUtils {
 
     private String cookieString;
 
+    private Integer expectedStatus;
+
     public void setSession(Map<String,Object> session) {
         this.session = session;
     }
 
     public void setCookieString(String cookieString) {
         this.cookieString = cookieString;
+    }
+
+    public void setExpectedStatus(int status) {
+        this.expectedStatus = status;
     }
 
     public TestRequest makeRequest(String path, String method) {
@@ -90,6 +96,17 @@ public class ControllerUtils {
         request.execute();
         return request;
     }
+
+    public TestRequest post(String path) {
+        TestRequest request = makeRequest(path, "POST");
+        request.execute();
+
+        if(this.expectedStatus != null) {
+            Mockito.verify(request.res()).setStatus(this.expectedStatus);
+        }
+        
+        return request;
+    }
     
     public static Builder builder() {
         return new Builder();
@@ -104,6 +121,8 @@ public class ControllerUtils {
 
         private String cookieString;
 
+        private Integer expectedStatus;
+
         public Builder withUser() {
             return withUser(Factories.createUser());
         }
@@ -113,6 +132,11 @@ public class ControllerUtils {
                 this.session = new LinkedHashMap<String, Object>();
             }
             session.put("user_id", user.getId());
+            return this;
+        }
+
+        public Builder expectStatus(int status) {
+            this.expectedStatus = status;
             return this;
         }
 
@@ -128,6 +152,9 @@ public class ControllerUtils {
             }
             if(cookieString != null) {
                 controllerUtils.setCookieString(cookieString);
+            }
+            if(expectedStatus != null) {
+                controllerUtils.setExpectedStatus(this.expectedStatus);
             }
 
             return controllerUtils;

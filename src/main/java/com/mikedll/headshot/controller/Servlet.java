@@ -26,15 +26,21 @@ public class Servlet extends HttpServlet {
     }
 
     @Override
-    protected final void doPut(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
-        doService(req, res, HttpMethod.PUT);
-    }
-    
-    @Override
     protected final void doGet(HttpServletRequest req, HttpServletResponse res)
         throws ServletException, IOException {
         doService(req, res, HttpMethod.GET);
     }
+    
+    @Override
+    protected final void doPut(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+        doService(req, res, HttpMethod.PUT);
+    }
+
+    @Override
+    protected final void doPost(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+        doService(req, res, HttpMethod.POST);
+    }
+    
 
     private Optional<Pair<RequestHandler,PathMatch>> findHandlerMatch(Pair<String, HttpMethod> incomingRequest) {
         List<Pair<RequestHandler,PathMatch>> matchPairs = this.app.requestHandlers

@@ -1,0 +1,10 @@
+<html layout:decorate="~{layout}">
+  
+  <script layout:fragment="head-script" th:inline="javascript">
+    window.tours = [[${tours}]];
+  </script>
+    
+  <div layout:fragment="content">
+    <tours-view/>
+  </div>
+</html>

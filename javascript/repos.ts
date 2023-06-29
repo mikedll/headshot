@@ -1,4 +1,4 @@
-import { makeAlert } from './utils';
+import { handleAjaxError, makeAlert } from './utils';
 
 const reposIndex = () => {
   const container = document.querySelector('.repositories .top-area');
@@ -95,21 +95,7 @@ const repoPath = () => {
       if(r.ok) {
         return r.json();
       } else {
-        return r.json()
-        .then(data => {
-          if(data === undefined) {
-            throw `${r.status} Internal Server Error: Failed to get directory listing`;
-          }
-
-          if('error' in data) {
-            throw `Failed to get directory listing: ${data.error}`;
-          } else {
-            throw "Failed to get directory listing (and failed to parse JSON response)";
-          }
-        })
-        .catch(e => {
-          throw "Failed to get directory listing (and failed to parse JSON response)";
-        });
+        return handleAjaxError(r, 'Failed to get directory listing');
       }
     }).then((data: GithubPath) => {
       const tbody = container.querySelector('table tbody')!;

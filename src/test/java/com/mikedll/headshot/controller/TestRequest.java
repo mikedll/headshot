@@ -20,6 +20,8 @@ public record TestRequest(String method, HttpServletRequest req, HttpServletResp
                 servlet.doGet(req(), res());
             } else if(method == "PUT") {
                 servlet.doPut(req(), res());
+            } else if(method == "POST") {
+                servlet.doPost(req(), res());
             } else {
                 throw new RuntimeException("Unexpected method: " + method);
             }
