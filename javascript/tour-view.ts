@@ -64,9 +64,11 @@ export class TourView extends LitElement {
       nameArea = html`${attrs.name} <a href="#" @click=${this.enterEditing}>[!]</a>`;
     }
 
+    const createdAt = new Date(attrs.createdAt).toLocaleString();
+
     return html`
       <div class="my-2">
-        ${attrs.id} - ${nameArea} - ${attrs.createdAt} <a href="#" @click=${(e: Event) => this.onDelete(e, attrs.id)}>[x]</a>
+        ${attrs.id} - ${nameArea} - ${createdAt} <a href="#" @click=${(e: Event) => this.onDelete(e, attrs.id)}>[x]</a>
       </div>
     `;
   }

@@ -125,7 +125,6 @@ export class ToursView extends LitElement {
 
   override render() {
     const tours = repeat(this.tours, (t) => t.id, (tour, i) => {
-      const createdAt = new Date(tour.createdAt).toLocaleString();
       return html`
         <div>
           <tour-view .attrs=${tour}/>
