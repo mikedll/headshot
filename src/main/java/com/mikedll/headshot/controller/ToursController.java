@@ -40,7 +40,6 @@ public class ToursController extends Controller {
         tour.setName("Untitled Tour");
         String error = tourRepository.save(tour);
         if(error != null) {
-            System.out.println("Error: " + error);
             sendInternalServerError(error);
             return;
         }
