@@ -12,7 +12,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Cookie;
 
+import org.javatuples.Pair;
 import org.mockito.Mockito;
+import org.mockito.ArgumentCaptor;
 
 import com.mikedll.headshot.model.User;
 import com.mikedll.headshot.Factories;
@@ -22,11 +24,11 @@ public class ControllerUtils {
 
     public static Application app;
     
-    private Map<String,Object> session = null;
+    private Map<String,Object> session;
 
     private String cookieString;
 
-    private Integer expectedStatus;
+    private Integer expectedStatus = HttpServletResponse.SC_OK;
 
     private String body;
 
@@ -56,7 +58,6 @@ public class ControllerUtils {
         Mockito.when(req.getServerPort()).thenReturn(80);
         Mockito.when(req.getRequestURI()).thenReturn(path);
         Mockito.when(req.getMethod()).thenReturn(method);
-
         if(this.body != null) {
             BufferedReader reader = new BufferedReader(new StringReader(this.body));
             try {
@@ -73,6 +74,8 @@ public class ControllerUtils {
         } catch (IOException ex) {
             throw new RuntimeException("IOException when mocking response getWriter()", ex);
         }
+        ArgumentCaptor<Cookie> cookieArg = ArgumentCaptor.forClass(Cookie.class);
+        Mockito.doNothing().when(res).addCookie(cookieArg.capture());
 
         if(session != null && cookieString != null) {
             throw new RuntimeException("cookieString and session can't both be null");
@@ -80,27 +83,25 @@ public class ControllerUtils {
 
         if(session != null) {
             CookieManager cookieManager = new CookieManager(app.config.cookieSigningKey);
-            String cookieString = null;
+            Pair<String,String> strResult = null;
             try {
-                cookieString = cookieManager.cookieString(session);
+                strResult = cookieManager.cookieString(app.jsonObjectMapper, session);
             } catch (Throwable ex) {
                 throw new RuntimeException("Exception in cookieString(...)", ex);
             }
 
             Cookie cookie = Mockito.mock(Cookie.class);
             Mockito.when(cookie.getName()).thenReturn(Controller.COOKIE_NAME);
-            Mockito.when(cookie.getValue()).thenReturn(cookieString);
+            Mockito.when(cookie.getValue()).thenReturn(strResult.getValue0());
             Mockito.when(req.getCookies()).thenReturn(new Cookie[] { cookie });
         } else if(cookieString != null) {
             Cookie cookie = Mockito.mock(Cookie.class);
             Mockito.when(cookie.getName()).thenReturn(Controller.COOKIE_NAME);
             Mockito.when(cookie.getValue()).thenReturn(cookieString);
             Mockito.when(req.getCookies()).thenReturn(new Cookie[] { cookie });
-            
         }
 
-        return new TestRequest(method, req, res, printWriter, stringWriter);
-        
+        return new TestRequest(app, method, req, res, printWriter, stringWriter, cookieArg, new LinkedHashMap<String,Object>());
     }
     
     public TestRequest get(String path) {
@@ -151,7 +152,7 @@ public class ControllerUtils {
 
     public static class Builder {
         private Map<String,Object> session;
-
+        
         private String cookieString;
 
         private Integer expectedStatus;
@@ -203,4 +204,5 @@ public class ControllerUtils {
             return controllerUtils;
         }        
     }
+
 }

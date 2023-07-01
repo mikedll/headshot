@@ -7,6 +7,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.io.UnsupportedEncodingException;
 import java.util.LinkedHashMap;
+import java.io.UnsupportedEncodingException;
 
 import javax.crypto.Mac;
 import javax.crypto.KeyGenerator;
@@ -15,14 +16,12 @@ import javax.crypto.spec.SecretKeySpec;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.Cipher;
 import javax.crypto.NoSuchPaddingException;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import org.javatuples.Pair;
 
 public class CookieManager {
-
-    public record VerifyResult(Map<String,Object> deserialized, boolean ok) {}
     
     public final SecretKey keySpec;
 
@@ -59,12 +58,20 @@ public class CookieManager {
     /*
      * @todo encode and retrieve user_id as a Long
      */
-    public String cookieString(Map<String,Object> input)
-        throws UnsupportedEncodingException, JsonProcessingException {
-        ObjectMapper mapper = new ObjectMapper();
-        String marshalled = mapper.writeValueAsString(input);
-        String signature = sign(marshalled);
-        return base64Encode(marshalled.getBytes("UTF-8")) + "." + signature;
+    public Pair<String,String> cookieString(ObjectMapper mapper, Map<String,Object> input) {
+        String marshalled = null;
+        String signature = null;
+        String ret = null;
+        try {
+            marshalled = mapper.writeValueAsString(input);
+            signature = sign(marshalled);
+            ret = base64Encode(marshalled.getBytes("UTF-8")) + "." + signature;
+        } catch (JsonProcessingException ex) {
+            return Pair.with(null, "JsonProcessingException: " + ex.getMessage());
+        } catch (UnsupportedEncodingException ex) {
+            return Pair.with(null, "UnsupportedEncodingException: " + ex.getMessage());
+        }
+        return Pair.with(ret, null);
     }
 
     /*
@@ -87,22 +94,28 @@ public class CookieManager {
     /*
      * Verify a signature.
      */
-    public VerifyResult verify(String cookieString) throws UnsupportedEncodingException, JsonProcessingException {
+    public Pair<Map<String,Object>,String> verify(ObjectMapper mapper, String cookieString) {
         String[] split = cookieString.split("\\.");
         if(split.length != 2) {
-            return new VerifyResult(null, false);
+            return Pair.with(null, "invalid string format");
         }
 
         String encoded = split[0];
         String originalStr = base64DecodeStr(encoded);
-        if(!sign(originalStr).equals(split[1])) {
-            return new VerifyResult(null, false);
+        String signed = null;
+        try {
+            signed = sign(originalStr);
+        } catch (UnsupportedEncodingException ex) {
+            return Pair.with(null, "UnsupportedEncodingException: " + ex.getMessage());
+        }
+        if(!signed.equals(split[1])) {
+            return Pair.with(null, "invalid signature");
         }
 
-        ObjectMapper mapper = new ObjectMapper();
-        TypeReference<LinkedHashMap<String,Object>> typeRef = new TypeReference<LinkedHashMap<String,Object>>() {};
-        Map<String,Object> map = mapper.readValue(originalStr, typeRef);
-
-        return new VerifyResult(map, true);
+        try {
+            return Pair.with(mapper.readValue(originalStr, new TypeReference<LinkedHashMap<String,Object>>() {}), null);
+        } catch(JsonProcessingException ex) {
+            return Pair.with(null, "JsonProcessingException: " + ex.getMessage());
+        }
     }
 }

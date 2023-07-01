@@ -20,7 +20,7 @@ import com.mikedll.headshot.db.SimpleSql;
 
 @Suite
 @SelectPackages({"com.mikedll.headshot"})
-@ExcludeClassNamePatterns({".*MigrationsTests", ".*PathParamTests"})
+@ExcludeClassNamePatterns({".*MigrationsTests", ".*PathParamTests", ".*CookieManagerTests"})
 public class DbSuite extends TestSuite {
 
     private Application app;

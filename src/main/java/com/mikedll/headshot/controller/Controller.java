@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Arrays;
-import java.io.UnsupportedEncodingException;
 import java.util.Optional;
 import java.io.PrintWriter;
 import java.util.stream.Collectors;
@@ -14,7 +13,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Cookie;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import org.javatuples.Pair;
 import org.apache.logging.log4j.Logger;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -155,24 +153,11 @@ public class Controller {
             .filter(c -> c.getName().equals(COOKIE_NAME)).findAny().orElse(null);
         
         if(cookie != null) {
-            CookieManager.VerifyResult result = null;
-            try {
-                result = cookieManager.verify(cookie.getValue());
-            } catch (UnsupportedEncodingException ex) {
-                this.logger.error("UnsupportedEncodingException when verifing cookie: " + ex.getMessage());
-                sendInternalServerError("Internal logic error: unsupported encoding when parsing cookie");
-                return false;
-            } catch (JsonProcessingException ex) {
-                // Probably a hack attempt. No reason for json to be malformed.
-                this.logger.error("JsonProcessingException when verifing cookie: " + ex.getMessage());
+            Pair<Map<String,Object>,String> result = cookieManager.verify(getJsonObjectMapper(), cookie.getValue());
+            if(result.getValue1() != null) {
                 cookieCheckOkay = false;
-            }
-                
-            if(result.ok()) {
-                this.session = result.deserialized();
             } else {
-                // We found a cookie by our name but the sig test failed. This is a hack attempt.
-                cookieCheckOkay = false;
+                this.session = result.getValue0();
             }
         } else {
             this.session = new HashMap<String,Object>();
@@ -241,16 +226,14 @@ public class Controller {
     }
 
     public void sendCookies() {
-        try {
-            Cookie sessionCookie = new Cookie(COOKIE_NAME, cookieManager.cookieString(this.session));
-            sessionCookie.setAttribute("SameSite", "Lax");
-            sessionCookie.setAttribute("Path", "/");            
-            res.addCookie(sessionCookie);
-        } catch (JsonProcessingException ex) {
-            throw new RequestException("Unable calculate cookie", ex);
-        } catch (UnsupportedEncodingException ex) {
-            throw new RequestException("Unable to flush cookies", ex);
+        Pair<String,String> strResult = cookieManager.cookieString(getJsonObjectMapper(), this.session);
+        if(strResult.getValue1() != null) {
+            throw new RuntimeException("Error: " + strResult.getValue1());
         }
+        Cookie sessionCookie = new Cookie(COOKIE_NAME, strResult.getValue0());
+        sessionCookie.setAttribute("SameSite", "Lax");
+        sessionCookie.setAttribute("Path", "/");
+        res.addCookie(sessionCookie);
     }
 
     public String localOrigin() {
@@ -268,6 +251,10 @@ public class Controller {
         sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, message);
     }
 
+    public void sendNotFound() {
+        sendError(HttpServletResponse.SC_NOT_FOUND, "Resource not found");
+    }
+    
     public void sendError(int status, String message) {
         if(this.rendered) {
             throw new RequestException("response already sent");

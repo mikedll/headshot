@@ -20,7 +20,6 @@ public class ToursControllerTests extends ControllerTest {
     public void testCreate() {
         User user = Factories.createUser();
         TestRequest request = ControllerUtils.builder().withUser(user)
-            .expectStatus(HttpServletResponse.SC_OK)
             .build().post("/tours");
 
         Assertions.assertTrue(request.responseBody().contains("\"userId\":" + user.getId()));
@@ -36,7 +35,6 @@ public class ToursControllerTests extends ControllerTest {
         User user = Factories.createUser();
         Tour tour = Factories.createTour(user);
         TestRequest request = ControllerUtils.builder().withUser(user)
-            .expectStatus(HttpServletResponse.SC_OK)
             .build().delete("/tours/" + tour.getId());
 
         TourRepository tourRepository = ControllerUtils.getRepository(TourRepository.class);
@@ -56,12 +54,23 @@ public class ToursControllerTests extends ControllerTest {
             
         TestRequest request = ControllerUtils.builder().withUser(user)
             .withBody(marshal.getValue0())
-            .expectStatus(HttpServletResponse.SC_OK)
             .build().put("/tours/" + tour.getId());
         
         TourRepository tourRepository = ControllerUtils.getRepository(TourRepository.class);
         Pair<Optional<Tour>, String> fetchResult = tourRepository.findById(tour.getId());
         Assertions.assertNull(fetchResult.getValue1(), "fetch ok");
         Assertions.assertEquals("Awesome name", fetchResult.getValue0().orElse(null).getName());
+    }
+
+    @Test
+    public void testEdit() {
+        User user = Factories.createUser();
+        Tour tour = Factories.createTour(user);
+
+        TestRequest request = ControllerUtils.builder().withUser(user)
+            .build().put("/tours/" + tour.getId() + "/activate_edit");
+
+        Long found = ((Integer)request.session().get("tour_under_edit_id")).longValue();
+        Assertions.assertEquals(tour.getId(), found, "tour set");
     }
 }

@@ -57,6 +57,7 @@ public class ToursController extends Controller {
     public void delete() {
         Tour tour = ResourceLoader.loadTour(this, tourRepository, this.currentUser, this.getPathParam("id")).orElse(null);
         if(tour == null) {
+            sendNotFound();
             return;
         }
            
@@ -73,6 +74,7 @@ public class ToursController extends Controller {
     public void update() {
         Tour tour = ResourceLoader.loadTour(this, tourRepository, this.currentUser, this.getPathParam("id")).orElse(null);
         if(tour == null) {
+            sendNotFound();
             return;
         }
 
@@ -98,5 +100,18 @@ public class ToursController extends Controller {
         }
 
         sendJson(response.getValue0());
+    }
+
+    @Request(path="/tours/{id}/activate_edit", method=HttpMethod.PUT)
+    public void activateEdit() {
+        Tour tour = ResourceLoader.loadTour(this, tourRepository, this.currentUser, this.getPathParam("id")).orElse(null);
+        if(tour == null) {
+            sendNotFound();
+            return;
+        }
+
+        this.session.put("tour_under_edit_id", tour.getId());
+        sendCookies();
+        res.setStatus(HttpServletResponse.SC_OK);
     }
 }

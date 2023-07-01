@@ -10,13 +10,24 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.NoSuchPaddingException;
 import java.io.UnsupportedEncodingException;
 
+import org.javatuples.Pair;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import com.fasterxml.jackson.core.JsonProcessingException;
+
+import com.mikedll.headshot.Application;
+import com.mikedll.headshot.TestSuite;
+import com.mikedll.headshot.SimpleSuite;
 
 public class CookieManagerTests {
 
-    private final String key = "eVKgwkis9APaD2o2/suPAv9sgs156+fMTBDDbM1vgwU=";
+    private Application app;
+    
+    @BeforeEach
+    public void setup() {
+        this.app = TestSuite.getSuite(SimpleSuite.class).app;
+    }
     
     @Test
     public void testGenKey() throws NoSuchAlgorithmException {
@@ -26,7 +37,7 @@ public class CookieManagerTests {
 
     @Test
     void testDecode() {
-        CookieManager c = new CookieManager(key);
+        CookieManager c = new CookieManager(app.config.cookieSigningKey);
         Assertions.assertEquals("mike goes to the store", c.base64DecodeStr("bWlrZSBnb2VzIHRvIHRoZSBzdG9yZQ=="));
     }
 
@@ -63,33 +74,35 @@ public class CookieManagerTests {
     
     @Test
     @SuppressWarnings("unchecked")    
-    public void testVerifySucceeds() throws UnsupportedEncodingException, JsonProcessingException {
-        CookieManager c = new CookieManager(key);
+    public void testVerifySucceeds() {
+        CookieManager c = new CookieManager(app.config.cookieSigningKey);
 
         Map<String, Object> toSign = toSign();
-        String cookieString = c.cookieString(toSign);
-        CookieManager.VerifyResult result = c.verify(cookieString);
+        Pair<String,String> strResult = c.cookieString(app.jsonObjectMapper, toSign);
+        Assertions.assertNull(strResult.getValue1());
+        Pair<Map<String,Object>,String> verifyResult = c.verify(app.jsonObjectMapper, strResult.getValue0());
         
-        Assertions.assertTrue(result.ok());
-        Assertions.assertEquals(toSign, result.deserialized());
+        Assertions.assertNull(verifyResult.getValue1(), "verify ok");
+        Assertions.assertEquals(toSign, verifyResult.getValue0(), "correct map");
     }
 
     @Test
-    public void testVerifyFail() throws UnsupportedEncodingException, JsonProcessingException {
-        CookieManager c = new CookieManager(key);
+    public void testVerifyFail() throws UnsupportedEncodingException {
+        CookieManager c = new CookieManager(app.config.cookieSigningKey);
         Map<String, Object> toSign = toSign();
-        String cookieString = c.cookieString(toSign);
+        Pair<String,String> strResult = c.cookieString(app.jsonObjectMapper, toSign);
+        Assertions.assertNull(strResult.getValue1());
 
-        String[] split = cookieString.split("\\.");
+        String[] split = strResult.getValue0().split("\\.");
         String badSig = CookieManager.base64Encode("notValidSignature".getBytes("UTF-8"));
         String badCookieString = split[0] + "." + badSig;
-        Assertions.assertFalse(c.verify(badCookieString).ok());
+        Assertions.assertNotNull(c.verify(app.jsonObjectMapper, badCookieString).getValue1(), "find error");
     }
 
     @Test
-    public void testVerifyFailJunk() throws UnsupportedEncodingException, JsonProcessingException {
-        CookieManager c = new CookieManager(key);
-        Assertions.assertFalse(c.verify("bullcrap").ok());
+    public void testVerifyFailJunk() {
+        CookieManager c = new CookieManager(app.config.cookieSigningKey);
+        Assertions.assertNotNull(c.verify(app.jsonObjectMapper, "bullcrap").getValue1(), "find error");
     }
     
 }

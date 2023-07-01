@@ -51,6 +51,8 @@ export class TourView extends LitElement {
       this.setName(e);
       this.dispatchEvent(new CustomEvent<Tour>('update-tour', {detail: this.attrs!, bubbles: true}));
       this.editing = false;
+    } else if(e.key === 'Escape') {
+      this.editing = false;
     }
   }
 

@@ -15,12 +15,13 @@ import org.junit.platform.suite.api.SelectClasses;
 
 import com.mikedll.headshot.controller.PathParamTests;
 import com.mikedll.headshot.controller.ControllerUtils;
+import com.mikedll.headshot.controller.CookieManagerTests;
 
 @Suite
-@SelectClasses({PathParamTests.class})
+@SelectClasses({PathParamTests.class, CookieManagerTests.class})
 public class SimpleSuite extends TestSuite {
 
-    private Application app;
+    public Application app;
         
     /*
      * Returns true on success, false on failure.
